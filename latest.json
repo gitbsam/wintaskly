@@ -2,7 +2,7 @@
   "_comment": "Ce fichier doit être uploadé sur GitHub Pages à l'URL : https://gitbsam.github.io/wintaskly/latest.json. Wintaskly va le check toutes les 6h via cron. Quand tu publies une nouvelle version, mets simplement à jour ce JSON sur GitHub et les installations Wintaskly détecteront automatiquement la nouvelle version.",
 
   "version": "8.7.7",
-  "released": "2026-06-12",
+  "released": "2026-06-13",
   "channel": "stable",
   "min_php": "8.2",
   "critical": false,
