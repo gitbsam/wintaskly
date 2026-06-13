@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Hors ligne · Wintaskly</title>
+<meta name="theme-color" content="#0a0f1e">
+<link rel="icon" type="image/x-icon" href="/media/wintaskly/img/favicon.ico">
+<link rel="apple-touch-icon" href="/media/wintaskly/img/apple-touch-icon.png">
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    min-height: 100vh;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+    background: #0a0f1e;
+    color: #e8eaf0;
+    display: flex; align-items: center; justify-content: center;
+    text-align: center; line-height: 1.6;
+    padding: 1.5rem;
+    background-image:
+      radial-gradient(at 20% 0%,  rgba(255, 153, 51, .08) 0%, transparent 50%),
+      radial-gradient(at 80% 100%, rgba(255, 204, 51, .05) 0%, transparent 50%);
+  }
+  .box {
+    max-width: 460px;
+    padding: 2.5rem 1.75rem;
+    background: rgba(19, 24, 41, .7);
+    border: 1px solid #2a3252;
+    border-radius: 20px;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, .35);
+  }
+  .icon {
+    width: 88px; height: 88px;
+    margin: 0 auto 1.25rem;
+    background: linear-gradient(135deg, #ff9933 0%, #ffcc33 100%);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 2.4rem;
+    box-shadow: 0 12px 40px rgba(255, 153, 51, .35);
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { transform: scale(1);   box-shadow: 0 12px 40px rgba(255, 153, 51, .35); }
+    50%      { transform: scale(1.05); box-shadow: 0 14px 50px rgba(255, 153, 51, .45); }
+  }
+  h1 {
+    margin: 0 0 .5rem;
+    font-size: 1.6rem; font-weight: 700;
+    background: linear-gradient(135deg, #ff9933 0%, #ffcc33 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  p { color: #a4abc4; font-size: .95rem; margin: .5rem 0; }
+  .status {
+    display: inline-flex; align-items: center; gap: .5rem;
+    margin: 1.25rem 0 .5rem;
+    padding: .4rem .85rem;
+    background: rgba(239, 68, 68, .12);
+    border: 1px solid rgba(239, 68, 68, .3);
+    border-radius: 30px;
+    font-size: .8rem;
+    color: #fca5a5;
+  }
+  .status .dot {
+    width: 8px; height: 8px;
+    background: #ef4444;
+    border-radius: 50%;
+    animation: blink 1.5s ease-in-out infinite;
+  }
+  @keyframes blink { 50% { opacity: .3; } }
+  .status.online {
+    background: rgba(34, 197, 94, .12);
+    border-color: rgba(34, 197, 94, .3);
+    color: #86efac;
+  }
+  .status.online .dot { background: #22c55e; animation: none; }
+  .btn {
+    display: inline-flex; align-items: center; gap: .5rem;
+    padding: .75rem 1.5rem;
+    margin-top: 1.5rem;
+    background: linear-gradient(135deg, #ff9933 0%, #ffcc33 100%);
+    color: #0a0f1e;
+    border: 0; border-radius: 10px;
+    font-family: inherit; font-size: .95rem; font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    transition: transform .15s ease, box-shadow .15s ease;
+  }
+  .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(255, 153, 51, .4);
+  }
+  ul {
+    text-align: left;
+    margin: 1.25rem auto 0;
+    padding-left: 1.2rem;
+    color: #a4abc4;
+    font-size: .85rem;
+    max-width: 320px;
+  }
+  ul li { margin: .35rem 0; }
+</style>
+</head>
+<body>
+
+<div class="box">
+  <div class="icon">📡</div>
+
+  <h1>Pas de connexion</h1>
+  <p>Wintaskly a besoin d'internet pour fonctionner.</p>
+
+  <div class="status" id="netStatus">
+    <span class="dot"></span>
+    <span id="netLabel">Hors ligne</span>
+  </div>
+
+  <p style="margin-top:1rem">Vérifie ta connexion puis recharge la page.</p>
+
+  <ul>
+    <li>📶 Active le Wi-Fi ou les données mobiles</li>
+    <li>✈️ Désactive le mode avion si activé</li>
+    <li>🔄 Recharge la page une fois reconnecté</li>
+  </ul>
+
+  <button class="btn" onclick="window.location.reload()">
+    🔄 Réessayer
+  </button>
+</div>
+
+<script>
+  // Mise à jour live du statut online/offline
+  function updateNetStatus() {
+    const status = document.getElementById('netStatus');
+    const label  = document.getElementById('netLabel');
+    if (navigator.onLine) {
+      status.classList.add('online');
+      label.textContent = 'Connexion rétablie';
+      // Auto-reload après 1.5s quand reconnexion détectée
+      setTimeout(() => window.location.reload(), 1500);
+    } else {
+      status.classList.remove('online');
+      label.textContent = 'Hors ligne';
+    }
+  }
+  window.addEventListener('online', updateNetStatus);
+  window.addEventListener('offline', updateNetStatus);
+  updateNetStatus();
+</script>
+
+</body>
+</html>

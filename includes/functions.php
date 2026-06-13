@@ -1,0 +1,302 @@
+<?php
+/**
+ * Wintaskly — Fonctions utilitaires (gains, parrainage, niveaux).
+ */
+
+/**
+ * Crédite un utilisateur en Coins/XP, journalise la transaction
+ * et déclenche la commission de parrainage (10% par défaut)
+ * sans impacter le gain du filleul.
+ *
+ * @return array{coins:float,xp:int,new_level:int,referrer_bonus:float}
+ */
+function award_user(int $userId, float $coins, int $xp, string $type, ?string $meta = null): array
+{
+    $db = db();
+    $db->begin_transaction();
+    try {
+        // 1) Mise à jour solde + XP + niveau
+        $stmt = $db->prepare(
+            "UPDATE users
+                SET coins = coins + ?,
+                    xp    = xp + ?,
+                    level = GREATEST(level, 1 + FLOOR((xp + ?) / 100))
+              WHERE id = ?"
+        );
+        $stmt->bind_param('diii', $coins, $xp, $xp, $userId);
+        $stmt->execute();
+        $stmt->close();
+
+        // 2) Transaction principale
+        $stmt = $db->prepare(
+            "INSERT INTO transactions (user_id, type, coins, xp, meta)
+             VALUES (?, ?, ?, ?, ?)"
+        );
+        $stmt->bind_param('isdis', $userId, $type, $coins, $xp, $meta);
+        $stmt->execute();
+        $stmt->close();
+
+        // 3) Parrainage : commission 10% au parrain
+        $bonus = 0.0;
+        $stmt = $db->prepare("SELECT referrer_id FROM users WHERE id = ? LIMIT 1");
+        $stmt->bind_param('i', $userId);
+        $stmt->execute();
+        $row = $stmt->get_result()->fetch_assoc();
+        $stmt->close();
+
+        $referrerId = $row['referrer_id'] ?? null;
+        if ($referrerId && in_array($type, ['faucet', 'shortlink'], true)) {
+            $rate  = (float)(cfg('referral_rate', '0.10'));
+            $bonus = round($coins * $rate, 4);
+
+            if ($bonus > 0) {
+                $stmt = $db->prepare("UPDATE users SET coins = coins + ? WHERE id = ?");
+                $stmt->bind_param('di', $bonus, $referrerId);
+                $stmt->execute();
+                $stmt->close();
+
+                $stmt = $db->prepare(
+                    "INSERT INTO transactions (user_id, type, coins, xp, meta)
+                     VALUES (?, 'referral', ?, 0, ?)"
+                );
+                $metaRef = 'from_user:' . $userId . ',source:' . $type;
+                $stmt->bind_param('ids', $referrerId, $bonus, $metaRef);
+                $stmt->execute();
+                $stmt->close();
+
+                $stmt = $db->prepare(
+                    "INSERT INTO referral_earnings
+                       (referrer_id, referee_id, source, source_amount, commission)
+                     VALUES (?, ?, ?, ?, ?)"
+                );
+                $stmt->bind_param('iisdd', $referrerId, $userId, $type, $coins, $bonus);
+                $stmt->execute();
+                $stmt->close();
+            }
+        }
+
+        // 4) Récupérer le niveau mis à jour
+        $stmt = $db->prepare("SELECT level FROM users WHERE id = ? LIMIT 1");
+        $stmt->bind_param('i', $userId);
+        $stmt->execute();
+        $level = (int)($stmt->get_result()->fetch_assoc()['level'] ?? 1);
+        $stmt->close();
+
+        $db->commit();
+
+        return [
+            'coins'          => $coins,
+            'xp'             => $xp,
+            'new_level'      => $level,
+            'referrer_bonus' => $bonus,
+        ];
+    } catch (Throwable $e) {
+        $db->rollback();
+        throw $e;
+    }
+}
+
+/**
+ * Logge un événement de tricherie et bannit si nécessaire.
+ */
+function flag_cheat(?int $userId, string $reason, bool $autoBan = false): void
+{
+    $ipBin = wt_ip_bin();
+    $stmt  = db()->prepare(
+        "INSERT INTO bans (ip, user_id, reason, expires_at)
+         VALUES (?, ?, ?, ?)"
+    );
+    $expires = $autoBan ? null : date('Y-m-d H:i:s', time() + 3600);
+    $stmt->bind_param('siss', $ipBin, $userId, $reason, $expires);
+    $stmt->execute();
+    $stmt->close();
+}
+
+/**
+ * Vérifie si l'IP ou l'utilisateur courant est sous le coup d'un ban actif.
+ */
+function is_banned(?int $userId = null): bool
+{
+    $ipBin = wt_ip_bin();
+    $stmt = db()->prepare(
+        "SELECT 1 FROM bans
+          WHERE (expires_at IS NULL OR expires_at > NOW())
+            AND (ip = ? OR user_id = ?)
+          LIMIT 1"
+    );
+    $stmt->bind_param('si', $ipBin, $userId);
+    $stmt->execute();
+    $exists = (bool)$stmt->get_result()->fetch_row();
+    $stmt->close();
+    return $exists;
+}
+
+/**
+ * Génère un code de parrainage unique (alphanumérique).
+ */
+function generate_referral_code(): string
+{
+    do {
+        $code = 'WT-' . strtoupper(substr(bin2hex(random_bytes(4)), 0, 7));
+        $stmt = db()->prepare("SELECT 1 FROM users WHERE referral_code = ? LIMIT 1");
+        $stmt->bind_param('s', $code);
+        $stmt->execute();
+        $exists = (bool)$stmt->get_result()->fetch_row();
+        $stmt->close();
+    } while ($exists);
+    return $code;
+}
+
+/**
+ * Calcule le pourcentage de progression vers le prochain niveau (XP).
+ */
+function xp_progress(int $xp): array
+{
+    $level     = 1 + (int)floor($xp / 100);
+    $current   = $xp % 100;
+    return [
+        'level'         => $level,
+        'next_level'    => $level + 1,
+        'current_xp'    => $current,        // XP gagnés dans le niveau courant
+        'xp_for_next'   => 100,             // XP requis pour passer au niveau suivant
+        'percent'       => $current,        // %, équivalent à current_xp tant que palier = 100
+        'to_next'       => 100 - $current,  // XP restants pour passer au suivant
+    ];
+}
+
+/**
+ * Envoie des en-têtes HTTP de cache pour les pages statiques ou
+ * quasi-statiques (pages légales, FAQ, etc.).
+ *
+ * Cache public (CDN-friendly) avec ETag pour permettre les
+ * réponses 304 Not Modified si le contenu n'a pas changé.
+ *
+ * @param int    $maxAgeSeconds  Durée de cache (défaut 1h)
+ * @param string $version        Marqueur pour invalidation (date de mise à jour)
+ *
+ * Usage typique en haut d'une page légale :
+ *   wt_static_cache_headers(3600, $updatedAt . '-' . $WT_LANG_CODE);
+ */
+function wt_static_cache_headers(int $maxAgeSeconds = 3600, string $version = ''): void
+{
+    // Si déjà envoyés ou si on n'est pas en GET, on skip
+    if (headers_sent() || ($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'GET') {
+        return;
+    }
+
+    // ETag basé sur la version (date de mise à jour + langue + thème)
+    $etag = '"' . substr(sha1($version), 0, 16) . '"';
+
+    // 304 Not Modified si le client a déjà la bonne version
+    $clientEtag = $_SERVER['HTTP_IF_NONE_MATCH'] ?? '';
+    if ($clientEtag !== '' && trim($clientEtag) === $etag) {
+        http_response_code(304);
+        exit;
+    }
+
+    // Le 3e paramètre `true` force le REMPLACEMENT des headers existants
+    // (notamment ceux posés automatiquement par session_start() :
+    // 'Cache-Control: no-store, no-cache, must-revalidate' et 'Pragma: no-cache').
+    header('Cache-Control: public, max-age=' . $maxAgeSeconds, true);
+    header('ETag: ' . $etag, true);
+    header('Vary: Accept-Encoding, Cookie', true);
+    // Neutralise Pragma: no-cache posé par session_start (sinon il prime sur Cache-Control en HTTP/1.0)
+    header_remove('Pragma');
+    header_remove('Expires');
+}
+
+/* ============================================================================
+   SHORTLINK API : génération d'un lien court via l'API du provider
+   ============================================================================
+   Appelée par tasks/shortlinks/gateway.php quand un shortlink est en mode 'api'.
+
+   Compatible avec les providers REST qui exposent :
+       GET https://provider.com/api?api=TOKEN&url=URL_ENCODED
+       → réponse JSON  { "status": "success", "shortenedUrl": "https://..." }
+
+   C'est le format standard exe.io, shrinkme.io, shortest, etc. Si un provider
+   utilise un autre format de réponse, il faudra adapter (mais l'écrasante
+   majorité respecte ce format issu de l'historique d'adf.ly).
+
+   Retour : URL courte (string) en cas de succès, ou null en cas d'échec
+   (timeout, API down, token invalide, réponse malformée).
+   ============================================================================ */
+if (!function_exists('wt_shortlink_create_via_api')) {
+    function wt_shortlink_create_via_api(string $apiEndpoint, string $apiToken, string $destUrl): ?string
+    {
+        // Validation entrées
+        if ($apiEndpoint === '' || $apiToken === '' || $destUrl === '') {
+            error_log('[Wintaskly shortlink_api] missing params');
+            return null;
+        }
+
+        // Construit l'URL d'appel : on respecte le séparateur déjà présent dans
+        // l'endpoint (ex: 'https://exe.io/api' n'a pas de '?', mais
+        // 'https://exe.io/api?foo=bar' en a un — on adapte).
+        $sep = (strpos($apiEndpoint, '?') === false) ? '?' : '&';
+        $callUrl = $apiEndpoint . $sep
+                 . 'api=' . urlencode($apiToken)
+                 . '&url=' . urlencode($destUrl)
+                 . '&format=json';
+
+        // Appel HTTP avec cURL (préféré à file_get_contents pour le timeout
+        // et la gestion d'erreurs propre).
+        if (function_exists('curl_init')) {
+            $ch = curl_init($callUrl);
+            curl_setopt_array($ch, [
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_TIMEOUT        => 8,
+                CURLOPT_CONNECTTIMEOUT => 4,
+                CURLOPT_FOLLOWLOCATION => true,
+                CURLOPT_MAXREDIRS      => 3,
+                CURLOPT_SSL_VERIFYPEER => true,
+                CURLOPT_USERAGENT      => 'Wintaskly/8.0',
+            ]);
+            $response = curl_exec($ch);
+            $httpCode = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            $curlErr  = curl_error($ch);
+            curl_close($ch);
+
+            if ($response === false || $httpCode < 200 || $httpCode >= 300) {
+                error_log('[Wintaskly shortlink_api] cURL failed (http=' . $httpCode . ' err=' . $curlErr . ')');
+                return null;
+            }
+        } else {
+            // Fallback : file_get_contents avec stream context timeout
+            $ctx = stream_context_create([
+                'http' => ['timeout' => 8, 'user_agent' => 'Wintaskly/8.0'],
+                'ssl'  => ['verify_peer' => true],
+            ]);
+            $response = @file_get_contents($callUrl, false, $ctx);
+            if ($response === false) {
+                error_log('[Wintaskly shortlink_api] file_get_contents failed');
+                return null;
+            }
+        }
+
+        // Parse JSON
+        $json = json_decode($response, true);
+        if (!is_array($json)) {
+            error_log('[Wintaskly shortlink_api] non-JSON response: ' . substr((string)$response, 0, 200));
+            return null;
+        }
+
+        // Format standard exe.io : { "status": "success", "shortenedUrl": "..." }
+        $status = strtolower((string) ($json['status'] ?? ''));
+        $short  = (string) ($json['shortenedUrl'] ?? $json['short'] ?? $json['url'] ?? '');
+
+        if ($status !== 'success' || $short === '') {
+            $msg = (string) ($json['message'] ?? 'unknown');
+            error_log('[Wintaskly shortlink_api] provider returned error: ' . $msg);
+            return null;
+        }
+
+        // Validation basique de l'URL retournée
+        if (!filter_var($short, FILTER_VALIDATE_URL)) {
+            error_log('[Wintaskly shortlink_api] invalid URL in response: ' . $short);
+            return null;
+        }
+
+        return $short;
+    }
+}

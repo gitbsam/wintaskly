@@ -1,0 +1,24 @@
+# Configuration locale (créée depuis config.example.php)
+config.php
+
+# Dépendances Node (pour la compilation Tailwind)
+node_modules/
+
+# Logs
+*.log
+
+# Éditeurs / OS
+.DS_Store
+.idea/
+.vscode/
+*.swp
+
+# Wintaskly V8 : frontend build chain (Tailwind dans /frontend/)
+# node_modules/ matche déjà partout grâce à la règle ci-dessus, mais explicite ici
+# pour rappeler aux contributeurs qu'il faut faire `cd frontend && npm install`.
+frontend/node_modules/
+
+# Output Tailwind compilé : on le garde dans le repo car les serveurs LWS
+# n'ont pas Node.js — c'est l'output qui est uploadé en prod.
+# (Décommentez la ligne suivante si vous voulez l'exclure du repo)
+# media/tailwind/css/tailwind.css

@@ -1,0 +1,14 @@
+{
+  "name": "wintaskly-frontend",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Wintaskly — Build chain Tailwind v4. Source CSS → /media/tailwind/css/tailwind.css (consommé par PHP).",
+  "scripts": {
+    "build:css": "tailwindcss -i ./src/input.css -o ../media/tailwind/css/tailwind.css --minify",
+    "watch:css": "tailwindcss -i ./src/input.css -o ../media/tailwind/css/tailwind.css --watch"
+  },
+  "devDependencies": {
+    "tailwindcss": "^4.3.0",
+    "@tailwindcss/cli": "^4.3.0"
+  }
+}

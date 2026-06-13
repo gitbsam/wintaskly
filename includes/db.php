@@ -1,0 +1,209 @@
+<?php
+/**
+ * Wintaskly — Connexion MySQLi.
+ * Expose la fonction db() qui renvoie une instance mysqli partagée.
+ */
+
+if (!function_exists('db')) {
+    function db(): mysqli
+    {
+        static $mysqli = null;
+        if ($mysqli instanceof mysqli) {
+            return $mysqli;
+        }
+
+        $config = $GLOBALS['WT_CONFIG'] ?? [];
+        $dbc    = $config['db'] ?? [];
+
+        mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
+
+        try {
+            // Support socket Unix (hébergements partagés type OVH, Infomaniak)
+            // ou connexion TCP classique selon la config.
+            $socket = $dbc['socket'] ?? null;
+            if ($socket) {
+                $mysqli = new mysqli(
+                    $dbc['host'] ?? 'localhost',
+                    $dbc['user'] ?? 'root',
+                    $dbc['pass'] ?? '',
+                    $dbc['name'] ?? 'wintaskly',
+                    null,
+                    $socket
+                );
+            } else {
+                $mysqli = new mysqli(
+                    $dbc['host'] ?? '127.0.0.1',
+                    $dbc['user'] ?? 'root',
+                    $dbc['pass'] ?? '',
+                    $dbc['name'] ?? 'wintaskly',
+                    (int)($dbc['port'] ?? 3306)
+                );
+            }
+            $mysqli->set_charset($dbc['charset'] ?? 'utf8mb4');
+
+            // Calage strict de la timezone serveur (UTC interne)
+            $mysqli->query("SET time_zone = '+00:00'");
+        } catch (mysqli_sql_exception $e) {
+            http_response_code(500);
+            if (!empty($config['debug'])) {
+                die('DB error : ' . htmlspecialchars($e->getMessage()));
+            }
+            die('Service indisponible. Réessayez plus tard.');
+        }
+
+        return $mysqli;
+    }
+}
+
+/**
+ * Helper : récupère une valeur de la table config (cache statique).
+ */
+if (!function_exists('cfg')) {
+    /**
+     * Lit une clé de configuration depuis la table `config`.
+     * Le cache est partagé avec cfg_set() pour invalidation correcte.
+     */
+    function cfg(string $key, $default = null)
+    {
+        if (!isset($GLOBALS['__wt_cfg_cache'])) {
+            $GLOBALS['__wt_cfg_cache'] = [];
+            $res = db()->query("SELECT k, v FROM config");
+            if ($res) {
+                while ($r = $res->fetch_assoc()) {
+                    $GLOBALS['__wt_cfg_cache'][$r['k']] = $r['v'];
+                }
+            }
+        }
+        return $GLOBALS['__wt_cfg_cache'][$key] ?? $default;
+    }
+}
+
+if (!function_exists('cfg_set')) {
+    /**
+     * Écrit une clé de configuration dans la table `config` (upsert)
+     * et VÉRIFIE que la valeur est bien persistée par re-SELECT.
+     *
+     * Retourne true si la valeur est confirmée en BDD après l'INSERT, false sinon.
+     * Cette double vérification est ESSENTIELLE car sur certains hébergeurs
+     * mutualisés (LWS avec réplication master-slave, Varnish, tables verrouillées),
+     * l'INSERT peut sembler réussir sans être réellement persisté.
+     */
+    function cfg_set(string $key, string $value): bool
+    {
+        $db = db();
+
+        // Vérif que la connexion est encore active (sinon échec silencieux)
+        if (!$db->ping()) {
+            error_log('[Wintaskly cfg_set] DB connection lost for key ' . $key);
+            return false;
+        }
+
+        // -----------------------------------------------------------------
+        // 1) INSERT ou UPDATE via upsert
+        // -----------------------------------------------------------------
+        $stmt = $db->prepare(
+            "INSERT INTO config (k, v) VALUES (?, ?)
+             ON DUPLICATE KEY UPDATE v = VALUES(v)"
+        );
+        if (!$stmt) {
+            error_log('[Wintaskly cfg_set] prepare() FAILED for key ' . $key . ' : ' . $db->error);
+            return false;
+        }
+
+        $stmt->bind_param('ss', $key, $value);
+        $ok = $stmt->execute();
+        $affected = $stmt->affected_rows;
+        if (!$ok) {
+            error_log('[Wintaskly cfg_set] execute() FAILED for key ' . $key . ' : ' . $stmt->error);
+            $stmt->close();
+            return false;
+        }
+        $stmt->close();
+
+        // -----------------------------------------------------------------
+        // 2) VÉRIFICATION par re-SELECT — détecte le scénario "INSERT semble
+        //    réussir mais ne persiste pas" (rollback silencieux, réplication
+        //    master-slave qui retourne l'ancienne valeur, droits manquants).
+        // -----------------------------------------------------------------
+        $checkStmt = $db->prepare("SELECT v FROM config WHERE k = ? LIMIT 1");
+        if (!$checkStmt) {
+            error_log('[Wintaskly cfg_set] verify prepare() failed for key ' . $key);
+            return true;  // execute OK mais on ne peut pas vérifier, on assume OK
+        }
+        $checkStmt->bind_param('s', $key);
+        $checkStmt->execute();
+        $res = $checkStmt->get_result();
+        $row = $res ? $res->fetch_assoc() : null;
+        $checkStmt->close();
+
+        if (!$row) {
+            error_log('[Wintaskly cfg_set] PERSIST FAILED for key ' . $key
+                    . ' (INSERT OK but row missing - rollback silencieux ou droits?)');
+            return false;
+        }
+
+        if ($row['v'] !== $value) {
+            error_log('[Wintaskly cfg_set] PERSIST MISMATCH for key ' . $key
+                    . ' (expected="' . substr($value, 0, 50) . '" got="' . substr($row['v'], 0, 50) . '")');
+            return false;
+        }
+
+        // -----------------------------------------------------------------
+        // 3) Tout OK : invalide le cache mémoire
+        // -----------------------------------------------------------------
+        if (isset($GLOBALS['__wt_cfg_cache'])) {
+            $GLOBALS['__wt_cfg_cache'][$key] = $value;
+        }
+
+        // Log debug si affected_rows == 0 (curieux mais pas forcément un bug :
+        // c'est le cas si la valeur était déjà identique)
+        if ($affected === 0) {
+            error_log('[Wintaskly cfg_set] info: affected_rows=0 for key ' . $key . ' (value unchanged)');
+        }
+
+        return true;
+    }
+}
+
+if (!function_exists('cfg_int')) {
+    /**
+     * Lit une clé de configuration en castant en int avec une valeur par défaut.
+     * Plus expressif que `(int) cfg('faucet_reward_xp', '0')`.
+     *
+     * Usage : `$xp = cfg_int('faucet_reward_xp', 1);`
+     */
+    function cfg_int(string $key, int $default = 0): int
+    {
+        $value = cfg($key, null);
+        return $value === null ? $default : (int) $value;
+    }
+}
+
+if (!function_exists('cfg_float')) {
+    /**
+     * Idem pour les décimaux (récompenses en coins).
+     *
+     * Usage : `$coins = cfg_float('faucet_reward_coins', 0.5);`
+     */
+    function cfg_float(string $key, float $default = 0.0): float
+    {
+        $value = cfg($key, null);
+        return $value === null ? $default : (float) $value;
+    }
+}
+
+if (!function_exists('cfg_bool')) {
+    /**
+     * Idem pour les booléens (flags ON/OFF).
+     * Accepte '1', 'true', 'yes', 'on' comme vrai.
+     *
+     * Usage : `if (cfg_bool('faucet_enabled', true)) { ... }`
+     */
+    function cfg_bool(string $key, bool $default = false): bool
+    {
+        $value = cfg($key, null);
+        if ($value === null) return $default;
+        $v = strtolower(trim((string) $value));
+        return in_array($v, ['1', 'true', 'yes', 'on'], true);
+    }
+}

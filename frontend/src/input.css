@@ -1,0 +1,231 @@
+/* =============================================================
+ * Wintaskly — Source Tailwind v4 (compilée vers media/tailwind/css/tailwind.css)
+ *
+ * En Tailwind 4, plus de tailwind.config.js : toute la configuration
+ * vit ici dans le CSS via les directives @source / @theme / @custom-variant.
+ *
+ * Tailwind ne fournit ici que :
+ *   - le reset / base (preflight)
+ *   - les utilities Tailwind (flex, grid, padding, gap, etc.)
+ *   - quelques helpers maison reliés aux variables CSS Wintaskly
+ *   - des composants @apply qui agrègent des classes utilitaires
+ *
+ * Le design system (couleurs, ombres, animations) vit dans
+ * media/wintaskly/css/wintaskly.css (chargé APRÈS ce fichier).
+ * ============================================================= */
+
+/* ----------------------------------------------------------------
+ * 1) Import du noyau Tailwind v4
+ *    Remplace les anciens @tailwind base/components/utilities.
+ * ---------------------------------------------------------------- */
+@import "tailwindcss";
+
+/* ----------------------------------------------------------------
+ * 2) Sources à scanner pour générer les utilities
+ *    Remplace l'ancien `content: [...]` du tailwind.config.js.
+ *    Chemins relatifs à ce fichier (src/input.css → ../../ pour la racine).
+ * ---------------------------------------------------------------- */
+@source "../../**/*.php";
+@source "../../media/wintaskly/js/**/*.js";
+
+/* ----------------------------------------------------------------
+ * 3) Dark mode : Wintaskly toggle via la classe sur <html>
+ *    En v4, on déclare ça via @custom-variant.
+ *    Avant : darkMode: 'class' dans tailwind.config.js
+ * ---------------------------------------------------------------- */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ----------------------------------------------------------------
+ * 4) Theme custom : couleurs/fonts/rayons reliés aux variables CSS
+ *    Remplace l'ancien `theme.extend.*` du tailwind.config.js.
+ *
+ *    Format : --<categorie>-<nom> = valeur
+ *      --color-wt-bg       → utilisable comme bg-wt-bg, text-wt-bg, etc.
+ *      --font-display      → utilisable comme font-display
+ *      --radius-wt-md      → utilisable comme rounded-wt-md
+ *      --shadow-wt-1       → utilisable comme shadow-wt-1
+ * ---------------------------------------------------------------- */
+@theme {
+  /* Familles de polices */
+  --font-display: "Bricolage Grotesque", system-ui, sans-serif;
+  --font-body:    "Manrope", system-ui, sans-serif;
+  --font-mono:    "JetBrains Mono", ui-monospace, monospace;
+
+  /* Couleurs Wintaskly — toutes reliées aux variables CSS du design system,
+   * donc elles changent automatiquement selon le thème actif (light/dark) */
+  --color-wt-bg:          var(--wt-bg);
+  --color-wt-bg-soft:     var(--wt-bg-soft);
+  --color-wt-bg-elev:     var(--wt-bg-elev);
+  --color-wt-text:        var(--wt-text);
+  --color-wt-text-mute:   var(--wt-text-mute);
+  --color-wt-accent:      var(--wt-accent);
+  --color-wt-accent-soft: var(--wt-accent-soft);
+  --color-wt-border:      var(--wt-border);
+  --color-wt-danger:      var(--wt-danger);
+  --color-wt-success:     var(--wt-success);
+  --color-wt-warn:        var(--wt-warn);
+
+  /* Rayons (border-radius) */
+  --radius-wt-sm:   var(--wt-radius-sm);
+  --radius-wt-md:   var(--wt-radius-md);
+  --radius-wt-lg:   var(--wt-radius-lg);
+  --radius-wt-pill: var(--wt-radius-pill);
+
+  /* Ombres */
+  --shadow-wt-1:    var(--wt-shadow-1);
+  --shadow-wt-2:    var(--wt-shadow-2);
+  --shadow-wt-glow: var(--wt-shadow-glow);
+}
+
+/* ----------------------------------------------------------------
+ * 5) Base layer : styles globaux html/body
+ * ---------------------------------------------------------------- */
+@layer base {
+  html, body { background: var(--wt-bg); color: var(--wt-text); }
+  a { color: inherit; }
+}
+
+/* ----------------------------------------------------------------
+ * 6) Utilities maison reliées aux variables CSS Wintaskly
+ *    Ces 3 utilities permettent un usage rapide dans le HTML
+ *    sans passer par les classes "bg-wt-accent" générées par @theme.
+ * ---------------------------------------------------------------- */
+@layer utilities {
+  .wt-text-accent   { color:        var(--wt-accent); }
+  .wt-bg-accent     { background:   var(--wt-accent); color: var(--wt-accent-on); }
+  .wt-border-accent { border-color: var(--wt-accent); }
+}
+
+/* =============================================================
+ * 7) @layer components — agrégats utilitaires Tailwind via @apply
+ *
+ * Ces classes sont des "presets" qui composent plusieurs utilities
+ * Tailwind. Elles restent overridables par le CSS plus expressif de
+ * wintaskly.css (chargé APRÈS tailwind.css dans le DOM).
+ *
+ * NOTE Tailwind 4 : @apply fonctionne dans les @layer components
+ * sans déclaration spéciale, contrairement à @apply dans des modules
+ * CSS externes qui nécessite @reference.
+ * ============================================================= */
+@layer components {
+
+  /* ----- Brand ----- */
+  .wt-brand__name {
+    @apply font-display font-bold tracking-tight;
+  }
+
+  /* ----- Boutons supplémentaires ----- */
+  .wt-btn--xs {
+    @apply text-xs px-2.5 py-1 rounded-lg;
+  }
+  .wt-btn--danger {
+    @apply bg-red-500 text-white border border-red-500;
+  }
+  .wt-btn--danger:hover {
+    @apply bg-red-600 border-red-600;
+  }
+
+  /* ----- Avatars ----- */
+  .wt-avatar--md {
+    @apply w-12 h-12 text-base;
+  }
+
+  /* ----- Alerts ----- */
+  .wt-alert--success {
+    @apply bg-green-500/10 text-green-500 border border-green-500/30;
+  }
+  .wt-alert--error {
+    @apply bg-red-500/10 text-red-500 border border-red-500/30;
+  }
+  .wt-alert--info {
+    @apply bg-blue-500/10 text-blue-500 border border-blue-500/30;
+  }
+
+  /* ----- Cards génériques ----- */
+  .wt-card__label {
+    @apply text-xs uppercase tracking-wider text-wt-text-mute font-semibold;
+  }
+  .wt-card__value {
+    @apply font-display font-bold text-3xl leading-tight;
+  }
+  .wt-card__unit {
+    @apply text-sm text-wt-text-mute ml-1;
+  }
+  .wt-card__hint {
+    @apply text-xs text-wt-text-mute mt-1;
+  }
+
+  /* ----- Formulaires ----- */
+  .wt-form {
+    @apply flex flex-col gap-4;
+  }
+  .wt-form--grid {
+    @apply grid grid-cols-1 sm:grid-cols-2 gap-4 items-start;
+  }
+  .wt-form__actions {
+    @apply flex gap-2 flex-wrap mt-2;
+  }
+  .wt-fieldset {
+    @apply border border-wt-border rounded-xl p-4 flex flex-col gap-3;
+  }
+  .wt-field__label {
+    @apply text-xs uppercase tracking-wider text-wt-text-mute font-semibold mb-1;
+  }
+  .wt-field--check {
+    @apply flex items-start gap-2 cursor-pointer;
+  }
+  .wt-field--wide {
+    @apply sm:col-span-2;
+  }
+  .wt-input--sm {
+    @apply text-sm py-1.5 px-2.5;
+  }
+  .wt-textarea {
+    @apply w-full px-3 py-2 rounded-lg bg-wt-bg-elev border border-wt-border text-wt-text;
+    @apply focus:outline-none focus:ring-2 focus:ring-wt-accent focus:border-wt-accent;
+    @apply transition-colors resize-y min-h-[100px];
+  }
+
+  /* ----- Footer extras ----- */
+  .wt-footer__sep {
+    @apply opacity-40 mx-1;
+  }
+
+  /* ----- Table-wrap ----- */
+  .wt-table-wrap {
+    @apply overflow-x-auto -mx-2 px-2;
+  }
+  .wt-table__actions {
+    @apply flex gap-1 flex-wrap;
+  }
+  .wt-table__num {
+    @apply font-mono tabular-nums text-right;
+  }
+
+  /* ----- Section title ----- */
+  .wt-section__title {
+    @apply font-display text-xl font-bold mb-3 leading-tight;
+  }
+
+  /* ----- KPI cards (admin) ----- */
+  .wt-kpi {
+    @apply flex flex-col gap-1 p-4 rounded-xl bg-wt-bg-elev border border-wt-border;
+  }
+  .wt-kpi__label {
+    @apply text-xs uppercase tracking-wider text-wt-text-mute font-semibold;
+  }
+  .wt-kpi__value {
+    @apply font-display font-bold text-2xl;
+  }
+  .wt-stat__value {
+    @apply font-display font-bold text-3xl;
+  }
+  .wt-stats__grid {
+    @apply grid grid-cols-2 md:grid-cols-4 gap-3;
+  }
+
+  /* ----- Cookie banner body inner ----- */
+  .wt-cookie-banner__body {
+    @apply min-w-0;
+  }
+}

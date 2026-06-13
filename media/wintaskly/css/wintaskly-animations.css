@@ -1,0 +1,157 @@
+/* =====================================================================
+   WINTASKLY — Animations & Micro-interactions
+   ===================================================================== */
+
+/* ---------------------------------------------------------------------
+   PRELOADER — anneau plein écran
+   --------------------------------------------------------------------- */
+.wt-preloader {
+  position: fixed; inset: 0;
+  background: var(--wt-bg);
+  z-index: 9999;
+  display: grid; place-items: center;
+  transition: opacity .6s var(--wt-ease-emph), visibility .6s;
+}
+.wt-preloader.is-hidden {
+  opacity: 0; visibility: hidden; pointer-events: none;
+}
+.wt-preloader__inner {
+  position: relative;
+  width: 140px; height: 140px;
+  display: grid; place-items: center;
+}
+.wt-preloader__ring {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  transform: rotate(-90deg);
+}
+.wt-preloader__track {
+  fill: none;
+  stroke: var(--wt-border);
+  stroke-width: 4;
+}
+.wt-preloader__bar {
+  fill: none;
+  stroke: url(#wt-preloader-grad);
+  stroke: var(--wt-accent);
+  stroke-width: 4;
+  stroke-linecap: round;
+  transition: stroke-dashoffset .25s linear;
+  filter: drop-shadow(0 0 12px var(--wt-accent-glow));
+}
+.wt-preloader__logo {
+  /* À l'origine un W texte stylisé ; désormais un <picture> avec l'image PNG.
+   * On garde l'animation de pulsation, on neutralise les règles texte. */
+  display: flex; align-items: center; justify-content: center;
+  width: 4.5rem; height: 4.5rem;
+  line-height: 0;
+  animation: wt-logo-pulse 1.8s ease-in-out infinite;
+}
+.wt-preloader__logo img {
+  width: 100%; height: 100%;
+  object-fit: contain;
+  display: block;
+  filter: drop-shadow(0 0 16px var(--wt-accent-glow));
+}
+.wt-preloader__pct {
+  position: absolute;
+  bottom: -2.4rem; left: 50%; transform: translateX(-50%);
+  font-family: var(--wt-font-mono);
+  font-size: .78rem;
+  color: var(--wt-text-mute);
+  letter-spacing: .12em;
+  font-variant-numeric: tabular-nums;
+}
+
+@keyframes wt-logo-pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50%      { transform: scale(1.06); opacity: .88; }
+}
+
+/* ---------------------------------------------------------------------
+   APP REVEAL — entrée du contenu après preloader
+   --------------------------------------------------------------------- */
+#app-wrapper {
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity .6s var(--wt-ease-emph), transform .6s var(--wt-ease-emph);
+}
+#app-wrapper.is-ready {
+  opacity: 1; transform: translateY(0);
+}
+
+/* ---------------------------------------------------------------------
+   STAGGERED REVEAL — apparitions douces ordonnées
+   --------------------------------------------------------------------- */
+[data-reveal] {
+  opacity: 0;
+  transform: translateY(14px);
+  transition: opacity .6s var(--wt-ease-emph), transform .6s var(--wt-ease-emph);
+  transition-delay: var(--wt-reveal-delay, 0ms);
+}
+#app-wrapper.is-ready [data-reveal] {
+  opacity: 1; transform: translateY(0);
+}
+
+/* ---------------------------------------------------------------------
+   FAUCET COIN — flottement + rotation subtile
+   --------------------------------------------------------------------- */
+@keyframes wt-orb-float {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50%      { transform: translateY(-12px) scale(1.02); }
+}
+@keyframes wt-orb-bob {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50%      { transform: translateY(-8px) rotate(8deg); }
+}
+
+/* ---------------------------------------------------------------------
+   CAPTCHA — feedback de sélection
+   --------------------------------------------------------------------- */
+@keyframes wt-pop {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.15); }
+  100% { transform: scale(1); }
+}
+.wt-captcha-icon.is-selected { animation: wt-pop .35s var(--wt-ease-emph); }
+
+/* ---------------------------------------------------------------------
+   COUNT-UP — battement subtil quand le décompte change
+   --------------------------------------------------------------------- */
+@keyframes wt-tick {
+  0%   { transform: scale(1); }
+  50%  { transform: scale(1.06); }
+  100% { transform: scale(1); }
+}
+.wt-transition__count.is-ticking { animation: wt-tick .45s var(--wt-ease-emph); }
+
+/* ---------------------------------------------------------------------
+   SUCCESS REWARD — explosion de joie après réclamation réussie
+   --------------------------------------------------------------------- */
+@keyframes wt-celebrate {
+  0%   { transform: scale(.6) rotate(-12deg); opacity: 0; }
+  60%  { transform: scale(1.08) rotate(4deg);  opacity: 1; }
+  100% { transform: scale(1)    rotate(0deg);  opacity: 1; }
+}
+.wt-celebrate { animation: wt-celebrate .9s var(--wt-ease-emph) both; }
+
+/* ---------------------------------------------------------------------
+   BUTTON HOVER LIFT
+   --------------------------------------------------------------------- */
+@keyframes wt-shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-6px); }
+  75% { transform: translateX(6px); }
+}
+.wt-shake { animation: wt-shake .35s var(--wt-ease); }
+
+/* ---------------------------------------------------------------------
+   MOTION REDUCTION
+   --------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .001ms !important;
+    transition-duration: .001ms !important;
+    animation-iteration-count: 1 !important;
+  }
+  .wt-preloader__bar { transition: none !important; }
+}

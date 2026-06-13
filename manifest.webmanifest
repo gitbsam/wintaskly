@@ -1,0 +1,57 @@
+{
+  "name": "Wintaskly · GPT Crypto Platform",
+  "short_name": "Wintaskly",
+  "description": "Gagne des Coins en accomplissant des micro-tâches, puis convertis-les en cryptomonnaies via FaucetPay, Payeer, Binance et plus.",
+  "lang": "fr",
+  "dir": "ltr",
+  "start_url": "/?utm_source=pwa",
+  "scope": "/",
+  "id": "/?source=pwa",
+  "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone", "minimal-ui", "browser"],
+  "orientation": "portrait-primary",
+  "background_color": "#0a0f1e",
+  "theme_color": "#ff9933",
+  "categories": ["finance", "productivity", "games", "utilities"],
+  "icons": [
+    { "src": "/media/wintaskly/img/logo-light-32.png",  "sizes": "32x32",   "type": "image/png", "purpose": "any" },
+    { "src": "/media/wintaskly/img/logo-light-48.png",  "sizes": "48x48",   "type": "image/png", "purpose": "any" },
+    { "src": "/media/wintaskly/img/logo-light-64.png",  "sizes": "64x64",   "type": "image/png", "purpose": "any" },
+    { "src": "/media/wintaskly/img/logo-light-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/media/wintaskly/img/logo-light-256.png", "sizes": "256x256", "type": "image/png", "purpose": "any" },
+    { "src": "/media/wintaskly/img/logo-light-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "/media/wintaskly/img/logo-light-256.png", "sizes": "256x256", "type": "image/png", "purpose": "maskable" },
+    { "src": "/media/wintaskly/img/apple-touch-icon.png", "sizes": "180x180", "type": "image/png", "purpose": "any" }
+  ],
+  "shortcuts": [
+    {
+      "name": "Réclamer le faucet",
+      "short_name": "Faucet",
+      "description": "Accéder directement à la page faucet pour réclamer tes Coins",
+      "url": "/tasks/faucet/?utm_source=pwa_shortcut",
+      "icons": [{ "src": "/media/wintaskly/img/logo-light-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Mon dashboard",
+      "short_name": "Dashboard",
+      "description": "Voir mon solde et mes statistiques",
+      "url": "/dashboard/?utm_source=pwa_shortcut",
+      "icons": [{ "src": "/media/wintaskly/img/logo-light-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Retirer mes gains",
+      "short_name": "Retrait",
+      "description": "Demander un retrait vers FaucetPay/Payeer/Binance",
+      "url": "/dashboard/withdraw.php?utm_source=pwa_shortcut",
+      "icons": [{ "src": "/media/wintaskly/img/logo-light-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Classement du mois",
+      "short_name": "Top 10",
+      "description": "Voir le top 10 du mois et tenter de monter dans le rang",
+      "url": "/leaderboard/?utm_source=pwa_shortcut",
+      "icons": [{ "src": "/media/wintaskly/img/logo-light-192.png", "sizes": "192x192" }]
+    }
+  ],
+  "prefer_related_applications": false
+}

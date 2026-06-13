@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%"   stop-color="#1a1232"/>
+      <stop offset="50%"  stop-color="#0a0e1a"/>
+      <stop offset="100%" stop-color="#1a0e0a"/>
+    </linearGradient>
+    <linearGradient id="titleGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%"   stop-color="#fff5e0"/>
+      <stop offset="40%"  stop-color="#ffcc33"/>
+      <stop offset="100%" stop-color="#ff9933"/>
+    </linearGradient>
+    <radialGradient id="haloOrange" cx="20%" cy="40%" r="60%">
+      <stop offset="0%"   stop-color="#ff9933" stop-opacity="0.25"/>
+      <stop offset="100%" stop-color="#ff9933" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="haloPurple" cx="85%" cy="80%" r="50%">
+      <stop offset="0%"   stop-color="#9333ea" stop-opacity="0.25"/>
+      <stop offset="100%" stop-color="#9333ea" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="coinGrad">
+      <stop offset="0%"   stop-color="#fff5e0"/>
+      <stop offset="60%"  stop-color="#ffcc33"/>
+      <stop offset="100%" stop-color="#ff9933"/>
+    </radialGradient>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- FOND -->
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <rect width="1200" height="630" fill="url(#haloOrange)"/>
+  <rect width="1200" height="630" fill="url(#haloPurple)"/>
+
+  <!-- Grain -->
+  <g opacity="0.04" fill="#ffffff">
+    <circle cx="180" cy="120" r="1"/><circle cx="345" cy="220" r="1.5"/>
+    <circle cx="520" cy="80" r="1"/><circle cx="680" cy="180" r="1"/>
+    <circle cx="850" cy="60" r="1.5"/><circle cx="1020" cy="140" r="1"/>
+    <circle cx="120" cy="380" r="1"/><circle cx="280" cy="480" r="1.5"/>
+    <circle cx="450" cy="520" r="1"/><circle cx="620" cy="450" r="1.5"/>
+    <circle cx="800" cy="500" r="1"/><circle cx="980" cy="420" r="1"/>
+    <circle cx="1100" cy="280" r="1.5"/><circle cx="60" cy="240" r="1"/>
+  </g>
+
+  <!-- LOGO -->
+  <g transform="translate(80, 80)" filter="url(#glow)">
+    <g>
+      <path d="M 0 28 L 10 38 L 28 18" fill="none" stroke="#3b82f6" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M 16 28 L 26 38 L 50 12" fill="none" stroke="#60a5fa" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M 38 24 L 56 6 L 70 14" fill="none" stroke="#ff9933" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M 56 6 L 56 22" fill="none" stroke="#ff9933" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+      <polygon points="56,-2 58,4 64,4 59,8 61,14 56,11 51,14 53,8 48,4 54,4" fill="#ff9933"/>
+    </g>
+    <text x="90" y="32" font-family="'Bricolage Grotesque', 'Inter', system-ui, sans-serif" font-size="42" font-weight="800" fill="#ffffff" letter-spacing="-0.02em">Wintaskly</text>
+  </g>
+
+  <!-- PILL GET-PAID-TO -->
+  <g transform="translate(1080, 100)">
+    <rect x="-160" y="-20" width="160" height="40" rx="20" ry="20" fill="none" stroke="#ff9933" stroke-width="2"/>
+    <text x="-80" y="6" font-family="'JetBrains Mono', monospace" font-size="14" font-weight="700" fill="#ff9933" text-anchor="middle" letter-spacing="0.15em">GET-PAID-TO</text>
+  </g>
+
+  <!-- TITRE -->
+  <g transform="translate(80, 260)">
+    <text x="0" y="0" font-family="'Bricolage Grotesque', 'Inter', system-ui, sans-serif" font-size="78" font-weight="800" fill="#ffffff" letter-spacing="-0.025em">Transforme ton temps</text>
+    <text x="0" y="90" font-family="'Bricolage Grotesque', 'Inter', system-ui, sans-serif" font-size="78" font-weight="800" fill="url(#titleGrad)" letter-spacing="-0.025em">en récompenses</text>
+  </g>
+
+  <!-- PUCES (SVG icons au lieu d'emojis pour rendu propre) -->
+  <g transform="translate(80, 460)" font-family="'Manrope', 'Inter', system-ui, sans-serif" font-size="22" font-weight="500" fill="#e8eaf0">
+
+    <!-- Puce 1 : éclair -->
+    <g transform="translate(0, 0)">
+      <circle cx="14" cy="-7" r="14" fill="rgba(255, 153, 51, 0.18)"/>
+      <path d="M 16 -16 L 11 -7 L 15 -7 L 12 0 L 19 -10 L 15 -10 Z" fill="#ff9933"/>
+      <text x="42" y="0">Faucet toutes les 3h + tâches GPT</text>
+    </g>
+
+    <!-- Puce 2 : pièce dollar -->
+    <g transform="translate(0, 40)">
+      <circle cx="14" cy="-7" r="14" fill="rgba(255, 153, 51, 0.18)"/>
+      <circle cx="14" cy="-7" r="9" fill="none" stroke="#ff9933" stroke-width="2"/>
+      <text x="14" y="-2" font-family="'Bricolage Grotesque', sans-serif" font-size="14" font-weight="900" fill="#ff9933" text-anchor="middle">$</text>
+      <text x="42" y="0">Paiements crypto rapides</text>
+    </g>
+
+    <!-- Puce 3 : cadeau -->
+    <g transform="translate(0, 80)">
+      <circle cx="14" cy="-7" r="14" fill="rgba(255, 153, 51, 0.18)"/>
+      <rect x="6" y="-9" width="16" height="11" fill="none" stroke="#ff9933" stroke-width="2" rx="1"/>
+      <line x1="14" y1="-12" x2="14" y2="2" stroke="#ff9933" stroke-width="2"/>
+      <path d="M 14 -12 Q 10 -16 8 -14 Q 6 -12 10 -10 M 14 -12 Q 18 -16 20 -14 Q 22 -12 18 -10" fill="none" stroke="#ff9933" stroke-width="2"/>
+      <text x="42" y="0">Bonus parrainage : 10% à vie</text>
+    </g>
+  </g>
+
+  <!-- DOMAINE EN BAS -->
+  <g transform="translate(80, 580)">
+    <text x="0" y="0" font-family="'JetBrains Mono', monospace" font-size="20" font-weight="600" fill="#a4abc4" letter-spacing="0.05em">→ wintaskly.com</text>
+  </g>
+
+  <!-- CERCLE DORÉ (Coin) à droite -->
+  <g transform="translate(950, 380)">
+    <circle cx="0" cy="0" r="170" fill="none" stroke="rgba(255, 153, 51, 0.1)" stroke-width="1"/>
+    <circle cx="0" cy="0" r="140" fill="none" stroke="rgba(255, 153, 51, 0.15)" stroke-width="1"/>
+    <circle cx="0" cy="0" r="110" fill="url(#coinGrad)" filter="url(#glow)"/>
+
+    <!-- Logo Wintaskly stylisé à l'intérieur : les checks + flèche -->
+    <g transform="scale(1.5)">
+      <path d="M -32 8 L -20 20 L -2 0" fill="none" stroke="#1a0e0a" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M -20 8 L -8 20 L 18 -6" fill="none" stroke="#1a0e0a" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M 4 6 L 22 -12 L 36 -4" fill="none" stroke="#1a0e0a" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M 22 -12 L 22 4" fill="none" stroke="#1a0e0a" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+      <polygon points="22,-20 25,-13 33,-13 27,-9 30,-2 22,-6 14,-2 17,-9 11,-13 19,-13" fill="#1a0e0a"/>
+    </g>
+  </g>
+
+  <!-- Particules dorées -->
+  <g fill="#ffcc33" opacity="0.6">
+    <circle cx="800" cy="280" r="3"/>
+    <circle cx="1120" cy="340" r="2"/>
+    <circle cx="850" cy="510" r="2"/>
+    <circle cx="1100" cy="490" r="3"/>
+    <circle cx="780" cy="420" r="2"/>
+  </g>
+</svg>

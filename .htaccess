@@ -1,0 +1,74 @@
+# =====================================================================
+# Wintaskly — .htaccess pour LWS mutualisé (version minimale safe)
+# =====================================================================
+# Les directives <Directory>, Options -Indexes, php_flag, AddOutputFilter
+# sont souvent BLOQUÉES sur LWS mutualisé (AllowOverride restreint).
+# Si elles sont présentes → HTTP 500 immédiat. On garde donc le minimum
+# qui marche partout : DirectoryIndex, mod_rewrite, ErrorDocument, Headers.
+
+# --------------------------------------------------------------------
+# DirectoryIndex : force notre index.php EN PREMIER
+# --------------------------------------------------------------------
+# Sur LWS, sans ça, Apache sert le default_index.php LWS qui affiche
+# "ERROR 500" avec le logo LWS quand notre site n'est pas trouvé.
+DirectoryIndex index.php index.html
+
+# --------------------------------------------------------------------
+# Pages d'erreur custom (remplacent l'écran orange LWS)
+# --------------------------------------------------------------------
+ErrorDocument 404 /error-404.html
+ErrorDocument 500 /error-500.html
+ErrorDocument 502 /error-500.html
+ErrorDocument 503 /error-500.html
+
+# --------------------------------------------------------------------
+# Réécriture URL (mod_rewrite)
+# --------------------------------------------------------------------
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  # Bloque l'accès direct aux dossiers sensibles
+  RewriteRule ^(includes|sql|node_modules|frontend|logs)(/|$) - [F,L]
+
+  # Bloque les fichiers internes du dossier /install/ (préfixe _)
+  RewriteRule ^install/_ - [F,L]
+
+  # Empêche d'exposer config.php et ses variantes
+  RewriteRule ^config(\.[a-z]+)?\.php$ - [F,L]
+
+  # Bloque les fichiers de backup / temp / éditeur résiduels
+  RewriteRule ^.+\.(bak|swp|orig|tmp|old|~)$ - [F,L]
+
+  # Pretty URL : /help/contact-track/<token> → script central
+  RewriteRule ^help/contact-track/([a-f0-9]{32,64})/?$ help/contact-track/index.php?token=$1 [QSA,L]
+</IfModule>
+
+# --------------------------------------------------------------------
+# Sécurité de base — refuse l'accès aux fichiers sensibles
+# --------------------------------------------------------------------
+<FilesMatch "(^\.|\.(env|git|sql|md|json|lock|log)$)">
+  Require all denied
+</FilesMatch>
+
+# --------------------------------------------------------------------
+# Headers de sécurité (optionnel : encadré dans IfModule pour safe)
+# --------------------------------------------------------------------
+<IfModule mod_headers.c>
+  Header set X-Content-Type-Options "nosniff"
+  Header set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>
+
+# --------------------------------------------------------------------
+# PWA — Manifest MIME type
+# --------------------------------------------------------------------
+<IfModule mod_mime.c>
+  AddType application/manifest+json .webmanifest
+</IfModule>
+
+# Service Worker : pas de cache + scope max /
+<IfModule mod_headers.c>
+  <Files "sw.js">
+    Header set Cache-Control "no-cache, no-store, must-revalidate"
+    Header set Service-Worker-Allowed "/"
+  </Files>
+</IfModule>

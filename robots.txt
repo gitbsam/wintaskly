@@ -1,0 +1,36 @@
+# Wintaskly — robots.txt
+# Permet l'indexation publique du site (home, testimonials, help, legal)
+# Bloque les zones privées (admin, dashboard, api, install, tasks privées)
+
+User-agent: *
+Allow: /
+Allow: /testimonials
+Allow: /help
+Allow: /legal
+Allow: /leaderboard
+Allow: /auth/login.php
+Allow: /auth/signup.php
+Allow: /auth/forgot-password.php
+
+# Zones privées : ne pas indexer
+Disallow: /admin/
+Disallow: /dashboard/
+Disallow: /api/
+Disallow: /install/
+Disallow: /tasks/
+Disallow: /auth/verify-email.php
+Disallow: /auth/verify-2fa.php
+Disallow: /auth/reset-password.php
+Disallow: /cron/
+Disallow: /includes/
+Disallow: /sql/
+Disallow: /scripts/
+
+# Pas d'indexation des paramètres URL (évite duplicate content)
+Disallow: /*?*
+
+# Sitemap pour aider les moteurs
+Sitemap: https://wintaskly.com/sitemap.xml
+
+# Crawl-delay modéré pour ne pas saturer le serveur
+Crawl-delay: 2
