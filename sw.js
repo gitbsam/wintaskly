@@ -15,7 +15,7 @@
  *   automatiquement les anciens caches.
  */
 
-const CACHE_VERSION = 'wintaskly-v8.7.7-' + '20260612h';  // bump à chaque déploiement
+const CACHE_VERSION = 'wintaskly-v8.7.8-' + '20260612i';  // bump à chaque déploiement
 const CACHE_STATIC  = CACHE_VERSION + '-static';
 const CACHE_PAGES   = CACHE_VERSION + '-pages';
 

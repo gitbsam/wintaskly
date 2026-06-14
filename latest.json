@@ -1,8 +1,8 @@
 {
   "_comment": "Ce fichier doit être uploadé sur GitHub Pages à l'URL : https://gitbsam.github.io/wintaskly/latest.json. Wintaskly va le check toutes les 6h via cron. Quand tu publies une nouvelle version, mets simplement à jour ce JSON sur GitHub et les installations Wintaskly détecteront automatiquement la nouvelle version.",
 
-  "version": "8.7.7",
-  "released": "2026-06-13",
+  "version": "8.7.8",
+  "released": "2026-06-14",
   "channel": "stable",
   "min_php": "8.2",
   "critical": false,
@@ -24,9 +24,9 @@
     "🐛 Sidebar admin/dashboard responsive parfaite sur mobile"
   ],
 
-  "changelog_url": "https://github.com/gitbsam/wintaskly/releases/tag/v8.7.7",
-  "download_url": "https://github.com/gitbsam/wintaskly/releases/download/v8.7.7/wintaskly.zip",
-  "sha256": "",
+  "changelog_url": "https://github.com/gitbsam/wintaskly/releases/tag/v8.7.8",
+  "download_url": "https://github.com/gitbsam/wintaskly/releases/download/v8.7.8/wintaskly.zip",
+  "sha256": "sha256:cc687c7a95a040fb5ed3d5528dc538d075fa84190804f7877e2f2134dca1fec8",
 
   "migrations": [
     {

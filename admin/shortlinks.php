@@ -20,6 +20,94 @@ $db          = db();
 $notice      = null;
 $editing     = null;
 
+/* =====================================================================
+   DÉTECTION DES MIGRATIONS MANQUANTES
+   =====================================================================
+   Avant d'exécuter les requêtes qui utilisent les nouvelles colonnes
+   (mode, api_endpoint, callback_key, provider_rate_*), on vérifie
+   qu'elles existent vraiment en BDD. Si une migration n'a pas été
+   appliquée par l'admin, on affiche un message CLAIR avec instructions
+   au lieu de planter en 500.
+
+   Tableau des colonnes attendues → migration qui les crée :
+   ===================================================================== */
+$expectedCols = [
+    'mode'                    => 'migration_shortlinks_api.sql',
+    'api_endpoint'            => 'migration_shortlinks_api.sql',
+    'api_token'               => 'migration_shortlinks_api.sql',
+    'callback_key'            => 'migration_shortlinks_api.sql',
+    'provider_rate_amount'    => 'migration_shortlinks_rate.sql',
+    'provider_rate_currency'  => 'migration_shortlinks_rate.sql',
+    'provider_rate_per_views' => 'migration_shortlinks_rate.sql',
+];
+
+$existingCols = [];
+if ($res = $db->query("SHOW COLUMNS FROM shortlinks")) {
+    while ($r = $res->fetch_assoc()) {
+        $existingCols[$r['Field']] = true;
+    }
+    $res->free();
+}
+
+$missingMigrations = [];
+foreach ($expectedCols as $col => $migration) {
+    if (!isset($existingCols[$col])) {
+        $missingMigrations[$migration][] = $col;
+    }
+}
+
+/* Si migrations manquantes, on AFFICHE la page d'aide et on s'arrête là.
+   Pas de 500, pas de SQL qui plante : l'admin sait exactement quoi faire. */
+if (!empty($missingMigrations)) {
+    include __DIR__ . '/../header.php'; ?>
+    <main class="wt-main wt-admin-v2">
+      <div class="wt-admin-v2__layout">
+        <?php include __DIR__ . '/_nav.php'; ?>
+        <section class="wt-admin-v2__content">
+          <header class="wt-admin-v2__page-header">
+            <div>
+              <h1 class="wt-admin-v2__title">🗄 Migrations SQL manquantes</h1>
+              <p class="wt-muted">Pour activer toutes les fonctionnalités shortlinks, applique les migrations ci-dessous.</p>
+            </div>
+          </header>
+
+          <div class="wt-alert wt-alert--warn" style="margin:1rem 0">
+            <strong>⚠ Migrations à appliquer dans phpMyAdmin</strong> avant d'utiliser cette page.
+          </div>
+
+          <div class="wt-card wt-card--padded">
+            <p>Les colonnes suivantes manquent dans la table <code>shortlinks</code> :</p>
+            <ul style="line-height:1.8">
+            <?php foreach ($missingMigrations as $migFile => $cols): ?>
+              <li>
+                <strong style="font-family:var(--wt-font-mono)"><?= e($migFile) ?></strong>
+                — crée les colonnes : <code><?= e(implode(', ', $cols)) ?></code>
+              </li>
+            <?php endforeach; ?>
+            </ul>
+
+            <h3 style="margin-top:1.5rem">📋 Comment appliquer</h3>
+            <ol style="line-height:1.8">
+              <li>Va dans <strong>phpMyAdmin</strong> (depuis ton cPanel LWS)</li>
+              <li>Sélectionne ta BDD <code>winta2810082</code></li>
+              <li>Onglet <strong>SQL</strong></li>
+              <li>Copie-colle le contenu de chaque fichier <code>sql/migration_*.sql</code> manquant (présent dans le ZIP Wintaskly)</li>
+              <li>Clique <strong>Exécuter</strong></li>
+              <li>Recharge cette page : tu devrais voir le formulaire normal</li>
+            </ol>
+
+            <p class="wt-muted" style="margin-top:1rem;font-size:.9rem">
+              💡 Les migrations sont <strong>idempotentes</strong> — si une colonne existe déjà, MySQL renvoie une erreur que tu peux ignorer.
+              Le contenu des migrations se trouve dans <code>sql/</code> à la racine de ton install Wintaskly.
+            </p>
+          </div>
+        </section>
+      </div>
+    </main>
+    <?php include __DIR__ . '/../footer.php'; ?>
+    <?php exit;
+}
+
 /* ---------- Traitements POST ---------------------------------------- */
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && csrf_check($_POST['_csrf'] ?? null)) {
     $action = (string)($_POST['action'] ?? '');
