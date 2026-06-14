@@ -24,8 +24,8 @@ $db          = db();
 // ============================================================
 $expectedTables = [
     'users', 'transactions', 'config', 'shortlinks', 'offerwalls',
-    'faucet_claims', 'ptc_ads', 'withdrawals', 'payment_methods',
-    'auth_tokens', 'messages', 'notifications', 'tickets',
+    'faucet_claims', 'ptc_ads', 'withdrawals', 'withdrawal_methods',
+    'auth_tokens', 'messages', 'notifications', 'support_tickets',
     'cron_runs', 'update_checks', 'applied_migrations',
 ];
 $existingTables = [];

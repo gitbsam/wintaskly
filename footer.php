@@ -173,6 +173,16 @@ $_yearDisplay = ($_launchYear === $_currentYear)
         <span class="wt-footer-v2__made">
           · <?= e(t('footer.made_with')) ?> ❤️ <?= e(t('footer.from_mayotte')) ?>
         </span>
+        <?php
+        /* Version Wintaskly — affichée uniquement aux admins connectés,
+           pour vérifier en un coup d'œil quelle version tourne en prod
+           après une mise à jour. Invisible pour les utilisateurs normaux. */
+        if (!empty($_SESSION['uid']) && ($_SESSION['role'] ?? '') === 'admin' && defined('WT_VERSION')):
+        ?>
+          <span class="wt-footer-v2__version" style="opacity:.5;font-family:var(--wt-font-mono);font-size:.75rem">
+            · v<?= e(WT_VERSION) ?>
+          </span>
+        <?php endif; ?>
       </small>
 
       <div class="wt-footer-v2__controls">
@@ -255,7 +265,12 @@ window.WT_I18N = {
   /* ---- 1) Service Worker registration ---- */
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', function () {
-      navigator.serviceWorker.register('<?= $_base ?>/sw.js', { scope: '<?= $_base ?>/' })
+      // On passe la version Wintaskly en query string. Quand WT_VERSION
+      // change (nouveau déploiement), l'URL du SW change → le navigateur
+      // détecte un "nouveau" SW et le réinstalle, purgeant les vieux
+      // caches. Plus besoin de bumper manuellement CACHE_VERSION dans
+      // sw.js : la version PHP pilote tout.
+      navigator.serviceWorker.register('<?= $_base ?>/sw.js?v=<?= e(defined('WT_VERSION') ? WT_VERSION : '0') ?>', { scope: '<?= $_base ?>/' })
         .then(function (reg) {
           // Détection de nouvelle version dispo
           reg.addEventListener('updatefound', function () {

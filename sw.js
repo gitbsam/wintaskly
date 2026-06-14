@@ -2,20 +2,36 @@
  * Wintaskly — Service Worker (PWA)
  *
  * Stratégies de cache (par type de ressource) :
- *   - Assets statiques (CSS, JS, fonts, images) : cache-first
- *     (rapide, hors-ligne OK ; révalidé en background)
- *   - Pages HTML : network-first
- *     (toujours la version fraîche si réseau dispo, fallback cache si offline)
- *   - API (/api/*) : network-only
- *     (jamais cachées — données toujours fraîches)
+ *   - Images : cache-first (versionnées par path, rapides hors-ligne)
+ *   - CSS/JS : network-first (toujours la version fraîche après déploiement)
+ *   - Pages HTML : network-first (fallback cache si offline)
+ *   - API (/api/*) : network-only (jamais cachées)
  *   - Page offline (/offline.html) : cache fallback ultime
  *
- * Versioning :
- *   À chaque déploiement majeur, bumper CACHE_VERSION pour invalider
- *   automatiquement les anciens caches.
+ * Versioning AUTOMATIQUE :
+ *   La version est lue depuis la query string de l'URL d'enregistrement
+ *   du SW (ex: /sw.js?v=8.7.9). Cette valeur est injectée par footer.php
+ *   depuis la constante PHP WT_VERSION.
+ *
+ *   → Plus besoin de bumper manuellement quoi que ce soit ici : il
+ *     suffit de changer WT_VERSION dans includes/init.php et tout
+ *     l'écosystème (app + service worker) se met à jour ensemble.
+ *
+ *   Si l'URL n'a pas de ?v= (vieux cache), on retombe sur un fallback.
  */
 
-const CACHE_VERSION = 'wintaskly-v8.7.8-' + '20260612i';  // bump à chaque déploiement
+// Lit ?v=X.Y.Z depuis l'URL de ce script (injectée par footer.php)
+function wtGetVersionFromUrl() {
+  try {
+    const url = new URL(self.location.href);
+    const v = url.searchParams.get('v');
+    return v || 'fallback';
+  } catch (e) {
+    return 'fallback';
+  }
+}
+
+const CACHE_VERSION = 'wintaskly-v' + wtGetVersionFromUrl();
 const CACHE_STATIC  = CACHE_VERSION + '-static';
 const CACHE_PAGES   = CACHE_VERSION + '-pages';
 

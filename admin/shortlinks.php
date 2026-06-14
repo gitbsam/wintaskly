@@ -228,7 +228,7 @@ if (!empty($_GET['edit'])) {
 }
 
 /* ---------- Taux de conversion pour le calculateur de rentabilité ----
-   On récupère depuis payment_methods : "X coins = 1 unité de devise".
+   On récupère depuis withdrawal_methods : "X coins = 1 unité de devise".
    Ex: coins_per_unit=10000 pour USD → 1 USD = 10000 coins → 1 coin = 0.0001 USD.
 
    On expose un dictionnaire { "USD": 10000, "EUR": 9300, ... } au JS pour
@@ -237,15 +237,27 @@ if (!empty($_GET['edit'])) {
 
    Si aucune devise n'est définie : fallback à 10000 coins = 1 USD.
    -------------------------------------------------------------------- */
-$coinsPerUnit = ['USD' => 10000.0];  // fallback
-if ($res = $db->query("SELECT currency, MIN(coins_per_unit) AS rate
-                         FROM payment_methods
-                        WHERE active = 1 AND coins_per_unit > 0
-                        GROUP BY currency")) {
-    while ($row = $res->fetch_assoc()) {
-        $coinsPerUnit[strtoupper((string)$row['currency'])] = (float)$row['rate'];
+$coinsPerUnit = ['USD' => 10000.0];  // fallback par défaut
+
+/* On entoure d'un try/catch car sur LWS, mysqli est configuré en mode
+   strict (MYSQLI_REPORT_STRICT) : une requête sur une table inexistante
+   lève une mysqli_sql_exception au lieu de retourner false. Si la table
+   withdrawal_methods n'existe pas encore (migration non appliquée), on
+   garde simplement le fallback USD sans planter la page. */
+try {
+    if ($res = $db->query("SELECT currency, MIN(coins_per_unit) AS rate
+                             FROM withdrawal_methods
+                            WHERE active = 1 AND coins_per_unit > 0
+                            GROUP BY currency")) {
+        while ($row = $res->fetch_assoc()) {
+            $coinsPerUnit[strtoupper((string)$row['currency'])] = (float)$row['rate'];
+        }
+        $res->free();
     }
-    $res->free();
+} catch (Throwable $e) {
+    // Table withdrawal_methods absente ou colonne manquante → fallback USD.
+    // On log discrètement pour info, mais la page continue de fonctionner.
+    error_log('[Wintaskly shortlinks] withdrawal_methods unavailable: ' . $e->getMessage());
 }
 
 /* ---------- Liste --------------------------------------------------- */
@@ -673,7 +685,7 @@ include __DIR__ . '/../header.php';
 
    Quand l'admin saisit "12 USD pour 1000 vues" :
      - On calcule le coût par vue (en devise provider)
-     - On le convertit en coins (via le taux payment_methods)
+     - On le convertit en coins (via le taux withdrawal_methods)
      - On compare avec les coins distribués (reward_coins)
      - On affiche la marge brute Wintaskly
 

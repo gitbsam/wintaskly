@@ -1,37 +1,30 @@
 {
-  "_comment": "Ce fichier doit être uploadé sur GitHub Pages à l'URL : https://gitbsam.github.io/wintaskly/latest.json. Wintaskly va le check toutes les 6h via cron. Quand tu publies une nouvelle version, mets simplement à jour ce JSON sur GitHub et les installations Wintaskly détecteront automatiquement la nouvelle version.",
-
-  "version": "8.7.8",
+  "_comment": "Uploadez sur GitHub Pages: https://gitbsam.github.io/wintaskly/latest.json. IMPORTANT: la version ici doit correspondre a WT_VERSION dans includes/init.php pour que ton install soit 'a jour'. Pour une NOUVELLE version, augmente ce numero ET WT_VERSION ensemble.",
+  "version": "8.7.9",
   "released": "2026-06-14",
   "channel": "stable",
   "min_php": "8.2",
   "critical": false,
-
-  "summary": "Système de mises à jour intégré : Wintaskly te prévient maintenant quand une nouvelle version est disponible, avec mode maintenance et bannière utilisateur.",
-
+  "summary": "Version stable avec systeme de mises a jour integre, calculateur de rentabilite shortlinks, et versionning automatique synchronise.",
   "changelog": [
-    "🆕 Page /admin/updates.php avec changelog, planning de maintenance et historique des checks",
-    "🆕 Mode maintenance toggleable (admins gardent l'accès)",
-    "🆕 Bannière utilisateur planifiable pour annoncer la maintenance à venir",
-    "🆕 Bannière admin globale quand une nouvelle version est dispo",
-    "🆕 Vérification automatique toutes les 6h via le cron existant",
-    "🆕 Compteur de version intégré dans toute l'application (WT_VERSION)",
-    "✨ Calculateur de rentabilité shortlinks (admin)",
-    "✨ Drag-and-drop offerwalls (réorganiser par ordre d'affichage)",
-    "✨ Stats homepage avec 3 modes au choix (real/boosted/max)",
-    "🐛 Service Worker en network-first pour CSS/JS (versions toujours fraîches)",
-    "🐛 Préloader avec triple sécurité (JS + CSS fallback 8s)",
-    "🐛 Sidebar admin/dashboard responsive parfaite sur mobile"
+    "Systeme de mises a jour complet (/admin/updates.php)",
+    "Versionning automatique: WT_VERSION pilote le cache Service Worker",
+    "Badge de version dans le footer (admins)",
+    "Page /admin/diagnostic.php pour inspecter la BDD",
+    "Detection automatique des migrations manquantes",
+    "Calculateur de rentabilite shortlinks",
+    "Drag-and-drop offerwalls",
+    "Stats homepage 3 modes (real/boosted/max)",
+    "Fix erreur 500 shortlinks (payment_methods -> withdrawal_methods)",
+    "Service Worker network-first pour CSS/JS",
+    "Mailer natif ameliore (From BDD + Return-Path anti-Hotmail)"
   ],
-
-  "changelog_url": "https://github.com/gitbsam/wintaskly/releases/tag/v8.7.8",
-  "download_url": "https://github.com/gitbsam/wintaskly/releases/download/v8.7.8/wintaskly.zip",
-  "sha256": "sha256:cc687c7a95a040fb5ed3d5528dc538d075fa84190804f7877e2f2134dca1fec8",
-
+  "changelog_url": "https://github.com/gitbsam/wintaskly/releases/tag/v8.7.9",
+  "download_url": "https://github.com/gitbsam/wintaskly/releases/download/v8.7.9/wintaskly.zip",
+  "sha256": "sha256:a972fea8a2e367fa4d61eae2e9c174b1bc1ec372db91482dbb734292f41ab04c",
   "migrations": [
-    {
-      "file": "migration_update_system.sql",
-      "description": "Crée les tables update_checks + applied_migrations et initialise les configs update.*"
-    }
+    { "file": "migration_shortlinks_api.sql", "description": "Colonnes mode API + callback_key" },
+    { "file": "migration_shortlinks_rate.sql", "description": "Colonnes provider_rate_*" },
+    { "file": "migration_update_system.sql", "description": "Tables update_checks + applied_migrations" }
   ]
 }
