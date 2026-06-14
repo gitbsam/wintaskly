@@ -67,11 +67,27 @@ if (!function_exists('cfg')) {
     {
         if (!isset($GLOBALS['__wt_cfg_cache'])) {
             $GLOBALS['__wt_cfg_cache'] = [];
-            $res = db()->query("SELECT k, v FROM config");
-            if ($res) {
-                while ($r = $res->fetch_assoc()) {
-                    $GLOBALS['__wt_cfg_cache'][$r['k']] = $r['v'];
+            // Try/catch car sur LWS, mysqli est en mode strict
+            // (MYSQLI_REPORT_STRICT) : une requête sur une table inexistante
+            // lève une exception au lieu de retourner false. Si la table
+            // `config` est temporairement absente (migration en cours,
+            // restauration de BDD, etc.), on ne plante PAS toute l'app —
+            // on retourne juste les valeurs par défaut.
+            try {
+                $res = db()->query("SELECT k, v FROM config");
+                if ($res) {
+                    while ($r = $res->fetch_assoc()) {
+                        $GLOBALS['__wt_cfg_cache'][$r['k']] = $r['v'];
+                    }
+                    $res->free();
                 }
+            } catch (Throwable $e) {
+                // Table config absente ou inaccessible. On garde le cache
+                // vide (= tout retourne les defaults). On marque un flag
+                // pour que d'autres parties du code puissent détecter ce
+                // mode dégradé si besoin.
+                $GLOBALS['__wt_cfg_unavailable'] = true;
+                error_log('[Wintaskly cfg] config table unavailable: ' . $e->getMessage());
             }
         }
         return $GLOBALS['__wt_cfg_cache'][$key] ?? $default;
