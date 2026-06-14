@@ -1,7 +1,7 @@
 @echo off
 :: Force l'affichage et l'écriture des accents/émojis en UTF-8
 chcp 65001 >nul
-title Système de Déploiement Wintaskly
+title Système de Déploiement Wintaskly (Version Propre)
 
 :: Configuration des chemins
 set "PROJECT_DIR=C:\Users\zawu\wintaskly\televerse_wintaskly"
@@ -16,7 +16,7 @@ echo.
 echo Analyse des prérequis en cours...
 echo.
 
-:: 1. Vérification de Git (Ce qui doit être installé)
+:: 1. Vérification de Git
 git --version >nul 2>&1
 if %errorlevel% equ 0 (
     set "GIT_STATUS=✅ INSTALLÉ (Prêt)"
@@ -54,7 +54,7 @@ echo [VERSION]    Version détectée: V%WT_VERSION%
 echo ====================================================
 echo.
 
-:: Boucle de confirmation personnalisée (N ou n pour réessayer, n'importe quoi d'autre valide)
+:: Boucle de confirmation
 set "confirm="
 set /p confirm="👉 Appuyez sur ENTRÉE pour valider et continuer, ou tapez 'N' pour réessayer : "
 
@@ -65,7 +65,6 @@ if /i "%confirm%"=="N" (
     goto verification
 )
 
-:: Si l'utilisateur a appuyé sur autre chose que N, on passe au menu des actions
 :menu
 cls
 echo ====================================================
@@ -91,6 +90,16 @@ cls
 echo 🚀 Lancement de l'initialisation pour la version V%WT_VERSION%...
 echo.
 
+:: Nettoyage automatique des fichiers ZIP locaux avant toute action Git
+echo 🧹 Analyse et nettoyage des fichiers ZIP résiduels...
+if exist "*.zip" (
+    echo 🗑️ Fichiers ZIP détectés ! Suppression locale automatique...
+    del /f /q "*.zip"
+) else (
+    echo ✅ Aucun fichier ZIP nuisible détecté.
+)
+echo.
+
 :: Initialisation Git
 git init
 git branch -M main
@@ -99,9 +108,12 @@ git branch -M main
 git remote remove origin >nul 2>&1
 git remote add origin https://github.com/gitbsam/wintaskly.git
 
-echo 📝 Création de votre fichier .gitignore personnalisé...
+echo 📝 Création du fichier .gitignore (avec exclusion du script de déploiement)...
 echo # Configuration locale ^(créée depuis config.example.php^)> .gitignore
 echo config.php>> .gitignore
+echo.>> .gitignore
+echo # Script de déploiement local>> .gitignore
+echo deploy_wintaskly.bat>> .gitignore
 echo.>> .gitignore
 echo # Dépendances Node ^(pour la compilation Tailwind^)>> .gitignore
 echo node_modules/>> .gitignore
@@ -125,15 +137,16 @@ echo # n'ont pas Node.js — c'est l'output qui est uploadé en prod.>> .gitigno
 echo # ^(Décommentez la ligne suivante si vous voulez l'exclure du repo^)>> .gitignore
 echo # media/tailwind/css/tailwind.css>> .gitignore
 
-echo 📂 Ajout des fichiers et création du commit...
+echo.
+echo 📂 Ajout des fichiers propres et création du commit...
 git add .
 git commit -m "🎉 Initial commit — Wintaskly V%WT_VERSION% (premier release public)"
 
-echo 📤 Envoi vers GitHub...
+echo 📤 Envoi forcé vers GitHub...
 git push -u origin main --force
 
 echo.
-echo ✅ Dépôt initialisé avec votre .gitignore et envoyé !
+echo ✅ Dépôt initialisé proprement et envoyé !
 pause
 goto menu
 

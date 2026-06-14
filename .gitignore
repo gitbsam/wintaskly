@@ -1,6 +1,9 @@
 # Configuration locale (créée depuis config.example.php)
 config.php
 
+# Script de déploiement local
+deploy_wintaskly.bat
+
 # Dépendances Node (pour la compilation Tailwind)
 node_modules/
 
