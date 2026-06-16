@@ -118,6 +118,10 @@ include __DIR__ . '/../../header.php';
 <main class="wt-main wt-ptc-v2">
   <div class="wt-ptc-v2__wrap">
 
+    <?php $_ad = wt_ad_zone('ptc_chrono_top'); if ($_ad !== ''): ?>
+      <div class="wt-ad-zone wt-ad-zone--top" style="margin-bottom:1.5rem;text-align:center"><?= $_ad ?></div>
+    <?php endif; ?>
+
     <!-- ====== HEADER 2-col ====== -->
     <header class="wt-ptc-v2__header" data-reveal>
       <div class="wt-ptc-v2__intro">

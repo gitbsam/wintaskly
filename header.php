@@ -320,6 +320,14 @@ $_ogImage = $_seoOgImage !== '' ? $_seoOgImage : $_base . '/media/wintaskly/img/
 </script>
 <?php endif; ?>
 
+<?php
+/* Google AdSense Auto Ads — injecté seulement si configuré dans /admin/ads.php.
+   Avec Auto Ads, ce seul script suffit : Google place les annonces tout seul. */
+if (function_exists('wt_adsense_head')) {
+    echo wt_adsense_head();
+}
+?>
+
 </head>
 <body class="wt-body">
 

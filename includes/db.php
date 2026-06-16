@@ -15,7 +15,30 @@ if (!function_exists('db')) {
         $config = $GLOBALS['WT_CONFIG'] ?? [];
         $dbc    = $config['db'] ?? [];
 
-        mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
+        // ------------------------------------------------------------------
+        // Mode de rapport d'erreur mysqli selon l'environnement.
+        //
+        // SÉCURITÉ : on considère qu'on est en PRODUCTION par défaut, SAUF si
+        // 'environment' vaut explicitement 'development'. Ainsi, si la clé
+        // 'environment' est absente du config.php (ancienne version de
+        // l'installeur, config incomplet), on retombe sur le mode SÛR
+        // (production) au lieu de strict — ce qui évite des 500 fatals en
+        // cascade sur une table/colonne manquante.
+        //
+        // En DÉVELOPPEMENT (explicite) : MYSQLI_REPORT_ERROR | STRICT
+        //   → toute erreur SQL lève une exception (pratique pour débugger).
+        //
+        // En PRODUCTION (défaut) : MYSQLI_REPORT_ERROR uniquement
+        //   → une requête échouée retourne false au lieu de lever une
+        //     exception fatale. Les erreurs sont loggées mais gérables via
+        //     `if ($res = $db->query(...))` ou try/catch.
+        // ------------------------------------------------------------------
+        $isDevelopment = (($config['environment'] ?? 'production') === 'development');
+        if ($isDevelopment) {
+            mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
+        } else {
+            mysqli_report(MYSQLI_REPORT_ERROR);
+        }
 
         try {
             // Support socket Unix (hébergements partagés type OVH, Infomaniak)
@@ -91,6 +114,67 @@ if (!function_exists('cfg')) {
             }
         }
         return $GLOBALS['__wt_cfg_cache'][$key] ?? $default;
+    }
+}
+
+if (!function_exists('db_one')) {
+    /**
+     * Exécute une requête et retourne la PREMIÈRE ligne (associative) ou
+     * null. Ne plante JAMAIS, même si la table n'existe pas, même en mode
+     * mysqli strict : tout est entouré d'un try/catch.
+     *
+     * Usage :
+     *   $row = db_one("SELECT COUNT(*) c FROM users");
+     *   $n   = (int) ($row['c'] ?? 0);
+     *
+     * Remplace le pattern dangereux :
+     *   $row = $db->query("...")->fetch_assoc();  // ❌ plante si query false
+     *
+     * @param  string     $sql Requête SQL (sans paramètres — pour requêtes
+     *                         dynamiques utiliser des prepared statements)
+     * @return array|null      Première ligne, ou null si vide/erreur
+     */
+    function db_one(string $sql): ?array
+    {
+        try {
+            $res = db()->query($sql);
+            if ($res instanceof mysqli_result) {
+                $row = $res->fetch_assoc();
+                $res->free();
+                return $row ?: null;
+            }
+        } catch (Throwable $e) {
+            error_log('[Wintaskly db_one] ' . $e->getMessage() . ' — SQL: ' . $sql);
+        }
+        return null;
+    }
+}
+
+if (!function_exists('db_all')) {
+    /**
+     * Exécute une requête et retourne TOUTES les lignes (tableau de
+     * tableaux associatifs) ou un tableau vide. Ne plante jamais.
+     *
+     * Usage :
+     *   $rows = db_all("SELECT id, username FROM users LIMIT 10");
+     *   foreach ($rows as $row) { ... }
+     *
+     * @param  string $sql Requête SQL
+     * @return array       Lignes (vide si erreur ou aucun résultat)
+     */
+    function db_all(string $sql): array
+    {
+        try {
+            $res = db()->query($sql);
+            if ($res instanceof mysqli_result) {
+                $rows = $res->fetch_all(MYSQLI_ASSOC);
+                $res->free();
+                return $rows;
+            }
+        } catch (Throwable $e) {
+            error_log('[Wintaskly db_all] ' . $e->getMessage() . ' — SQL: ' . $sql);
+        }
+        return [];
     }
 }
 

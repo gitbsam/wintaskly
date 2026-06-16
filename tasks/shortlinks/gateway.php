@@ -80,8 +80,7 @@ $stmt->close();
      lien court fraîchement généré. À chaque clic = nouveau lien court,
      impossible à partager/réutiliser entre users → sécurité maximale.
    ───────────────────────────────────────────────────────────────────── */
-$adZone   = $db->query("SELECT code FROM ad_zones WHERE k='shortlink_gateway' AND active=1 LIMIT 1");
-$adCode   = $adZone ? (string)($adZone->fetch_assoc()['code'] ?? '') : '';
+$adCode = wt_ad_zone('shortlink_gateway');
 $delay    = max(3, (int) $sl['gateway_seconds']);
 
 $slMode = (string) ($sl['mode'] ?? 'manual');

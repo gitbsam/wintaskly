@@ -57,13 +57,10 @@ $reward         = (float) cfg('faucet_reward_coins', '25');
 $rewardXp       = (int)   cfg('faucet_reward_xp', '10');
 
 /* Bannières */
-$ads = [];
-$stmt = $db->query(
-    "SELECT k, code FROM ad_zones
-      WHERE active = 1
-        AND k IN ('faucet_transition_top','faucet_transition_bottom')"
-);
-while ($r = $stmt->fetch_assoc()) { $ads[$r['k']] = $r['code']; }
+$ads = [
+    'faucet_transition_top'    => wt_ad_zone('faucet_transition_top'),
+    'faucet_transition_bottom' => wt_ad_zone('faucet_transition_bottom'),
+];
 
 $fmt = static function (float $n): string {
     return rtrim(rtrim(number_format($n, 2, '.', ''), '0'), '.');

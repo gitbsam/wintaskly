@@ -31,7 +31,7 @@ $dashD = WT_PERIOD_DASHBOARD_DAYS;
 $compD = WT_PERIOD_COMPARISON_DAYS;
 
 // 1) users : actifs total + nouveaux 7d + nouveaux 14d-7d
-$row = $db->query(
+$row = db_one(
     "SELECT
         COUNT(*) AS active_total,
         SUM(CASE WHEN created_at >= UTC_TIMESTAMP() - INTERVAL {$dashD} DAY THEN 1 ELSE 0 END) AS new_7d,
@@ -39,26 +39,26 @@ $row = $db->query(
                   AND created_at <  UTC_TIMESTAMP() - INTERVAL {$dashD} DAY THEN 1 ELSE 0 END) AS new_prev_7d
        FROM users
       WHERE status = 'active'"
-)->fetch_assoc();
+) ?? [];
 
 $kpis['users']   = (int) ($row['active_total'] ?? 0);
 $prev['users']   = (int) ($row['new_prev_7d']  ?? 0);
 $newUsers7d      = (int) ($row['new_7d']       ?? 0);
 
 // 2) faucet_claims : 7d + 14d-7d en une passe (couvert par idx_claimed_at)
-$row = $db->query(
+$row = db_one(
     "SELECT
         SUM(CASE WHEN claimed_at >= UTC_TIMESTAMP() - INTERVAL {$dashD} DAY THEN 1 ELSE 0 END) AS d7,
         SUM(CASE WHEN claimed_at >= UTC_TIMESTAMP() - INTERVAL {$compD} DAY
                   AND claimed_at <  UTC_TIMESTAMP() - INTERVAL {$dashD} DAY THEN 1 ELSE 0 END) AS prev_d7
        FROM faucet_claims
       WHERE claimed_at >= UTC_TIMESTAMP() - INTERVAL {$compD} DAY"
-)->fetch_assoc();
+) ?? [];
 $kpis['claims'] = (int) ($row['d7']      ?? 0);
 $prev['claims'] = (int) ($row['prev_d7'] ?? 0);
 
 // 3) shortlink_attempts (status='valide') 7d + 14d-7d (couvert par idx_status_completed)
-$row = $db->query(
+$row = db_one(
     "SELECT
         SUM(CASE WHEN completed_at >= UTC_TIMESTAMP() - INTERVAL {$dashD} DAY THEN 1 ELSE 0 END) AS d7,
         SUM(CASE WHEN completed_at >= UTC_TIMESTAMP() - INTERVAL {$compD} DAY
@@ -66,12 +66,12 @@ $row = $db->query(
        FROM shortlink_attempts
       WHERE status = 'valide'
         AND completed_at >= UTC_TIMESTAMP() - INTERVAL {$compD} DAY"
-)->fetch_assoc();
+) ?? [];
 $kpis['shortlinks'] = (int) ($row['d7']      ?? 0);
 $prev['shortlinks'] = (int) ($row['prev_d7'] ?? 0);
 
 // 4) transactions positives : sum 7d + sum 14d-7d (couvert par idx_created_type)
-$row = $db->query(
+$row = db_one(
     "SELECT
         COALESCE(SUM(CASE WHEN created_at >= UTC_TIMESTAMP() - INTERVAL {$dashD} DAY THEN coins ELSE 0 END), 0) AS d7,
         COALESCE(SUM(CASE WHEN created_at >= UTC_TIMESTAMP() - INTERVAL {$compD} DAY
@@ -79,17 +79,20 @@ $row = $db->query(
        FROM transactions
       WHERE coins > 0
         AND created_at >= UTC_TIMESTAMP() - INTERVAL {$compD} DAY"
-)->fetch_assoc();
+) ?? [];
 $kpis['coins'] = (float) ($row['d7']      ?? 0);
 $prev['coins'] = (float) ($row['prev_d7'] ?? 0);
 
 /* Alertes actionnables */
-$pendingWithdrawals = (int) ($db->query("SELECT COUNT(*) c FROM withdrawals WHERE status='pending'")->fetch_assoc()['c'] ?? 0);
-$openTickets        = (int) ($db->query("SELECT COUNT(*) c FROM support_tickets WHERE status='open'")->fetch_assoc()['c'] ?? 0);
+$_w = db_one("SELECT COUNT(*) c FROM withdrawals WHERE status='pending'");
+$pendingWithdrawals = (int) ($_w['c'] ?? 0);
+$_t = db_one("SELECT COUNT(*) c FROM support_tickets WHERE status='open'");
+$openTickets = (int) ($_t['c'] ?? 0);
 $pendingTestimonials = 0;
 $res = $db->query("SHOW TABLES LIKE 'testimonials'");
 if ($res && $res->num_rows > 0) {
-    $pendingTestimonials = (int) ($db->query("SELECT COUNT(*) c FROM testimonials WHERE status='pending'")->fetch_assoc()['c'] ?? 0);
+    $_pt = db_one("SELECT COUNT(*) c FROM testimonials WHERE status='pending'");
+    $pendingTestimonials = (int) ($_pt['c'] ?? 0);
 }
 
 /* 5 derniers utilisateurs */

@@ -74,11 +74,7 @@ if ($order) {
 $targetName = $icons[$targetSlug]['name'] ?? $targetSlug;
 
 /* Pub centrale */
-$adCode = '';
-$stmt = $db->prepare("SELECT code FROM ad_zones WHERE k = 'faucet_verify_center' AND active = 1 LIMIT 1");
-$stmt->execute();
-$adCode = $stmt->get_result()->fetch_assoc()['code'] ?? '';
-$stmt->close();
+$adCode = wt_ad_zone('faucet_verify_center');
 
 $expiresIso = gmdate('c', strtotime($session['expires_at'] . ' UTC'));
 $reward     = (float) cfg('faucet_reward_coins', '25');

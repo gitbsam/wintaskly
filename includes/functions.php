@@ -300,3 +300,84 @@ if (!function_exists('wt_shortlink_create_via_api')) {
         return $short;
     }
 }
+
+if (!function_exists('wt_ad_zone')) {
+    /**
+     * Affiche (echo) le code d'une zone publicitaire depuis la table
+     * `ad_zones`, identifiée par sa clé. Ne plante jamais : si la zone
+     * n'existe pas, est inactive, ou si la table est absente, retourne
+     * une chaîne vide (rien n'est affiché).
+     *
+     * Les codes sont mis en cache au premier appel pour éviter de
+     * re-requêter la BDD à chaque zone sur une même page.
+     *
+     * Usage dans une vue :
+     *   <?= wt_ad_zone('faucet_transition_top') ?>
+     *
+     * @param  string $key Clé de la zone (ex: 'ptc_chrono_top')
+     * @return string      Code HTML/JS de la pub, ou '' si indisponible
+     */
+    function wt_ad_zone(string $key): string
+    {
+        // Cache des zones chargé une seule fois par requête
+        if (!isset($GLOBALS['__wt_ad_zones_cache'])) {
+            $GLOBALS['__wt_ad_zones_cache'] = [];
+            try {
+                $res = db()->query("SELECT k, code FROM ad_zones WHERE active = 1");
+                if ($res instanceof mysqli_result) {
+                    while ($r = $res->fetch_assoc()) {
+                        $GLOBALS['__wt_ad_zones_cache'][$r['k']] = (string) $r['code'];
+                    }
+                    $res->free();
+                }
+            } catch (Throwable $e) {
+                // Table ad_zones absente ou inaccessible → pas de pub, pas de crash
+                error_log('[Wintaskly ad_zone] ' . $e->getMessage());
+            }
+        }
+
+        $code = $GLOBALS['__wt_ad_zones_cache'][$key] ?? '';
+
+        // On n'affiche pas les placeholders de démo (commentaires HTML seuls)
+        $stripped = trim(preg_replace('/<!--.*?-->/s', '', $code));
+        if ($stripped === '') {
+            return '';
+        }
+
+        return $code;
+    }
+}
+
+if (!function_exists('wt_adsense_head')) {
+    /**
+     * Retourne le script AdSense "Auto Ads" à placer dans le <head>, si
+     * un identifiant éditeur (ca-pub-XXXX) est configuré via /admin.
+     *
+     * Avec AdSense Auto Ads, ce SEUL script suffit : Google place
+     * automatiquement les annonces sur le site. C'est complémentaire des
+     * zones manuelles (ad_zones) pour un contrôle fin.
+     *
+     * Config BDD : clé 'ads.adsense_client' = 'ca-pub-1234567890123456'
+     *
+     * @return string Balise <script> AdSense, ou '' si non configuré
+     */
+    function wt_adsense_head(): string
+    {
+        $client = trim((string) cfg('ads.adsense_client', ''));
+        if ($client === '') {
+            return '';
+        }
+        // Validation basique du format ca-pub-XXXXXXXXXXXXXXXX
+        if (!preg_match('/^ca-pub-\d{10,20}$/', $client)) {
+            return '';
+        }
+        $enabled = (string) cfg('ads.adsense_auto', '0') === '1';
+        if (!$enabled) {
+            return '';
+        }
+        $c = htmlspecialchars($client, ENT_QUOTES, 'UTF-8');
+        return "\n<!-- Google AdSense Auto Ads -->\n"
+             . "<script async src=\"https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client={$c}\""
+             . " crossorigin=\"anonymous\"></script>\n";
+    }
+}

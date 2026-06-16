@@ -746,7 +746,15 @@ INSERT IGNORE INTO `ad_zones` (`k`,`label`,`code`,`active`) VALUES
  ('faucet_verify_center',     'Faucet — Validation 300x250',      '<!-- Insérer ici le code AdSense 300x250 -->',    1),
  ('shortlink_gateway',        'Shortlink — Passerelle interne',   '<!-- Insérer ici le code AdSense -->',            1),
  ('ptc_chrono_top',           'PTC — Chrono haut',                '<!-- Insérer ici le code AdSense responsive -->', 1),
- ('offerwall_top',            'Offerwalls — Bandeau haut',        '<!-- Insérer ici le code AdSense responsive -->', 1);
+ ('offerwall_top',            'Offerwalls — Bandeau haut',        '<!-- Insérer ici le code AdSense responsive -->', 1),
+ ('dashboard_top',            'Dashboard — Bandeau haut',         '<!-- Insérer ici le code AdSense responsive -->', 1),
+ ('tasks_index_top',          'Tâches — Bandeau haut',            '<!-- Insérer ici le code AdSense responsive -->', 1),
+ ('home_hero_bottom',         'Accueil — Sous le hero',           '<!-- Insérer ici le code AdSense responsive -->', 1);
+
+-- Configuration AdSense (Auto Ads) modifiable via /admin/ads.php
+INSERT IGNORE INTO `config` (`k`, `v`) VALUES
+ ('ads.adsense_client', ''),
+ ('ads.adsense_auto',   '0');
 
 -- ---------- withdrawal methods ----------
 INSERT IGNORE INTO `withdrawal_methods`

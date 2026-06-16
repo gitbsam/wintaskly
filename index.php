@@ -49,9 +49,12 @@ $statsPaidBoost  = (int) cfg('stats_paid', '0');
 $statsTodayBoost = (int) cfg('stats_tasks_today', '0');
 
 // Valeurs réelles depuis la BDD (toujours calculées pour transparence admin)
-$realUsers = (int) ($db->query("SELECT COUNT(*) c FROM users WHERE status='active'")->fetch_assoc()['c'] ?? 0);
-$realPaid  = (int) ($db->query("SELECT COALESCE(SUM(coins),0) s FROM transactions WHERE type IN ('faucet','shortlink','referral','bonus')")->fetch_assoc()['s'] ?? 0);
-$realToday = (int) ($db->query("SELECT COUNT(*) c FROM transactions WHERE type IN ('faucet','shortlink') AND created_at >= UTC_DATE()")->fetch_assoc()['c'] ?? 0);
+$_ru = db_one("SELECT COUNT(*) c FROM users WHERE status='active'");
+$realUsers = (int) ($_ru['c'] ?? 0);
+$_rp = db_one("SELECT COALESCE(SUM(coins),0) s FROM transactions WHERE type IN ('faucet','shortlink','referral','bonus')");
+$realPaid  = (int) ($_rp['s'] ?? 0);
+$_rt = db_one("SELECT COUNT(*) c FROM transactions WHERE type IN ('faucet','shortlink') AND created_at >= UTC_DATE()");
+$realToday = (int) ($_rt['c'] ?? 0);
 
 // Application du mode
 switch ($statsMode) {
@@ -261,6 +264,10 @@ include __DIR__ . '/header.php';
 
     </div>
   </section>
+  <?php endif; ?>
+
+  <?php $_ad = wt_ad_zone('home_hero_bottom'); if ($_ad !== ''): ?>
+    <div class="wt-ad-zone wt-ad-zone--home" style="max-width:1240px;margin:0 auto 1.5rem;padding:0 1rem;text-align:center"><?= $_ad ?></div>
   <?php endif; ?>
 
   <!-- ===================== TRUST BAR STICKY (V8) =================

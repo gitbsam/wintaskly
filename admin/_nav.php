@@ -235,5 +235,15 @@ $base = rtrim($GLOBALS['WT_CONFIG']['base_url'] ?? '', '/');
         </span>
       <?php endif; ?>
     </a>
+
+    <a href="<?= $base ?>/admin/ads.php" class="<?= $adminActive==='ads' ? 'is-active' : '' ?>" style="--idx:4">
+      <span class="wt-admin-v2__nav-ico" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="18" height="18" rx="2"/>
+          <path d="M7 7h10M7 12h10M7 17h6"/>
+        </svg>
+      </span>
+      <?= e(t('admin.ads')) ?>
+    </a>
   </nav>
 </aside>

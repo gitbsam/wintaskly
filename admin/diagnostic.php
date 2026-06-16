@@ -26,8 +26,15 @@ $expectedTables = [
     'users', 'transactions', 'config', 'shortlinks', 'offerwalls',
     'faucet_claims', 'ptc_ads', 'withdrawals', 'withdrawal_methods',
     'auth_tokens', 'messages', 'notifications', 'support_tickets',
-    'cron_runs', 'update_checks', 'applied_migrations',
+    'support_messages', 'cron_runs', 'update_checks', 'applied_migrations',
 ];
+
+/* Note : certains noms de tables prêtent à confusion —
+   - La table des méthodes de retrait s'appelle `withdrawal_methods`
+     (et NON payment_methods, même si la page admin s'appelle
+     payment_methods.php).
+   - La table des tickets support s'appelle `support_tickets`
+     (et NON tickets). */
 $existingTables = [];
 if ($res = $db->query("SHOW TABLES")) {
     while ($row = $res->fetch_array(MYSQLI_NUM)) {
@@ -121,6 +128,14 @@ include __DIR__ . '/../header.php';
         <h2>📦 Version installée</h2>
         <p style="font-family:var(--wt-font-mono);font-size:1.3rem;color:var(--wt-accent)">
           v<?= e(defined('WT_VERSION') ? WT_VERSION : 'unknown') ?>
+        </p>
+        <p class="wt-muted" style="font-size:.85rem">
+          🕐 Fichier diagnostic.php daté du :
+          <strong style="font-family:var(--wt-font-mono)"><?= e(date('Y-m-d H:i:s', filemtime(__FILE__))) ?></strong>
+        </p>
+        <p class="wt-muted" style="font-size:.8rem;opacity:.6">
+          Si cette date ne change pas après un upload, c'est que le fichier n'a pas été remplacé
+          (cache Varnish LWS ou upload incomplet).
         </p>
       </div>
 

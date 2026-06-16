@@ -72,15 +72,13 @@ $health = [
     'is_stale'     => true,
 ];
 
-$row = $db->query(
-    "SELECT MAX(started_at) m FROM cron_runs"
-)->fetch_assoc();
+$row = db_one("SELECT MAX(started_at) m FROM cron_runs") ?? [];
 $health['last_run_at'] = $row['m'] ?? null;
 if ($health['last_run_at']) {
     $health['is_stale'] = (time() - strtotime($health['last_run_at'] . ' UTC')) > 3900; // > 65 min
 }
 
-$row = $db->query(
+$row = db_one(
     "SELECT
         SUM(CASE WHEN status = 'success' THEN 1 ELSE 0 END) ok,
         SUM(CASE WHEN status = 'error'   THEN 1 ELSE 0 END) err,
@@ -88,7 +86,7 @@ $row = $db->query(
         COALESCE(AVG(TIMESTAMPDIFF(SECOND, started_at, finished_at)), 0) avg_s
       FROM cron_runs
      WHERE started_at >= UTC_TIMESTAMP() - INTERVAL " . WT_PERIOD_CRON_HEALTH_HOURS . " HOUR"
-)->fetch_assoc();
+) ?? [];
 $health['success_24h'] = (int)($row['ok'] ?? 0);
 $health['error_24h']   = (int)($row['err'] ?? 0);
 $health['skipped_24h'] = (int)($row['skp'] ?? 0);
@@ -109,9 +107,7 @@ $perPage = 25;
 $offset  = ($pageNum - 1) * $perPage;
 
 /* Compteurs par statut pour pills */
-$row = $db->query(
-    "SELECT status, COUNT(*) c FROM cron_runs GROUP BY status"
-)->fetch_all(MYSQLI_ASSOC);
+$row = db_all("SELECT status, COUNT(*) c FROM cron_runs GROUP BY status");
 $counts = ['all' => 0, 'success' => 0, 'error' => 0, 'skipped' => 0, 'running' => 0];
 foreach ($row as $r) {
     $counts[$r['status']] = (int)$r['c'];
@@ -150,7 +146,7 @@ if ($bindTypes) {
     $totalFiltered = (int)($stmt->get_result()->fetch_assoc()['c'] ?? 0);
     $stmt->close();
 } else {
-    $totalFiltered = (int)($db->query($cntSql)->fetch_assoc()['c'] ?? 0);
+    $totalFiltered = (int)(db_one($cntSql)['c'] ?? 0);
 }
 $totalPages = max(1, (int)ceil($totalFiltered / $perPage));
 

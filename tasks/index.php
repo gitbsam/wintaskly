@@ -22,13 +22,13 @@ $faucetXp    = (int)   cfg('faucet_reward_xp',    '10');
 $faucetCD    = (int)   cfg('faucet_cooldown_seconds', '10800');
 
 /* === Compteurs publics (visibles à tous) ============================ */
-$shortlinksCount = (int)($db->query("SELECT COUNT(*) c FROM shortlinks WHERE active=1")->fetch_assoc()['c'] ?? 0);
-$ptcCount        = (int)($db->query("SELECT COUNT(*) c FROM ptc_ads    WHERE active=1")->fetch_assoc()['c'] ?? 0);
-$offerwallsCount = (int)($db->query("SELECT COUNT(*) c FROM offerwalls WHERE active=1")->fetch_assoc()['c'] ?? 0);
+$shortlinksCount = (int)(db_one("SELECT COUNT(*) c FROM shortlinks WHERE active=1")['c'] ?? 0);
+$ptcCount        = (int)(db_one("SELECT COUNT(*) c FROM ptc_ads    WHERE active=1")['c'] ?? 0);
+$offerwallsCount = (int)(db_one("SELECT COUNT(*) c FROM offerwalls WHERE active=1")['c'] ?? 0);
 
 /* Récompenses moyennes (calculées depuis la DB pour des chiffres crédibles) */
-$slAvg  = (float) ($db->query("SELECT COALESCE(AVG(reward_coins), 5) a FROM shortlinks WHERE active=1")->fetch_assoc()['a'] ?? 5);
-$ptcAvg = (float) ($db->query("SELECT COALESCE(AVG(reward_coins), 2) a FROM ptc_ads    WHERE active=1")->fetch_assoc()['a'] ?? 2);
+$slAvg  = (float) (db_one("SELECT COALESCE(AVG(reward_coins), 5) a FROM shortlinks WHERE active=1")['a'] ?? 5);
+$ptcAvg = (float) (db_one("SELECT COALESCE(AVG(reward_coins), 2) a FROM ptc_ads    WHERE active=1")['a'] ?? 2);
 
 /* === État dynamique pour l'utilisateur connecté ==================== */
 $faucetReadyAt   = null;
@@ -130,6 +130,10 @@ include __DIR__ . '/../header.php';
 ?>
 
 <main class="wt-main wt-tasks-v2">
+
+  <?php $_ad = wt_ad_zone('tasks_index_top'); if ($_ad !== ''): ?>
+    <div class="wt-ad-zone wt-ad-zone--top" style="margin-bottom:1.5rem;text-align:center"><?= $_ad ?></div>
+  <?php endif; ?>
 
   <!-- =============== HEADER + RÉCAP UTILISATEUR =============== -->
   <header class="wt-tasks-v2__header" data-reveal>

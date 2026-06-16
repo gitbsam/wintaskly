@@ -115,6 +115,10 @@ include __DIR__ . '/../header.php';
     <?php include __DIR__ . '/_nav.php'; ?>
     <section class="wt-dash__content wt-dash-v2__content">
 
+      <?php $_ad = wt_ad_zone('dashboard_top'); if ($_ad !== ''): ?>
+        <div class="wt-ad-zone wt-ad-zone--top" style="margin-bottom:1.5rem;text-align:center"><?= $_ad ?></div>
+      <?php endif; ?>
+
       <!-- ============ HEADER ============ -->
       <header class="wt-dash-v2__header" data-reveal>
         <div>

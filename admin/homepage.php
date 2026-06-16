@@ -75,9 +75,9 @@ $stats = [
    l'admin voit exactement ce que les visiteurs voient avant et après
    application du mode choisi. */
 $realStats = [
-    'users' => (int) ($db->query("SELECT COUNT(*) c FROM users WHERE status='active'")->fetch_assoc()['c'] ?? 0),
-    'paid'  => (int) ($db->query("SELECT COALESCE(SUM(coins),0) s FROM transactions WHERE type IN ('faucet','shortlink','referral','bonus')")->fetch_assoc()['s'] ?? 0),
-    'today' => (int) ($db->query("SELECT COUNT(*) c FROM transactions WHERE type IN ('faucet','shortlink') AND created_at >= UTC_DATE()")->fetch_assoc()['c'] ?? 0),
+    'users' => (int) (db_one("SELECT COUNT(*) c FROM users WHERE status='active'")['c'] ?? 0),
+    'paid'  => (int) (db_one("SELECT COALESCE(SUM(coins),0) s FROM transactions WHERE type IN ('faucet','shortlink','referral','bonus')")['s'] ?? 0),
+    'today' => (int) (db_one("SELECT COUNT(*) c FROM transactions WHERE type IN ('faucet','shortlink') AND created_at >= UTC_DATE()")['c'] ?? 0),
 ];
 
 include __DIR__ . '/../header.php';
