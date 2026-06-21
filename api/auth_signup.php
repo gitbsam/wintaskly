@@ -67,6 +67,17 @@ if ($refCode !== '') {
 }
 
 // 5) Création du compte (statut 'pending')
+// Vérification anti-fraude multi-comptes (avant création).
+// fail-open : si la détection est off ou indisponible, on autorise.
+$fraudCheck = function_exists('wt_fraud_check_signup')
+    ? wt_fraud_check_signup()
+    : ['allow' => true, 'flag' => false, 'reason' => ''];
+
+if (!$fraudCheck['allow']) {
+    // Bloqué par la règle multi-comptes (action 'block')
+    wt_json(['ok' => false, 'error' => t('auth.signup_blocked')]);
+}
+
 $hash   = password_hash($pass, PASSWORD_DEFAULT);
 $rc     = generate_referral_code();
 $ipBin  = wt_ip_bin();
@@ -92,6 +103,12 @@ if (!$stmt->execute()) {
 }
 $newId = (int) $stmt->insert_id;
 $stmt->close();
+
+// Si l'inscription a été signalée (action 'flag'), on marque le compte
+// pour revue manuelle sans bloquer l'utilisateur.
+if (!empty($fraudCheck['flag']) && function_exists('wt_fraud_flag_user')) {
+    wt_fraud_flag_user($newId, 40, $fraudCheck['reason']);
+}
 
 // Nettoyage cookie de parrainage
 if (isset($_COOKIE['wt_ref'])) {

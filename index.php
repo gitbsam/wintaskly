@@ -954,6 +954,53 @@ include __DIR__ . '/header.php';
     </p>
   </section>
 
+  <?php
+  /* ===================== DERNIERS ARTICLES DU BLOG =====================
+   * Affiche les 3 derniers articles publiés. Section masquée s'il n'y a
+   * aucun article, ou si le blog est désactivé. Apporte du contenu frais
+   * et des liens internes (bon pour le SEO et la découverte). */
+  $homeBlogPosts = (function_exists('wt_blog_enabled') && wt_blog_enabled())
+      ? wt_blog_posts(3, 0)
+      : [];
+  if (!empty($homeBlogPosts)):
+  ?>
+  <section class="wt-home-blog" data-reveal>
+    <div class="wt-home-blog__head">
+      <span class="wt-eyebrow">📰 <?= e(t('home.blog.eyebrow')) ?></span>
+      <h2 class="wt-section__title"><?= e(t('home.blog.title')) ?></h2>
+      <p class="wt-section__lead"><?= e(t('home.blog.lead')) ?></p>
+    </div>
+
+    <div class="wt-home-blog__grid">
+      <?php foreach ($homeBlogPosts as $post): ?>
+        <article class="wt-home-blog__card">
+          <a href="<?= e(wt_url('/blog/' . $post['slug'])) ?>" class="wt-home-blog__link">
+            <div class="wt-home-blog__cover">
+              <span class="wt-home-blog__emoji"><?= e($post['cover_emoji'] ?: '📄') ?></span>
+            </div>
+            <div class="wt-home-blog__body">
+              <?php if (!empty($post['category_name'])): ?>
+                <span class="wt-home-blog__cat"><?= e($post['category_name']) ?></span>
+              <?php endif; ?>
+              <h3 class="wt-home-blog__title"><?= e($post['title']) ?></h3>
+              <?php if (!empty($post['excerpt'])): ?>
+                <p class="wt-home-blog__excerpt"><?= e($post['excerpt']) ?></p>
+              <?php endif; ?>
+              <span class="wt-home-blog__meta">⏱️ <?= (int)$post['reading_minutes'] ?> <?= e(t('blog.min_read')) ?></span>
+            </div>
+          </a>
+        </article>
+      <?php endforeach; ?>
+    </div>
+
+    <p class="wt-home-blog__foot">
+      <a class="wt-btn wt-btn--ghost" href="<?= e(wt_url('/blog')) ?>">
+        <?= e(t('home.blog.see_all')) ?> →
+      </a>
+    </p>
+  </section>
+  <?php endif; ?>
+
   <!-- ===================== FINAL CTA (V8) =========================
    * Masqué si l'utilisateur est déjà connecté (rien à pousser).
    * Sinon : bandeau full-bleed avec gradient + gros bouton conversion.

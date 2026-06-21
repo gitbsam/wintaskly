@@ -229,11 +229,6 @@ final class WtMailer
         return $ok;
     }
 
-    private static function encodeHeader_NEW_REMOVED(string $value): string
-    {
-        return self::encodeHeader($value);
-    }
-
     // -----------------------------------------------------------------
     // 2.1.c) Resolver SMTP : essaie BDD admin d'abord, puis config.php
     // -----------------------------------------------------------------

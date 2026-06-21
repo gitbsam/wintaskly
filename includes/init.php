@@ -47,7 +47,7 @@ if (!defined('WT_PERIOD_DASHBOARD_DAYS')) {
 // L'URL latest.json est configurable via la BDD (clé config 'update.feed_url')
 // pour permettre de changer de canal (stable/beta) sans redéployer.
 if (!defined('WT_VERSION')) {
-    define('WT_VERSION', '8.8.0');
+    define('WT_VERSION', '8.12.0');
     define('WT_VERSION_CHANNEL', 'stable');  // stable | beta | dev
     define('WT_UPDATE_FEED_DEFAULT', 'https://gitbsam.github.io/wintaskly/latest.json');
 }
@@ -242,6 +242,10 @@ require __DIR__ . '/mailer.php';
 require __DIR__ . '/messaging.php';
 require __DIR__ . '/leaderboard.php';
 require __DIR__ . '/update.php';
+require __DIR__ . '/daily_bonus.php';
+require __DIR__ . '/achievements.php';
+require __DIR__ . '/blog.php';
+require __DIR__ . '/fraud.php';
 
 // Si l'utilisateur n'a pas de session active mais possède un cookie
 // « remember-me » valide, on connecte automatiquement.
@@ -391,6 +395,23 @@ if (!function_exists('wt_format_datetime')) {
         } catch (Throwable $e) {
             return $utcDatetime;
         }
+    }
+}
+
+if (!function_exists('wt_format_coins')) {
+    /**
+     * Formate un montant de coins pour l'affichage : retire les zéros
+     * décimaux inutiles (10.0000 → "10", 12.5000 → "12.5") et ajoute
+     * un séparateur de milliers pour les grands nombres.
+     *
+     * @param  float $coins  Montant
+     * @param  bool  $thousands  Ajouter un séparateur de milliers (espace)
+     * @return string
+     */
+    function wt_format_coins(float $coins, bool $thousands = false): string
+    {
+        $s = rtrim(rtrim(number_format($coins, 4, '.', $thousands ? ' ' : ''), '0'), '.');
+        return $s === '' ? '0' : $s;
     }
 }
 

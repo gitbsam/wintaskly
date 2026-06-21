@@ -84,6 +84,35 @@ function award_user(int $userId, float $coins, int $xp, string $type, ?string $m
 
         $db->commit();
 
+        // ------------------------------------------------------------------
+        // Vérification des achievements APRÈS le commit (hors transaction).
+        //
+        // Garde anti-récursion : si ce crédit est LUI-MÊME une récompense
+        // d'achievement (type 'achievement'), on ne re-vérifie pas — sinon
+        // débloquer un badge qui crédite des coins relancerait la vérif à
+        // l'infini. Les autres types (faucet, shortlink, daily_bonus...)
+        // déclenchent la vérification en temps réel.
+        //
+        // wt_ach_check est tolérant aux pannes : si le module/les tables ne
+        // sont pas dispo, il retourne [] sans erreur.
+        if ($type !== 'achievement' && function_exists('wt_ach_check')) {
+            try {
+                $unlocked = wt_ach_check($userId);
+                // On stocke les déblocages dans un buffer global pour que la
+                // page courante puisse les afficher (toasts/notifications).
+                if (!empty($unlocked)) {
+                    if (!isset($GLOBALS['__wt_ach_just_unlocked'])) {
+                        $GLOBALS['__wt_ach_just_unlocked'] = [];
+                    }
+                    foreach ($unlocked as $u) {
+                        $GLOBALS['__wt_ach_just_unlocked'][] = $u;
+                    }
+                }
+            } catch (Throwable $e) {
+                error_log('[Wintaskly ach] check after award: ' . $e->getMessage());
+            }
+        }
+
         return [
             'coins'          => $coins,
             'xp'             => $xp,

@@ -132,6 +132,9 @@ $_yearDisplay = ($_launchYear === $_currentYear)
           <li><a href="<?= $_base ?>/help/"><?= e(t('footer.help_center')) ?></a></li>
           <li><a href="<?= $_base ?>/help/faq.php"><?= e(t('faq.title')) ?></a></li>
           <li><a href="<?= $_base ?>/help/contact.php"><?= e(t('contact.title')) ?></a></li>
+          <?php if (function_exists('wt_blog_enabled') && wt_blog_enabled()): ?>
+            <li><a href="<?= $_base ?>/blog"><?= e(t('nav.blog')) ?></a></li>
+          <?php endif; ?>
           <?php if (current_user()): ?>
             <li><a href="<?= $_base ?>/dashboard/messages.php"><?= e(t('footer.my_tickets')) ?></a></li>
           <?php endif; ?>
@@ -387,6 +390,83 @@ window.WT_I18N = {
   });
 })();
 </script>
+
+<?php
+/* ============ TOASTS DE DÉBLOCAGE DE SUCCÈS ============
+   Si award_user() a débloqué des badges pendant cette requête, ils sont
+   dans $GLOBALS['__wt_ach_just_unlocked']. On les affiche en notifications
+   animées. Le buffer est consommé (une seule fois). */
+if (!empty($GLOBALS['__wt_ach_just_unlocked']) && is_array($GLOBALS['__wt_ach_just_unlocked'])):
+    $achToasts = $GLOBALS['__wt_ach_just_unlocked'];
+    $GLOBALS['__wt_ach_just_unlocked'] = []; // consommé
+?>
+<div id="wtAchToasts" style="position:fixed;bottom:1.5rem;right:1.5rem;z-index:10000;display:flex;flex-direction:column;gap:.75rem"></div>
+<script>
+(function () {
+  var unlocked = <?= json_encode(array_map(function ($a) {
+      return [
+          'icon'  => $a['icon'] ?: '🏆',
+          'title' => $a['title'],
+          'coins' => $a['coins'],
+          'xp'    => $a['xp'],
+          'tier'  => $a['tier'],
+      ];
+  }, $achToasts), JSON_HEX_APOS|JSON_HEX_QUOT|JSON_UNESCAPED_UNICODE) ?>;
+
+  var container = document.getElementById('wtAchToasts');
+  if (!container || !unlocked.length) return;
+
+  var tierColors = {
+    bronze:'#cd7f32', silver:'#c0c0c0', gold:'#ffd700',
+    platinum:'#7dd3fc', special:'#c084fc'
+  };
+
+  unlocked.forEach(function (a, i) {
+    setTimeout(function () {
+      var toast = document.createElement('div');
+      var color = tierColors[a.tier] || '#ffd700';
+      toast.style.cssText =
+        'display:flex;align-items:center;gap:.85rem;padding:1rem 1.25rem;' +
+        'background:linear-gradient(135deg,#1a2138,#131829);' +
+        'border:1.5px solid ' + color + ';border-radius:14px;' +
+        'box-shadow:0 8px 28px rgba(0,0,0,.45),0 0 20px ' + color + '33;' +
+        'color:#e8eaf0;min-width:260px;max-width:340px;' +
+        'animation:wtAchToastIn .5s cubic-bezier(.2,.9,.3,1.4) forwards;cursor:pointer';
+
+      var reward = '';
+      if (a.coins > 0) reward += '💰 +' + a.coins;
+      if (a.xp > 0)    reward += (reward ? ' · ' : '') + '⭐ +' + a.xp + ' XP';
+
+      toast.innerHTML =
+        '<div style="font-size:2rem;line-height:1">' + a.icon + '</div>' +
+        '<div style="flex:1;min-width:0">' +
+          '<div style="font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;color:' + color + ';font-weight:700">' +
+            <?= json_encode((string) t('ach.toast_unlocked'), JSON_UNESCAPED_UNICODE) ?> + '</div>' +
+          '<div style="font-weight:700;font-size:.98rem;margin:.1rem 0">' + a.title + '</div>' +
+          (reward ? '<div style="font-size:.82rem;opacity:.85">' + reward + '</div>' : '') +
+        '</div>';
+
+      toast.addEventListener('click', function () { toast.remove(); });
+      container.appendChild(toast);
+
+      // Auto-disparition après 6s
+      setTimeout(function () {
+        toast.style.transition = 'opacity .5s, transform .5s';
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateX(20px)';
+        setTimeout(function () { toast.remove(); }, 500);
+      }, 6000);
+    }, i * 600); // décalage entre plusieurs badges
+  });
+})();
+</script>
+<style>
+@keyframes wtAchToastIn {
+  from { opacity:0; transform:translateX(40px) scale(.9); }
+  to   { opacity:1; transform:translateX(0) scale(1); }
+}
+</style>
+<?php endif; ?>
 
 </body>
 </html>

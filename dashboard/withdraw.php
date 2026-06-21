@@ -63,6 +63,10 @@ $errMap = [
     'address' => t('wd.error.address'),
     'suspect' => t('wd.error.suspect'),
     'server'  => t('common.error'),
+    // Anti-fraude
+    'email_not_verified' => t('wd.error.email_not_verified'),
+    'account_too_young'  => t('wd.error.account_too_young'),
+    'under_review'       => t('wd.error.under_review'),
 ];
 
 $dashActive = 'withdraw';

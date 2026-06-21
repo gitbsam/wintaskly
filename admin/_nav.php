@@ -245,5 +245,48 @@ $base = rtrim($GLOBALS['WT_CONFIG']['base_url'] ?? '', '/');
       </span>
       <?= e(t('admin.ads')) ?>
     </a>
+
+    <a href="<?= $base ?>/admin/daily-bonus.php" class="<?= $adminActive==='daily' ? 'is-active' : '' ?>" style="--idx:5">
+      <span class="wt-admin-v2__nav-ico" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="20 12 20 22 4 22 4 12"/>
+          <rect x="2" y="7" width="20" height="5"/>
+          <line x1="12" y1="22" x2="12" y2="7"/>
+          <path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/>
+          <path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/>
+        </svg>
+      </span>
+      <?= e(t('admin.daily')) ?>
+    </a>
+
+    <a href="<?= $base ?>/admin/achievements.php" class="<?= $adminActive==='achievements' ? 'is-active' : '' ?>" style="--idx:6">
+      <span class="wt-admin-v2__nav-ico" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="8" r="6"/>
+          <path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/>
+        </svg>
+      </span>
+      <?= e(t('admin.achievements')) ?>
+    </a>
+
+    <a href="<?= $base ?>/admin/blog.php" class="<?= $adminActive==='blog' ? 'is-active' : '' ?>" style="--idx:7">
+      <span class="wt-admin-v2__nav-ico" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+          <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+        </svg>
+      </span>
+      <?= e(t('admin.blog')) ?>
+    </a>
+
+    <a href="<?= $base ?>/admin/antifraud.php" class="<?= $adminActive==='antifraud' ? 'is-active' : '' ?>" style="--idx:8">
+      <span class="wt-admin-v2__nav-ico" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          <path d="M9 12l2 2 4-4"/>
+        </svg>
+      </span>
+      <?= e(t('admin.antifraud')) ?>
+    </a>
   </nav>
 </aside>

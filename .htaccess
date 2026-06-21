@@ -41,6 +41,14 @@ ErrorDocument 503 /error-500.html
 
   # Pretty URL : /help/contact-track/<token> → script central
   RewriteRule ^help/contact-track/([a-f0-9]{32,64})/?$ help/contact-track/index.php?token=$1 [QSA,L]
+
+  # Pretty URLs du blog
+  #   /blog                          → liste
+  #   /blog/categorie/<slug>         → liste filtrée par catégorie
+  #   /blog/<slug>                   → article
+  RewriteRule ^blog/?$ blog/index.php [QSA,L]
+  RewriteRule ^blog/categorie/([a-z0-9-]+)/?$ blog/index.php?cat=$1 [QSA,L]
+  RewriteRule ^blog/([a-z0-9-]+)/?$ blog/post.php?slug=$1 [QSA,L]
 </IfModule>
 
 # --------------------------------------------------------------------

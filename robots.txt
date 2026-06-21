@@ -8,6 +8,7 @@ Allow: /testimonials
 Allow: /help
 Allow: /legal
 Allow: /leaderboard
+Allow: /blog
 Allow: /auth/login.php
 Allow: /auth/signup.php
 Allow: /auth/forgot-password.php

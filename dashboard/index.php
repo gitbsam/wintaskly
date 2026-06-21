@@ -139,6 +139,129 @@ include __DIR__ . '/../header.php';
         <?php endif; ?>
       </header>
 
+      <?php
+      /* ============ BONUS QUOTIDIEN ============
+         Widget de réclamation du bonus journalier. Affiché seulement si
+         le système est activé en admin. Tout l'état (peut réclamer ?
+         streak, prochain palier) vient de wt_daily_state(). */
+      $dailyState = wt_daily_state($u);
+      if ($dailyState['enabled']):
+        $dts = $dailyState['tiers'];
+        $curStreak = $dailyState['current_streak'];
+      ?>
+      <section class="wt-daily" data-reveal data-daily-window="<?= (int)$dailyState['window_hours'] ?>">
+        <div class="wt-daily__head">
+          <div>
+            <h2 class="wt-daily__title">🎁 <?= e(t('daily.title')) ?></h2>
+            <p class="wt-daily__sub">
+              <?php if ($curStreak > 0): ?>
+                <?= e(sprintf((string) t('daily.streak_active'), $curStreak)) ?>
+              <?php else: ?>
+                <?= e(t('daily.streak_start')) ?>
+              <?php endif; ?>
+            </p>
+          </div>
+          <div class="wt-daily__flame <?= $curStreak > 0 ? 'is-active' : '' ?>">
+            <span class="wt-daily__flame-icon">🔥</span>
+            <span class="wt-daily__flame-count"><?= (int)$curStreak ?></span>
+          </div>
+        </div>
+
+        <!-- Frise des paliers du cycle -->
+        <div class="wt-daily__track">
+          <?php foreach ($dts as $tier):
+            $d = $tier['streak_day'];
+            // État visuel : passé (coché), aujourd'hui (à réclamer), futur
+            $isNext = ($d === $dailyState['next_day'] && $dailyState['can_claim']);
+            $isPast = ($d < $dailyState['next_day'] && !$dailyState['streak_broken'] && $curStreak >= $d);
+            $cls = $isNext ? 'is-next' : ($isPast ? 'is-done' : 'is-future');
+          ?>
+            <div class="wt-daily__day <?= $cls ?> <?= $tier['is_jackpot'] ? 'is-jackpot' : '' ?>">
+              <div class="wt-daily__day-num"><?= e(t('daily.day_short')) ?><?= $d ?></div>
+              <div class="wt-daily__day-reward">
+                <?php if ($tier['is_jackpot']): ?>🏆<?php endif; ?>
+                <?= e(wt_format_coins((float)$tier['coins'])) ?>
+              </div>
+              <?php if ($isPast): ?><div class="wt-daily__day-check">✓</div><?php endif; ?>
+            </div>
+          <?php endforeach; ?>
+        </div>
+
+        <!-- Bouton de réclamation / cooldown -->
+        <div class="wt-daily__action">
+          <?php if ($dailyState['can_claim']): ?>
+            <button type="button" class="wt-btn wt-btn--primary wt-daily__claim"
+                    data-daily-claim
+                    data-csrf="<?= e(csrf_token()) ?>">
+              <?= e(sprintf((string) t('daily.claim_btn'), wt_format_coins((float)$dailyState['next_tier']['coins']))) ?>
+            </button>
+          <?php else: ?>
+            <button type="button" class="wt-btn wt-btn--ghost wt-daily__claim" disabled
+                    data-daily-cooldown="<?= (int)$dailyState['seconds_left'] ?>">
+              ⏳ <span data-daily-timer><?= e(t('daily.come_back')) ?></span>
+            </button>
+          <?php endif; ?>
+        </div>
+      </section>
+      <?php endif; ?>
+
+      <?php
+      /* ============ SUCCÈS (résumé) ============
+         Aperçu compact : compteur débloqués + prochains objectifs proches.
+         Le détail complet est sur /achievements.php. */
+      $achSummary = function_exists('wt_ach_summary') ? wt_ach_summary((int)$u['id'], $u) : ['enabled'=>false];
+      if (!empty($achSummary['enabled'])):
+      ?>
+      <section class="wt-ach-summary" data-reveal>
+        <div class="wt-ach-summary__head">
+          <div>
+            <h2 class="wt-ach-summary__title">🏆 <?= e(t('ach.dash_title')) ?></h2>
+            <p class="wt-ach-summary__count">
+              <?= e(sprintf((string) t('ach.dash_progress'), $achSummary['unlocked'], $achSummary['total'])) ?>
+            </p>
+          </div>
+          <a href="<?= e(wt_url('/achievements.php')) ?>" class="wt-btn wt-btn--ghost wt-btn--sm">
+            <?= e(t('ach.dash_see_all')) ?> →
+          </a>
+        </div>
+
+        <?php if (!empty($achSummary['recent'])): ?>
+          <!-- Badges récemment débloqués -->
+          <div class="wt-ach-summary__recent">
+            <?php foreach ($achSummary['recent'] as $item):
+              $a = $item['ach'];
+            ?>
+              <div class="wt-ach-summary__badge wt-ach-summary__badge--<?= e($a['tier']) ?>"
+                   title="<?= e($a['title']) ?>">
+                <?= e($a['icon'] ?: '🏅') ?>
+              </div>
+            <?php endforeach; ?>
+          </div>
+        <?php endif; ?>
+
+        <?php if (!empty($achSummary['next'])): ?>
+          <!-- Prochains objectifs -->
+          <div class="wt-ach-summary__next">
+            <span class="wt-ach-summary__next-label"><?= e(t('ach.dash_next')) ?></span>
+            <?php foreach ($achSummary['next'] as $item):
+              $a = $item['ach'];
+            ?>
+              <div class="wt-ach-summary__goal">
+                <span class="wt-ach-summary__goal-icon"><?= e($a['icon'] ?: '🏅') ?></span>
+                <div class="wt-ach-summary__goal-info">
+                  <span class="wt-ach-summary__goal-title"><?= e($a['title']) ?></span>
+                  <div class="wt-ach-summary__goal-bar">
+                    <div class="wt-ach-summary__goal-fill" style="width:<?= (int)$item['percent'] ?>%"></div>
+                  </div>
+                </div>
+                <span class="wt-ach-summary__goal-pct"><?= (int)$item['percent'] ?>%</span>
+              </div>
+            <?php endforeach; ?>
+          </div>
+        <?php endif; ?>
+      </section>
+      <?php endif; ?>
+
       <!-- ============ KPI CARDS ============ -->
       <section class="wt-dash-v2__kpis" data-reveal>
         <article class="wt-dash-v2__kpi wt-dash-v2__kpi--balance" style="--idx:0">
@@ -313,5 +436,118 @@ include __DIR__ . '/../header.php';
     </section>
   </div>
 </main>
+
+<script>
+/* ════════════════════════════════════════════════════════════════════
+   BONUS QUOTIDIEN — réclamation AJAX + compte à rebours
+   ════════════════════════════════════════════════════════════════════ */
+(function () {
+  const section = document.querySelector('.wt-daily');
+  if (!section) return;
+
+  /* --- 1) Réclamation au clic --- */
+  const claimBtn = section.querySelector('[data-daily-claim]');
+  if (claimBtn) {
+    claimBtn.addEventListener('click', async function () {
+      claimBtn.disabled = true;
+      claimBtn.classList.add('is-loading');
+
+      try {
+        const body = new URLSearchParams();
+        body.set('_csrf', claimBtn.getAttribute('data-csrf') || '');
+
+        const res = await fetch('<?= e(rtrim($GLOBALS['WT_CONFIG']['base_url'] ?? '', '/')) ?>/api/daily_claim.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-Requested-With': 'XMLHttpRequest' },
+          body: body.toString(),
+        });
+        const data = await res.json();
+
+        if (data.ok) {
+          // Animation de succès : confettis légers + mise à jour visuelle
+          wtDailyCelebrate(data);
+          // Recharge après un court instant pour rafraîchir l'état complet
+          setTimeout(function () { window.location.reload(); }, 1800);
+        } else {
+          claimBtn.disabled = false;
+          claimBtn.classList.remove('is-loading');
+          if (data.message) wtDailyToast(data.message, 'error');
+        }
+      } catch (e) {
+        claimBtn.disabled = false;
+        claimBtn.classList.remove('is-loading');
+        wtDailyToast('<?= e(t('common.error')) ?>', 'error');
+      }
+    });
+  }
+
+  /* --- 2) Compte à rebours si en cooldown --- */
+  const cooldownBtn = section.querySelector('[data-daily-cooldown]');
+  if (cooldownBtn) {
+    let secs = parseInt(cooldownBtn.getAttribute('data-daily-cooldown'), 10) || 0;
+    const timerEl = cooldownBtn.querySelector('[data-daily-timer]');
+
+    const tick = function () {
+      if (secs <= 0) {
+        // Cooldown fini → recharge pour afficher le bouton de claim
+        window.location.reload();
+        return;
+      }
+      const h = Math.floor(secs / 3600);
+      const m = Math.floor((secs % 3600) / 60);
+      const s = secs % 60;
+      if (timerEl) {
+        timerEl.textContent = (h > 0 ? h + 'h ' : '') +
+                              String(m).padStart(2, '0') + 'm ' +
+                              String(s).padStart(2, '0') + 's';
+      }
+      secs--;
+    };
+    tick();
+    setInterval(tick, 1000);
+  }
+
+  /* --- Helpers visuels --- */
+  function wtDailyCelebrate(data) {
+    if (claimBtn) {
+      claimBtn.classList.remove('is-loading');
+      claimBtn.innerHTML = '✅ +' + data.coins + ' <?= e(t("common.coins")) ?>';
+      claimBtn.classList.add('is-success');
+    }
+    // Confettis simples (emoji qui tombent)
+    const emojis = data.jackpot ? ['🏆','🎉','💰','⭐','🔥'] : ['🎉','💰','✨'];
+    for (let i = 0; i < (data.jackpot ? 30 : 15); i++) {
+      const c = document.createElement('div');
+      c.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+      c.style.cssText = 'position:fixed;top:-30px;left:' + (Math.random()*100) + 'vw;' +
+        'font-size:' + (1 + Math.random()*1.5) + 'rem;z-index:9999;pointer-events:none;' +
+        'animation:wtDailyFall ' + (1.5 + Math.random()*1.5) + 's linear forwards;';
+      document.body.appendChild(c);
+      setTimeout(function () { c.remove(); }, 3200);
+    }
+  }
+
+  function wtDailyToast(msg, type) {
+    const t = document.createElement('div');
+    t.textContent = msg;
+    t.style.cssText = 'position:fixed;bottom:2rem;left:50%;transform:translateX(-50%);' +
+      'background:' + (type === 'error' ? '#ef4444' : '#22c55e') + ';color:#fff;' +
+      'padding:.75rem 1.25rem;border-radius:12px;z-index:9999;font-weight:600;' +
+      'box-shadow:0 8px 24px rgba(0,0,0,.3);animation:wtDailyToastIn .3s ease';
+    document.body.appendChild(t);
+    setTimeout(function () { t.style.opacity = '0'; t.style.transition = 'opacity .4s'; }, 3000);
+    setTimeout(function () { t.remove(); }, 3500);
+  }
+})();
+</script>
+<style>
+@keyframes wtDailyFall {
+  to { transform: translateY(105vh) rotate(360deg); opacity: .8; }
+}
+@keyframes wtDailyToastIn {
+  from { opacity: 0; transform: translate(-50%, 20px); }
+  to   { opacity: 1; transform: translate(-50%, 0); }
+}
+</style>
 
 <?php include __DIR__ . '/../footer.php'; ?>

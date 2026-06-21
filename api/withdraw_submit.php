@@ -68,7 +68,7 @@ try {
     }
 
     /* 3) Lock + vérification du solde */
-    $stmt = $db->prepare("SELECT coins, status FROM users WHERE id = ? FOR UPDATE");
+    $stmt = $db->prepare("SELECT coins, status, created_at, email_verified_at, risk_score FROM users WHERE id = ? FOR UPDATE");
     $stmt->bind_param('i', $u['id']);
     $stmt->execute();
     $row = $stmt->get_result()->fetch_assoc();
@@ -79,6 +79,24 @@ try {
         header('Location: ' . wt_url('/dashboard/withdraw.php?err=suspect'));
         exit;
     }
+
+    /* 3b) Contrôles anti-fraude (âge du compte, email vérifié, score) */
+    if (function_exists('wt_fraud_check_withdrawal')) {
+        $fraudW = wt_fraud_check_withdrawal([
+            'id'                => (int) $u['id'],
+            'created_at'        => $row['created_at'],
+            'email_verified_at' => $row['email_verified_at'],
+            'risk_score'        => $row['risk_score'],
+        ]);
+        if (!$fraudW['allow']) {
+            $db->rollback();
+            // Code d'erreur précis pour un message clair côté utilisateur
+            $errCode = $fraudW['reason']; // email_not_verified | account_too_young | under_review
+            header('Location: ' . wt_url('/dashboard/withdraw.php?err=' . urlencode($errCode)));
+            exit;
+        }
+    }
+
     if ((float) $row['coins'] < $coins) {
         $db->rollback();
         header('Location: ' . wt_url('/dashboard/withdraw.php?err=balance'));
