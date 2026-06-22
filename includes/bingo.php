@@ -1015,3 +1015,82 @@ if (!function_exists('wt_bingo_show_teaser')) {
         return wt_bingo_launch_ts() > 0 && !wt_bingo_is_launched();
     }
 }
+
+/* ===================================================================
+ * ADMIN : HISTORIQUE & TIRAGE MANUEL
+ * =================================================================== */
+
+if (!function_exists('wt_bingo_recent_rounds')) {
+    /**
+     * Liste les dernières parties (toutes statuts) avec leurs stats de base,
+     * pour l'historique admin. La plus récente d'abord.
+     *
+     * @param int $limit Nombre de parties à retourner
+     * @return array
+     */
+    function wt_bingo_recent_rounds(int $limit = 15): array
+    {
+        $limit = max(1, min(100, $limit));
+        $rounds = [];
+        try {
+            $res = db()->query(
+                "SELECT r.*,
+                        (SELECT COUNT(*) FROM bingo_draws d WHERE d.round_id = r.id) AS draws_count,
+                        (SELECT COUNT(*) FROM bingo_claims c WHERE c.round_id = r.id) AS claims_count,
+                        (SELECT COUNT(DISTINCT k.user_id) FROM bingo_cards k WHERE k.round_id = r.id AND k.status IN ('active','claimed')) AS players_count
+                   FROM bingo_rounds r
+                  ORDER BY r.id DESC
+                  LIMIT " . $limit
+            );
+            if ($res instanceof mysqli_result) {
+                while ($row = $res->fetch_assoc()) { $rounds[] = $row; }
+                $res->free();
+            }
+        } catch (Throwable $e) {
+            error_log('[Wintaskly bingo] recent_rounds: ' . $e->getMessage());
+        }
+        return $rounds;
+    }
+}
+
+if (!function_exists('wt_bingo_force_draw')) {
+    /**
+     * Déclenche MANUELLEMENT le tirage du jour pour la partie en cours
+     * (action admin). Utile pour tester ou si le cron a un souci.
+     *
+     * Respecte les mêmes règles que le tirage automatique :
+     *   - une partie active doit exister
+     *   - pas plus d'un tirage par jour (UNIQUE round_id+draw_date)
+     *   - pas plus de max_days tirages
+     * Vérifie ensuite les conditions de fin.
+     *
+     * @return array ['ok'=>bool, 'message'=>string]
+     */
+    function wt_bingo_force_draw(): array
+    {
+        if (!wt_bingo_enabled()) {
+            return ['ok' => false, 'message' => 'disabled'];
+        }
+        $round = wt_bingo_current_round();
+        if (!$round) {
+            // Pas de partie : on en ouvre une (qui tirera le jour 1)
+            wt_bingo_tick();
+            $round = wt_bingo_current_round();
+            if (!$round) {
+                return ['ok' => false, 'message' => 'no_round'];
+            }
+            return ['ok' => true, 'message' => 'opened_and_drawn'];
+        }
+        if ($round['status'] !== 'active') {
+            return ['ok' => false, 'message' => 'not_active'];
+        }
+
+        $did = wt_bingo_daily_draw((int) $round['id']);
+        if (!$did) {
+            return ['ok' => false, 'message' => 'already_drawn_or_max'];
+        }
+        // Vérifie les conditions de fin après le tirage
+        wt_bingo_check_end((int) $round['id']);
+        return ['ok' => true, 'message' => 'drawn'];
+    }
+}

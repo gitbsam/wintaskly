@@ -77,7 +77,42 @@ include __DIR__ . '/../header.php';
 
     <!-- Corps de l'article (HTML géré en admin) -->
     <div class="wt-article__body">
-      <?= $post['body'] /* HTML éditorial géré par l'admin */ ?>
+      <?php
+        // Remplacement de placeholders dynamiques dans le corps de l'article.
+        // {{BINGO_COUNTDOWN}} → widget de compte à rebours vers le lancement
+        // du Bingo (lit la config bingo.launch_at, source unique de vérité).
+        $articleBody = $post['body'];
+        if (strpos($articleBody, '{{BINGO_COUNTDOWN}}') !== false) {
+            $launchTs = function_exists('wt_bingo_launch_ts') ? wt_bingo_launch_ts() : 0;
+            ob_start();
+            if ($launchTs > 0):
+        ?>
+        <div class="wt-bingo-countdown wt-bingo-countdown--article" data-launch="<?= (int)$launchTs ?>" aria-label="<?= e(t('bingo.countdown_label')) ?>">
+          <div class="wt-bingo-countdown__unit">
+            <span class="wt-bingo-countdown__num" data-cd="days">--</span>
+            <span class="wt-bingo-countdown__lbl"><?= e(t('bingo.cd_days')) ?></span>
+          </div>
+          <div class="wt-bingo-countdown__unit">
+            <span class="wt-bingo-countdown__num" data-cd="hours">--</span>
+            <span class="wt-bingo-countdown__lbl"><?= e(t('bingo.cd_hours')) ?></span>
+          </div>
+          <div class="wt-bingo-countdown__unit">
+            <span class="wt-bingo-countdown__num" data-cd="mins">--</span>
+            <span class="wt-bingo-countdown__lbl"><?= e(t('bingo.cd_mins')) ?></span>
+          </div>
+          <div class="wt-bingo-countdown__unit">
+            <span class="wt-bingo-countdown__num" data-cd="secs">--</span>
+            <span class="wt-bingo-countdown__lbl"><?= e(t('bingo.cd_secs')) ?></span>
+          </div>
+        </div>
+        <?php else: ?>
+        <p style="text-align:center;font-weight:700;color:#a855f7"><?= e(t('bingo.coming_soon')) ?></p>
+        <?php endif;
+            $cdHtml = ob_get_clean();
+            $articleBody = str_replace('{{BINGO_COUNTDOWN}}', $cdHtml, $articleBody);
+        }
+        echo $articleBody; /* HTML éditorial géré par l'admin */
+      ?>
     </div>
 
     <!-- Partage sur les réseaux sociaux -->
@@ -170,5 +205,7 @@ include __DIR__ . '/../header.php';
   });
 })();
 </script>
+
+<script src="<?= e(wt_url('/media/wintaskly/js/bingo-countdown.js')) ?>?v=<?= e(WT_VERSION) ?>"></script>
 
 <?php include __DIR__ . '/../footer.php'; ?>

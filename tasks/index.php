@@ -545,43 +545,6 @@ include __DIR__ . '/../header.php';
 
 </main>
 
-<script>
-(function () {
-  var cd = document.querySelector('.wt-bingo-countdown');
-  if (!cd) return;
-  var launch = parseInt(cd.getAttribute('data-launch'), 10) * 1000;
-  if (!launch) return;
-
-  var elD = cd.querySelector('[data-cd="days"]');
-  var elH = cd.querySelector('[data-cd="hours"]');
-  var elM = cd.querySelector('[data-cd="mins"]');
-  var elS = cd.querySelector('[data-cd="secs"]');
-
-  function pad(n) { return n < 10 ? '0' + n : '' + n; }
-
-  function tick() {
-    var diff = launch - Date.now();
-    if (diff <= 0) {
-      // Lancement atteint : on recharge pour révéler le jeu
-      elD.textContent = '00'; elH.textContent = '00';
-      elM.textContent = '00'; elS.textContent = '00';
-      clearInterval(timer);
-      setTimeout(function () { window.location.reload(); }, 1500);
-      return;
-    }
-    var s = Math.floor(diff / 1000);
-    var d = Math.floor(s / 86400); s -= d * 86400;
-    var h = Math.floor(s / 3600);  s -= h * 3600;
-    var m = Math.floor(s / 60);    s -= m * 60;
-    elD.textContent = pad(d);
-    elH.textContent = pad(h);
-    elM.textContent = pad(m);
-    elS.textContent = pad(s);
-  }
-
-  tick();
-  var timer = setInterval(tick, 1000);
-})();
-</script>
+<script src="<?= e(wt_url('/media/wintaskly/js/bingo-countdown.js')) ?>?v=<?= e(WT_VERSION) ?>"></script>
 
 <?php include __DIR__ . '/../footer.php'; ?>

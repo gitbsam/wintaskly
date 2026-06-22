@@ -13537,3 +13537,10 @@ a.wt-dash-v2__kpi-cta:hover {
   background: transparent;
   border: 1px dashed var(--wt-text-soft, #64748b);
 }
+
+/* Compte à rebours dans un article de blog : centré, plus grand */
+.wt-bingo-countdown--article {
+  max-width: 480px;
+  margin: 1.5rem auto;
+}
+.wt-bingo-countdown--article .wt-bingo-countdown__num { font-size: 1.8rem; }

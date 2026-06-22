@@ -15,6 +15,7 @@ require_admin();
 $pageTitle   = t('admin.title') . ' — Bingo';
 $adminActive = 'bingo';
 $notice      = null;
+$error       = null;
 
 /* ====================== ACTIONS POST ====================== */
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && csrf_check($_POST['_csrf'] ?? null)) {
@@ -25,6 +26,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && csrf_check($_POST['_csrf'] ?? null)
         $cur = (string) cfg('bingo.test_mode', '1') === '1';
         wt_config_set('bingo.test_mode', $cur ? '0' : '1');
         $notice = $cur ? t('admin.bingo.test_off') : t('admin.bingo.test_on');
+
+    } elseif ($action === 'force_draw') {
+        // Déclenche manuellement le tirage du jour
+        $r = wt_bingo_force_draw();
+        if ($r['ok']) {
+            $notice = t('admin.bingo.draw_done');
+        } else {
+            // Messages d'erreur spécifiques
+            $map = [
+                'already_drawn_or_max' => t('admin.bingo.draw_already'),
+                'not_active'           => t('admin.bingo.draw_not_active'),
+                'no_round'             => t('admin.bingo.draw_no_round'),
+                'disabled'             => t('admin.bingo.draw_disabled'),
+            ];
+            $error = $map[$r['message']] ?? t('common.error');
+        }
 
     } elseif ($action === 'save_visibility') {
         wt_config_set('bingo.enabled', !empty($_POST['enabled']) ? '1' : '0');
@@ -97,6 +114,7 @@ include __DIR__ . '/../header.php';
       </header>
 
       <?php if ($notice): ?><div class="wt-alert wt-alert--success"><?= e($notice) ?></div><?php endif; ?>
+      <?php if ($error): ?><div class="wt-alert wt-alert--error"><?= e($error) ?></div><?php endif; ?>
 
       <!-- ÉTAT + BASCULE MODE TEST -->
       <section class="wt-card wt-card--padded" style="margin-bottom:1.5rem">
@@ -162,6 +180,81 @@ include __DIR__ . '/../header.php';
           <div><small class="wt-muted"><?= e(t('admin.bingo.st_paid')) ?></small><br><strong><?= (int)$stats['cards_paid'] ?></strong></div>
           <div><small class="wt-muted"><?= e(t('admin.bingo.st_claims')) ?></small><br><strong><?= (int)$stats['claims'] ?></strong></div>
           <?php endif; ?>
+        </div>
+
+        <?php
+          // Numéros déjà tirés sur le cycle en cours
+          $rDrawn = wt_bingo_all_drawn((int)$round['id']);
+        ?>
+        <?php if (!empty($rDrawn)): ?>
+          <div style="margin-top:1rem">
+            <small class="wt-muted"><?= e(t('admin.bingo.drawn_so_far')) ?> (<?= count($rDrawn) ?>)</small><br>
+            <code style="font-size:.8rem;line-height:1.8"><?= e(implode(', ', $rDrawn)) ?></code>
+          </div>
+        <?php endif; ?>
+
+        <!-- Bouton tirage manuel -->
+        <?php if ($round['status'] === 'active'): ?>
+          <form method="post" style="margin-top:1rem" onsubmit="return confirm('<?= e(t('admin.bingo.draw_confirm')) ?>');">
+            <input type="hidden" name="_csrf" value="<?= e(csrf_token()) ?>">
+            <input type="hidden" name="action" value="force_draw">
+            <button class="wt-btn wt-btn--ghost">🎲 <?= e(t('admin.bingo.btn_force_draw')) ?></button>
+            <small class="wt-muted" style="display:block;margin-top:.4rem"><?= e(t('admin.bingo.force_draw_hint')) ?></small>
+          </form>
+        <?php endif; ?>
+      </section>
+      <?php endif; ?>
+
+      <!-- HISTORIQUE DES PARTIES -->
+      <?php
+        $history = function_exists('wt_bingo_recent_rounds') ? wt_bingo_recent_rounds(15) : [];
+      ?>
+      <?php if (!empty($history)): ?>
+      <section class="wt-card wt-card--padded" style="margin-bottom:1.5rem">
+        <h2 style="margin-top:0">📜 <?= e(t('admin.bingo.history_title')) ?></h2>
+        <div style="overflow-x:auto">
+          <table class="wt-table" style="width:100%;font-size:.88rem">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th><?= e(t('admin.bingo.h_started')) ?></th>
+                <th><?= e(t('admin.bingo.h_status')) ?></th>
+                <th><?= e(t('admin.bingo.h_draws')) ?></th>
+                <th><?= e(t('admin.bingo.h_players')) ?></th>
+                <th><?= e(t('admin.bingo.h_jackpot')) ?></th>
+                <th><?= e(t('admin.bingo.h_winners')) ?></th>
+                <th><?= e(t('admin.bingo.h_reward')) ?></th>
+                <th><?= e(t('admin.bingo.h_end')) ?></th>
+              </tr>
+            </thead>
+            <tbody>
+              <?php foreach ($history as $h):
+                $endLabels = [
+                    ''          => '—',
+                    'max_days'  => t('admin.bingo.end_max_days'),
+                    'claim'     => t('admin.bingo.end_claim'),
+                    'auto_full' => t('admin.bingo.end_auto_full'),
+                ];
+                $statusLabels = [
+                    'active'  => '🟢 ' . t('admin.bingo.status_active'),
+                    'ending'  => '🟠 ' . t('admin.bingo.status_ending'),
+                    'settled' => '⚪ ' . t('admin.bingo.status_settled'),
+                ];
+              ?>
+                <tr>
+                  <td><strong><?= (int)$h['id'] ?></strong></td>
+                  <td><?= e(wt_format_datetime($h['started_on'], 'd/m/Y')) ?></td>
+                  <td><?= e($statusLabels[$h['status']] ?? $h['status']) ?></td>
+                  <td><?= (int)$h['draws_count'] ?>/<?= (int)$h['max_days'] ?></td>
+                  <td><?= (int)$h['players_count'] ?></td>
+                  <td><?= e(number_format((int)$h['jackpot'],0,',',' ')) ?></td>
+                  <td><?= (int)$h['winners_count'] ?></td>
+                  <td><?= $h['reward_each'] > 0 ? e(number_format((int)$h['reward_each'],0,',',' ')) : '—' ?></td>
+                  <td><small><?= e($endLabels[$h['end_reason']] ?? '—') ?></small></td>
+                </tr>
+              <?php endforeach; ?>
+            </tbody>
+          </table>
         </div>
       </section>
       <?php endif; ?>
