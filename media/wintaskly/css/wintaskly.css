@@ -13544,3 +13544,44 @@ a.wt-dash-v2__kpi-cta:hover {
   margin: 1.5rem auto;
 }
 .wt-bingo-countdown--article .wt-bingo-countdown__num { font-size: 1.8rem; }
+
+/* =====================================================================
+   PUBLICITÉS — mise à l'échelle responsive des iframes (ex: A-ADS)
+   =====================================================================
+   Les régies comme A-ADS fournissent des iframes à taille FIXE (728x90,
+   300x250, etc.). Sur mobile, ces formats débordent. Cette solution met
+   l'iframe À L'ÉCHELLE proportionnellement : elle reste entièrement
+   visible et nette, juste réduite. Aucun contenu n'est masqué.
+
+   Principe : on enveloppe la zone pub dans .wt-ad-scale. On neutralise la
+   largeur fixe de l'iframe interne et on lui applique un facteur d'échelle
+   via une variable CSS calculée par un petit script (wt-ads-responsive.js).
+   ===================================================================== */
+
+.wt-ad-scale {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  overflow: hidden;        /* sécurité anti-débordement pendant le calcul */
+}
+
+/* Le conteneur interne qui sera mis à l'échelle. Sa largeur RÉELLE reste
+   celle de la pub (ex: 728px), mais on le réduit visuellement. */
+.wt-ad-scale__inner {
+  /* --ad-scale (0..1) et --ad-w/--ad-h sont posées par le script JS. */
+  transform: scale(var(--ad-scale, 1));
+  transform-origin: top center;
+  width: var(--ad-w, auto);
+  /* Compense la hauteur "perdue" par le scale pour ne pas laisser de blanc :
+     hauteur réelle occupée = hauteur native × échelle. */
+  height: calc(var(--ad-h, 0px) * var(--ad-scale, 1));
+}
+
+/* IMPORTANT : à l'intérieur d'une zone à l'échelle, l'iframe doit GARDER
+   sa taille native (sinon le scale n'a rien à réduire). On surcharge donc
+   la règle globale `iframe { max-width:100% }` uniquement ici. */
+.wt-ad-scale__inner iframe,
+.wt-ad-scale__inner #frame,
+.wt-ad-scale__inner [data-aa] {
+  max-width: none !important;
+}

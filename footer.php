@@ -265,6 +265,7 @@ window.WT_I18N = {
 </script>
 <script src="<?= $_base ?>/media/wintaskly/js/wintaskly-ui.js" defer></script>
 <script src="<?= $_base ?>/media/wintaskly/js/wintaskly.js" defer></script>
+<script src="<?= $_base ?>/media/wintaskly/js/wt-ads-responsive.js" defer></script>
 
 <!-- =====================================================================
      PWA — Service Worker + Bannière d'installation

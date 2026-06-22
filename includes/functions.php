@@ -373,7 +373,13 @@ if (!function_exists('wt_ad_zone')) {
             return '';
         }
 
-        return $code;
+        // Enveloppe le code dans un conteneur de mise à l'échelle responsive.
+        // Les iframes pub à taille fixe (A-ADS 728x90, etc.) sont ainsi
+        // réduites proportionnellement sur mobile au lieu de déborder.
+        // Le script wt-ads-responsive.js calcule l'échelle automatiquement.
+        return '<div class="wt-ad-scale"><div class="wt-ad-scale__inner">'
+             . $code
+             . '</div></div>';
     }
 }
 
