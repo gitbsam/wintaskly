@@ -27,7 +27,7 @@ if (!function_exists('wt_blog_categories')) {
                         COUNT(p.id) AS post_count
                    FROM blog_categories c
                    LEFT JOIN blog_posts p
-                     ON p.category_id = c.id AND p.status = 'published'
+                     ON p.category_id = c.id AND p.status = 'published' AND p.published_at <= UTC_TIMESTAMP()
                   GROUP BY c.id
                   ORDER BY c.sort_order ASC, c.name ASC"
             );
@@ -63,7 +63,7 @@ if (!function_exists('wt_blog_posts')) {
                             c.name AS category_name, c.slug AS category_slug
                        FROM blog_posts p
                        LEFT JOIN blog_categories c ON c.id = p.category_id
-                      WHERE p.status = 'published' AND p.category_id = ?
+                      WHERE p.status = 'published' AND p.published_at <= UTC_TIMESTAMP() AND p.category_id = ?
                       ORDER BY p.published_at DESC
                       LIMIT ? OFFSET ?"
                 );
@@ -75,7 +75,7 @@ if (!function_exists('wt_blog_posts')) {
                             c.name AS category_name, c.slug AS category_slug
                        FROM blog_posts p
                        LEFT JOIN blog_categories c ON c.id = p.category_id
-                      WHERE p.status = 'published'
+                      WHERE p.status = 'published' AND p.published_at <= UTC_TIMESTAMP()
                       ORDER BY p.published_at DESC
                       LIMIT ? OFFSET ?"
                 );
@@ -101,10 +101,10 @@ if (!function_exists('wt_blog_count')) {
         try {
             $db = db();
             if ($categoryId !== null) {
-                $stmt = $db->prepare("SELECT COUNT(*) c FROM blog_posts WHERE status='published' AND category_id = ?");
+                $stmt = $db->prepare("SELECT COUNT(*) c FROM blog_posts WHERE status='published' AND published_at <= UTC_TIMESTAMP() AND category_id = ?");
                 $stmt->bind_param('i', $categoryId);
             } else {
-                $stmt = $db->prepare("SELECT COUNT(*) c FROM blog_posts WHERE status='published'");
+                $stmt = $db->prepare("SELECT COUNT(*) c FROM blog_posts WHERE status='published' AND published_at <= UTC_TIMESTAMP()");
             }
             $stmt->execute();
             $row = $stmt->get_result()->fetch_assoc();
@@ -130,7 +130,7 @@ if (!function_exists('wt_blog_post')) {
                       LEFT JOIN blog_categories c ON c.id = p.category_id
                      WHERE p.slug = ?";
             if (!$anyStatus) {
-                $sql .= " AND p.status = 'published'";
+                $sql .= " AND p.status = 'published' AND p.published_at <= UTC_TIMESTAMP()";
             }
             $sql .= " LIMIT 1";
             $stmt = $db->prepare($sql);
@@ -175,7 +175,7 @@ if (!function_exists('wt_blog_related')) {
             $stmt = db()->prepare(
                 "SELECT slug, title, cover_emoji, reading_minutes
                    FROM blog_posts
-                  WHERE status='published' AND category_id = ? AND id <> ?
+                  WHERE status='published' AND published_at <= UTC_TIMESTAMP() AND category_id = ? AND id <> ?
                   ORDER BY published_at DESC
                   LIMIT ?"
             );
@@ -210,5 +210,57 @@ if (!function_exists('wt_blog_slugify')) {
         $text = preg_replace('/[^a-z0-9]+/', '-', $text);
         $text = trim($text, '-');
         return $text === '' ? 'article' : $text;
+    }
+}
+
+if (!function_exists('wt_blog_banner_svg')) {
+    /**
+     * Génère une bannière SVG légère pour un article (pas d'image stockée).
+     * Dégradé déterministe basé sur le slug (même article = même couleurs),
+     * emoji central, et motif décoratif discret.
+     *
+     * @param array $post  Doit contenir au minimum : slug, cover_emoji, title
+     * @param int   $w     Largeur du viewBox
+     * @param int   $h     Hauteur du viewBox
+     * @return string      Balise <svg> complète, prête à être insérée
+     */
+    function wt_blog_banner_svg(array $post, int $w = 1200, int $h = 480): string
+    {
+        $slug  = (string) ($post['slug'] ?? 'article');
+        $emoji = (string) ($post['cover_emoji'] ?? '📄');
+
+        // Palette déterministe : on dérive 2 teintes du hash du slug.
+        $hash = crc32($slug);
+        $hue1 = $hash % 360;
+        $hue2 = ($hue1 + 40) % 360;
+        $c1 = "hsl({$hue1}, 65%, 22%)";
+        $c2 = "hsl({$hue2}, 70%, 14%)";
+        $accent = "hsl({$hue1}, 80%, 60%)";
+
+        $gradId = 'wtbg' . ($hash % 100000);
+
+        // Cercles décoratifs en arrière-plan (positions dérivées du hash)
+        $cx1 = 150 + ($hash % 200);
+        $cy1 = 80 + (($hash >> 3) % 120);
+        $cx2 = $w - 200 - (($hash >> 5) % 250);
+        $cy2 = $h - 100 - (($hash >> 7) % 100);
+
+        $emojiEsc = htmlspecialchars($emoji, ENT_QUOTES, 'UTF-8');
+
+        return <<<SVG
+<svg viewBox="0 0 {$w} {$h}" xmlns="http://www.w3.org/2000/svg" width="100%" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Illustration de l'article">
+  <defs>
+    <linearGradient id="{$gradId}" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="{$c1}"/>
+      <stop offset="100%" stop-color="{$c2}"/>
+    </linearGradient>
+  </defs>
+  <rect width="{$w}" height="{$h}" fill="url(#{$gradId})"/>
+  <circle cx="{$cx1}" cy="{$cy1}" r="90" fill="{$accent}" opacity="0.10"/>
+  <circle cx="{$cx2}" cy="{$cy2}" r="130" fill="{$accent}" opacity="0.08"/>
+  <circle cx="{$cx2}" cy="{$cy1}" r="50" fill="{$accent}" opacity="0.06"/>
+  <text x="50%" y="50%" font-size="160" text-anchor="middle" dominant-baseline="central">{$emojiEsc}</text>
+</svg>
+SVG;
     }
 }

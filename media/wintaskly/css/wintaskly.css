@@ -13251,3 +13251,264 @@ a.wt-dash-v2__kpi-cta:hover {
     height: 44px;
   }
 }
+
+/* === Bannière SVG d'article === */
+.wt-article__banner {
+  max-width: 720px; margin: 0 auto 1.5rem; border-radius: 18px;
+  overflow: hidden; aspect-ratio: 1200 / 480; background: var(--wt-bg-soft);
+  box-shadow: 0 8px 28px rgba(0,0,0,.25);
+}
+.wt-article__banner svg { display: block; width: 100%; height: 100%; }
+
+/* === Boutons de partage social === */
+.wt-article__share {
+  max-width: 720px; margin: 2rem auto 0; display: flex; align-items: center;
+  gap: 1rem; flex-wrap: wrap; padding: 1.25rem; border-radius: 14px;
+  background: var(--wt-bg-elev, #131829); border: 1px solid var(--wt-border, #232a40);
+}
+.wt-article__share-label { font-weight: 700; font-size: .92rem; }
+.wt-article__share-btns { display: flex; gap: .6rem; flex-wrap: wrap; }
+.wt-share {
+  width: 42px; height: 42px; border-radius: 10px; display: inline-flex;
+  align-items: center; justify-content: center; color: #fff; cursor: pointer;
+  border: none; transition: transform .15s, opacity .15s; text-decoration: none;
+}
+.wt-share:hover { transform: translateY(-3px); opacity: .9; }
+.wt-share--fb   { background: #1877f2; }
+.wt-share--x    { background: #000; }
+.wt-share--wa   { background: #25d366; }
+.wt-share--tg   { background: #0088cc; }
+.wt-share--li   { background: #0a66c2; }
+.wt-share--copy { background: var(--wt-bg-soft); color: var(--wt-text, #e8eaf0); border: 1px solid var(--wt-border, #232a40); }
+.wt-share--copy.is-copied { background: #22c55e; color: #fff; border-color: #22c55e; }
+
+/* === Liens réseaux sociaux dans le footer === */
+.wt-footer-v2__socials .wt-social[data-empty="1"] { display: none; }
+
+@media (max-width: 600px) {
+  .wt-article__share { flex-direction: column; align-items: flex-start; }
+}
+
+
+/* =====================================================================
+   BINGO — carte tâche + compte à rebours
+   ===================================================================== */
+.wt-task-card--bingo .wt-task-card__icon {
+  background: linear-gradient(135deg, #a855f7, #ec4899);
+  color: #fff;
+}
+.wt-task-card--soon { position: relative; opacity: .96; }
+.wt-task-card__pill--soon {
+  background: linear-gradient(135deg, #a855f7, #ec4899);
+  color: #fff;
+  animation: wtBingoPulse 2s ease-in-out infinite;
+}
+@keyframes wtBingoPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: .65; }
+}
+.wt-task-card__cta--disabled {
+  background: var(--wt-bg-soft, #1a2138);
+  color: var(--wt-text-soft, #8b93a7);
+  cursor: not-allowed;
+  text-align: center;
+  pointer-events: none;
+}
+
+/* Compte à rebours */
+.wt-bingo-countdown {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: .5rem;
+  margin: 1rem 0;
+}
+.wt-bingo-countdown__unit {
+  background: linear-gradient(135deg, rgba(168,85,247,.15), rgba(236,72,153,.1));
+  border: 1px solid rgba(168,85,247,.3);
+  border-radius: 12px;
+  padding: .6rem .3rem;
+  text-align: center;
+}
+.wt-bingo-countdown__num {
+  display: block;
+  font-size: 1.5rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  background: linear-gradient(135deg, #c084fc, #f0abfc);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  line-height: 1.1;
+}
+.wt-bingo-countdown__lbl {
+  display: block;
+  font-size: .65rem;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  opacity: .65;
+  margin-top: .15rem;
+}
+@media (max-width: 380px) {
+  .wt-bingo-countdown__num { font-size: 1.2rem; }
+}
+
+/* =====================================================================
+   BINGO — page joueur
+   ===================================================================== */
+.wt-bingo-page__wrap { max-width: 1100px; margin: 0 auto; padding: 1.5rem 1rem; }
+.wt-bingo-page__title-row { display: flex; align-items: center; gap: 1rem; }
+.wt-bingo-badge-test {
+  background: #a855f7; color: #fff; font-size: .7rem; font-weight: 700;
+  padding: .2rem .6rem; border-radius: 6px; letter-spacing: .05em;
+}
+.wt-bingo-page__title { font-size: 2rem; margin: .25rem 0 1rem; }
+
+/* Jackpot */
+.wt-bingo-jackpot {
+  display: flex; align-items: baseline; gap: .5rem; flex-wrap: wrap;
+  padding: 1.25rem 1.5rem; border-radius: 18px;
+  background: linear-gradient(135deg, rgba(168,85,247,.18), rgba(236,72,153,.12));
+  border: 1px solid rgba(168,85,247,.3); margin-bottom: 1rem;
+}
+.wt-bingo-jackpot__label { font-size: .8rem; text-transform: uppercase; letter-spacing: .05em; opacity: .7; width: 100%; }
+.wt-bingo-jackpot__amount {
+  font-size: 2.4rem; font-weight: 800; font-variant-numeric: tabular-nums;
+  background: linear-gradient(135deg, #c084fc, #f0abfc);
+  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+}
+.wt-bingo-jackpot__unit { font-size: 1rem; opacity: .7; }
+.wt-bingo-meta { display: flex; gap: 1.5rem; font-size: .9rem; opacity: .8; margin-bottom: 1.5rem; flex-wrap: wrap; }
+
+/* Notification de fin */
+.wt-bingo-ending {
+  display: flex; gap: 1rem; align-items: center; padding: 1.25rem 1.5rem;
+  border-radius: 16px; background: linear-gradient(135deg, rgba(245,158,11,.15), rgba(239,68,68,.1));
+  border: 1px solid rgba(245,158,11,.4); margin-bottom: 1.5rem;
+}
+.wt-bingo-ending__icon { font-size: 2.2rem; }
+.wt-bingo-ending strong { display: block; margin-bottom: .2rem; }
+.wt-bingo-ending p { margin: 0; font-size: .9rem; opacity: .85; }
+
+/* Numéros tirés */
+.wt-bingo-drawn { margin-bottom: 2rem; }
+.wt-bingo-drawn__title { font-size: 1.1rem; margin-bottom: .5rem; }
+.wt-bingo-drawn__legend { display: flex; gap: 1.5rem; font-size: .8rem; opacity: .75; margin-bottom: .75rem; }
+.wt-bingo-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; vertical-align: middle; margin-right: .3rem; }
+.wt-bingo-dot--today { background: #ec4899; }
+.wt-bingo-dot--old { background: #475569; }
+.wt-bingo-drawn__balls { display: flex; flex-wrap: wrap; gap: .4rem; }
+.wt-bingo-ball {
+  width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center;
+  justify-content: center; font-weight: 700; font-size: .9rem; font-variant-numeric: tabular-nums;
+}
+.wt-bingo-ball--today {
+  background: linear-gradient(135deg, #ec4899, #f472b6); color: #fff;
+  box-shadow: 0 2px 10px rgba(236,72,153,.4); animation: wtBallPop .4s ease;
+}
+.wt-bingo-ball--old { background: var(--wt-bg-soft, #1a2138); color: var(--wt-text-soft, #94a3b8); }
+@keyframes wtBallPop { from { transform: scale(0); } to { transform: scale(1); } }
+
+/* Cartons : bande horizontale responsive (style témoignages) */
+.wt-bingo-cards__title { font-size: 1.3rem; margin-bottom: .25rem; }
+.wt-bingo-cards__hint { font-size: .88rem; opacity: .7; margin-bottom: 1.25rem; }
+.wt-bingo-cards__track {
+  display: flex; gap: 1.25rem; overflow-x: auto; padding: .5rem .25rem 1.5rem;
+  scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+}
+.wt-bingo-cards__track::-webkit-scrollbar { height: 8px; }
+.wt-bingo-cards__track::-webkit-scrollbar-thumb { background: var(--wt-border, #232a40); border-radius: 4px; }
+
+.wt-bingo-card {
+  flex: 0 0 300px; scroll-snap-align: start;
+  background: var(--wt-bg-elev, #131829); border: 1px solid var(--wt-border, #232a40);
+  border-radius: 18px; padding: 1rem; display: flex; flex-direction: column;
+  transition: transform .2s, box-shadow .2s;
+}
+.wt-bingo-card--active { border-color: rgba(34,197,94,.4); box-shadow: 0 4px 20px rgba(34,197,94,.12); }
+.wt-bingo-card--claimed { border-color: rgba(245,158,11,.5); box-shadow: 0 4px 20px rgba(245,158,11,.15); }
+.wt-bingo-card--void { opacity: .5; }
+.wt-bingo-card--locked { background: linear-gradient(135deg, var(--wt-bg-elev,#131829), var(--wt-bg-soft,#1a2138)); }
+
+/* En-tête B.I.N.G.O */
+.wt-bingo-card__head { display: grid; grid-template-columns: repeat(5, 1fr); gap: .35rem; margin-bottom: .5rem; }
+.wt-bingo-card__letter {
+  aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
+  font-size: 1.4rem; font-weight: 800; color: #fff; border-radius: 10px;
+  background: var(--lc, #666);
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--lc) 40%, transparent);
+}
+
+/* Grille 5x5 */
+.wt-bingo-card__grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: .35rem; margin-bottom: .75rem; }
+.wt-bingo-cell {
+  aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
+  font-size: .95rem; font-weight: 700; font-variant-numeric: tabular-nums;
+  border-radius: 8px; border: none; cursor: default;
+  background: var(--wt-bg-soft, #1a2138); color: var(--wt-text, #e8eaf0);
+  transition: all .15s;
+}
+/* Cases argentées (carton non activé) */
+.wt-bingo-cell--empty {
+  background: linear-gradient(135deg, #c0c7d1, #8b94a3);
+  box-shadow: inset 0 1px 2px rgba(255,255,255,.4), inset 0 -1px 2px rgba(0,0,0,.2);
+}
+/* Case validable (numéro tiré, pas encore coché) */
+.wt-bingo-cell.is-drawable {
+  cursor: pointer; background: linear-gradient(135deg, #3b82f6, #60a5fa); color: #fff;
+  animation: wtCellGlow 1.6s ease-in-out infinite;
+}
+@keyframes wtCellGlow {
+  0%, 100% { box-shadow: 0 0 0 rgba(59,130,246,0); }
+  50% { box-shadow: 0 0 12px rgba(59,130,246,.7); }
+}
+.wt-bingo-cell.is-drawable:hover { transform: scale(1.08); }
+/* Case validée */
+.wt-bingo-cell.is-marked {
+  background: linear-gradient(135deg, #22c55e, #4ade80); color: #fff;
+  box-shadow: 0 2px 8px rgba(34,197,94,.4);
+}
+.wt-bingo-cell:disabled { cursor: default; }
+
+/* Pied du carton */
+.wt-bingo-card__foot { margin-top: auto; }
+.wt-bingo-card__progress { display: flex; align-items: center; justify-content: space-between; gap: .5rem; }
+.wt-bingo-card__count { font-weight: 700; font-variant-numeric: tabular-nums; opacity: .8; }
+.wt-bingo-card__status { font-size: .85rem; font-weight: 600; display: block; text-align: center; padding: .5rem; }
+.wt-bingo-card__status--claimed { color: #22c55e; }
+.wt-bingo-card__status--void { color: var(--wt-text-soft, #64748b); }
+
+/* Boutons */
+.wt-bingo-btn {
+  border: none; border-radius: 10px; padding: .6rem 1rem; font-weight: 700;
+  font-size: .9rem; cursor: pointer; width: 100%; transition: transform .15s, opacity .15s;
+}
+.wt-bingo-btn:hover { transform: translateY(-2px); }
+.wt-bingo-btn.is-loading { opacity: .6; cursor: wait; }
+.wt-bingo-btn--activate { background: linear-gradient(135deg, #22c55e, #16a34a); color: #fff; }
+.wt-bingo-btn--buy { background: linear-gradient(135deg, #a855f7, #ec4899); color: #fff; }
+.wt-bingo-btn--claim {
+  background: linear-gradient(135deg, #f59e0b, #fbbf24); color: #1a1208;
+  animation: wtClaimPulse 1.4s ease-in-out infinite;
+}
+@keyframes wtClaimPulse {
+  0%, 100% { box-shadow: 0 0 0 rgba(245,158,11,0); }
+  50% { box-shadow: 0 0 16px rgba(245,158,11,.7); }
+}
+
+/* Toasts */
+.wt-bingo-toast {
+  position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%) translateY(20px);
+  padding: .85rem 1.5rem; border-radius: 12px; font-weight: 600; font-size: .92rem;
+  color: #fff; z-index: 10000; opacity: 0; transition: all .3s; max-width: 90vw;
+  box-shadow: 0 8px 28px rgba(0,0,0,.4);
+}
+.wt-bingo-toast.is-visible { opacity: 1; transform: translateX(-50%) translateY(0); }
+.wt-bingo-toast--success { background: linear-gradient(135deg, #22c55e, #16a34a); }
+.wt-bingo-toast--error { background: linear-gradient(135deg, #ef4444, #dc2626); }
+.wt-bingo-toast--info { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+
+@media (max-width: 600px) {
+  .wt-bingo-card { flex-basis: 270px; }
+  .wt-bingo-jackpot__amount { font-size: 2rem; }
+}

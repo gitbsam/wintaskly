@@ -88,6 +88,15 @@ $schema = [
         ['key' => 'email.smtp_encryption','label'=> 'admin.set.email.smtp_encryption','type'=> 'select','hint' => 'admin.set.email.smtp_encryption_hint',
          'options' => ['' => '— Aucune —', 'tls' => 'TLS (port 587)', 'ssl' => 'SSL (port 465)']],
     ],
+    'social' => [
+        ['key' => 'social.facebook', 'label' => 'admin.set.social.facebook', 'type' => 'url', 'hint' => 'admin.set.social.facebook_hint'],
+        ['key' => 'social.twitter',  'label' => 'admin.set.social.twitter',  'type' => 'url', 'hint' => 'admin.set.social.twitter_hint'],
+        ['key' => 'social.telegram', 'label' => 'admin.set.social.telegram', 'type' => 'url', 'hint' => 'admin.set.social.telegram_hint'],
+        ['key' => 'social.discord',  'label' => 'admin.set.social.discord',  'type' => 'url', 'hint' => 'admin.set.social.discord_hint'],
+        ['key' => 'social.youtube',  'label' => 'admin.set.social.youtube',  'type' => 'url', 'hint' => 'admin.set.social.youtube_hint'],
+        ['key' => 'social.instagram','label' => 'admin.set.social.instagram','type' => 'url', 'hint' => 'admin.set.social.instagram_hint'],
+        ['key' => 'social.tiktok',   'label' => 'admin.set.social.tiktok',   'type' => 'url', 'hint' => 'admin.set.social.tiktok_hint'],
+    ],
 ];
 
 /* ----------------------------------------------------------------------
@@ -245,6 +254,7 @@ include __DIR__ . '/../header.php';
               'economy'     => ['💰', 'admin.set.tab.economy'],
               'leaderboard' => ['🏆', 'admin.set.tab.leaderboard'],
               'email'       => ['📧', 'admin.set.tab.email'],
+              'social'      => ['🌐', 'admin.set.tab.social'],
           ];
           foreach ($tabIcons as $tab => [$icon, $labelKey]):
             $isActive = $tab === $activeTab;

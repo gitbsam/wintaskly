@@ -126,6 +126,12 @@ $fmt = static function (float $n, int $dec = 2): string {
     return rtrim(rtrim(number_format($n, $dec, '.', ' '), '0'), '.');
 };
 
+/* === Bingo : visibilité (jouable / teaser "bientôt") =============== */
+$bingoPlayable = function_exists('wt_bingo_visible_for') ? wt_bingo_visible_for($u) : false;
+$bingoTeaser   = function_exists('wt_bingo_show_teaser')  ? wt_bingo_show_teaser($u)  : false;
+$bingoLaunchTs = function_exists('wt_bingo_launch_ts')    ? wt_bingo_launch_ts()       : 0;
+$bingoTestMode = function_exists('wt_bingo_is_test_mode') ? wt_bingo_is_test_mode()    : false;
+
 include __DIR__ . '/../header.php';
 ?>
 
@@ -396,6 +402,81 @@ include __DIR__ . '/../header.php';
       <?php endif; ?>
     </article>
 
+    <?php /* ============ BINGO ============ */ ?>
+    <?php if ($bingoPlayable): ?>
+      <!-- Bingo jouable (admin en test, ou lancé publiquement) -->
+      <article class="wt-task-card wt-task-card--bingo wt-task-card--rich" style="--idx:4">
+        <header class="wt-task-card__header">
+          <div class="wt-task-card__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="3" width="18" height="18" rx="2"/>
+              <path d="M3 9h18M3 15h18M9 3v18M15 3v18"/>
+            </svg>
+          </div>
+          <h2 class="wt-task-card__title">Bingo</h2>
+          <?php if ($bingoTestMode): ?>
+            <span class="wt-task-card__pill" style="background:#a855f7;color:#fff">TEST</span>
+          <?php endif; ?>
+        </header>
+
+        <p class="wt-task-card__desc"><?= e(t('bingo.tasks_desc')) ?></p>
+
+        <div class="wt-task-card__price">
+          <span class="wt-task-card__price-amount">🎰 <?= e(t('bingo.tasks_jackpot')) ?></span>
+        </div>
+
+        <ul class="wt-task-card__meta">
+          <li><?= e(t('bingo.tasks_meta_free')) ?></li>
+          <li><?= e(t('bingo.tasks_meta_daily')) ?></li>
+        </ul>
+
+        <a class="wt-task-card__cta" href="<?= e(wt_url('/tasks/bingo/')) ?>">
+          <?= e(t('common.start')) ?>
+        </a>
+      </article>
+    <?php elseif ($bingoTeaser): ?>
+      <!-- Teaser "bientôt disponible" avec compte à rebours -->
+      <article class="wt-task-card wt-task-card--bingo wt-task-card--soon" style="--idx:4">
+        <header class="wt-task-card__header">
+          <div class="wt-task-card__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="3" width="18" height="18" rx="2"/>
+              <path d="M3 9h18M3 15h18M9 3v18M15 3v18"/>
+            </svg>
+          </div>
+          <h2 class="wt-task-card__title">Bingo</h2>
+          <span class="wt-task-card__pill wt-task-card__pill--soon"><?= e(t('bingo.coming_soon')) ?></span>
+        </header>
+
+        <p class="wt-task-card__desc"><?= e(t('bingo.teaser_desc')) ?></p>
+
+        <?php if ($bingoLaunchTs > 0): ?>
+          <div class="wt-bingo-countdown" data-launch="<?= (int)$bingoLaunchTs ?>" aria-label="<?= e(t('bingo.countdown_label')) ?>">
+            <div class="wt-bingo-countdown__unit">
+              <span class="wt-bingo-countdown__num" data-cd="days">--</span>
+              <span class="wt-bingo-countdown__lbl"><?= e(t('bingo.cd_days')) ?></span>
+            </div>
+            <div class="wt-bingo-countdown__unit">
+              <span class="wt-bingo-countdown__num" data-cd="hours">--</span>
+              <span class="wt-bingo-countdown__lbl"><?= e(t('bingo.cd_hours')) ?></span>
+            </div>
+            <div class="wt-bingo-countdown__unit">
+              <span class="wt-bingo-countdown__num" data-cd="mins">--</span>
+              <span class="wt-bingo-countdown__lbl"><?= e(t('bingo.cd_mins')) ?></span>
+            </div>
+            <div class="wt-bingo-countdown__unit">
+              <span class="wt-bingo-countdown__num" data-cd="secs">--</span>
+              <span class="wt-bingo-countdown__lbl"><?= e(t('bingo.cd_secs')) ?></span>
+            </div>
+          </div>
+        <?php endif; ?>
+
+        <span class="wt-task-card__cta wt-task-card__cta--disabled" aria-disabled="true">
+          <?= e(t('bingo.coming_soon')) ?>
+        </span>
+      </article>
+    <?php endif; ?>
+
   </section>
 
   <!-- =============== TES GAINS DU JOUR (utilisateur connecté + données) =============== -->
@@ -463,5 +544,44 @@ include __DIR__ . '/../header.php';
   </section>
 
 </main>
+
+<script>
+(function () {
+  var cd = document.querySelector('.wt-bingo-countdown');
+  if (!cd) return;
+  var launch = parseInt(cd.getAttribute('data-launch'), 10) * 1000;
+  if (!launch) return;
+
+  var elD = cd.querySelector('[data-cd="days"]');
+  var elH = cd.querySelector('[data-cd="hours"]');
+  var elM = cd.querySelector('[data-cd="mins"]');
+  var elS = cd.querySelector('[data-cd="secs"]');
+
+  function pad(n) { return n < 10 ? '0' + n : '' + n; }
+
+  function tick() {
+    var diff = launch - Date.now();
+    if (diff <= 0) {
+      // Lancement atteint : on recharge pour révéler le jeu
+      elD.textContent = '00'; elH.textContent = '00';
+      elM.textContent = '00'; elS.textContent = '00';
+      clearInterval(timer);
+      setTimeout(function () { window.location.reload(); }, 1500);
+      return;
+    }
+    var s = Math.floor(diff / 1000);
+    var d = Math.floor(s / 86400); s -= d * 86400;
+    var h = Math.floor(s / 3600);  s -= h * 3600;
+    var m = Math.floor(s / 60);    s -= m * 60;
+    elD.textContent = pad(d);
+    elH.textContent = pad(h);
+    elM.textContent = pad(m);
+    elS.textContent = pad(s);
+  }
+
+  tick();
+  var timer = setInterval(tick, 1000);
+})();
+</script>
 
 <?php include __DIR__ . '/../footer.php'; ?>

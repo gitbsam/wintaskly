@@ -43,6 +43,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && csrf_check($_POST['_csrf'] ?? null)
         $status  = ($_POST['status'] ?? 'draft') === 'published' ? 'published' : 'draft';
         $reading = max(1, (int)($_POST['reading_minutes'] ?? 3));
 
+        // Date de publication choisie (programmation). Format datetime-local
+        // (ex: 2026-07-15T09:00). Convertie en UTC pour le stockage.
+        // Si vide → on utilisera "maintenant" à la première publication.
+        $schedRaw = trim((string)($_POST['publish_date'] ?? ''));
+        $schedUtc = null;
+        if ($schedRaw !== '') {
+            $ts = strtotime($schedRaw);
+            if ($ts !== false) {
+                $schedUtc = gmdate('Y-m-d H:i:s', $ts);
+            }
+        }
+
         $errors = [];
         if ($title === '') $errors[] = t('admin.blog.err_title');
         if ($body === '')  $errors[] = t('admin.blog.err_body');
@@ -52,8 +64,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && csrf_check($_POST['_csrf'] ?? null)
         } else {
             try {
                 if ($action === 'create') {
-                    // published_at = maintenant si publié directement
-                    $pubAt = $status === 'published' ? gmdate('Y-m-d H:i:s') : null;
+                    // Priorité : date choisie > maintenant (si publié) > null (brouillon)
+                    if ($schedUtc !== null) {
+                        $pubAt = $schedUtc;
+                    } else {
+                        $pubAt = $status === 'published' ? gmdate('Y-m-d H:i:s') : null;
+                    }
                     $stmt = $db->prepare(
                         "INSERT INTO blog_posts
                            (slug, category_id, title, excerpt, body, cover_emoji,
@@ -77,7 +93,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && csrf_check($_POST['_csrf'] ?? null)
                     // Récupère l'ancien statut pour gérer published_at
                     $old = db_one("SELECT status, published_at FROM blog_posts WHERE id = " . $id);
                     $pubAt = $old['published_at'] ?? null;
-                    if ($status === 'published' && empty($pubAt)) {
+                    // Date choisie explicitement → elle prime (reprogrammation)
+                    if ($schedUtc !== null) {
+                        $pubAt = $schedUtc;
+                    } elseif ($status === 'published' && empty($pubAt)) {
                         $pubAt = gmdate('Y-m-d H:i:s'); // première publication
                     }
                     $stmt = $db->prepare(
@@ -289,6 +308,18 @@ include __DIR__ . '/../header.php';
                 <option value="published" <?= (($editPost['status'] ?? '') === 'published') ? 'selected' : '' ?>><?= e(t('admin.blog.status_published')) ?></option>
               </select>
             </label>
+            <label class="wt-field" style="margin:0">
+              <span class="wt-field__label"><?= e(t('admin.blog.f_publish_date')) ?></span>
+              <?php
+                // Pré-remplit avec la date existante (convertie en local pour l'input)
+                $schedVal = '';
+                if (!empty($editPost['published_at'])) {
+                    $schedVal = date('Y-m-d\TH:i', strtotime($editPost['published_at'] . ' UTC'));
+                }
+              ?>
+              <input class="wt-input" type="datetime-local" name="publish_date" value="<?= e($schedVal) ?>">
+              <small class="wt-field__hint"><?= e(t('admin.blog.f_publish_date_hint')) ?></small>
+            </label>
             <button class="wt-btn wt-btn--primary" style="align-self:flex-end">
               <?= $editPost ? e(t('common.save')) : e(t('admin.blog.create_btn')) ?>
             </button>
@@ -323,7 +354,15 @@ include __DIR__ . '/../header.php';
                     <td><strong><?= e($p['title']) ?></strong><br><code style="font-size:.7rem;opacity:.5"><?= e($p['slug']) ?></code></td>
                     <td><?= e($p['category_name'] ?? '—') ?></td>
                     <td>
-                      <?php if ($p['status'] === 'published'): ?>
+                      <?php
+                        $isScheduled = $p['status'] === 'published'
+                            && !empty($p['published_at'])
+                            && strtotime($p['published_at'] . ' UTC') > time();
+                      ?>
+                      <?php if ($isScheduled): ?>
+                        <span style="color:#a855f7;font-size:.85rem">🕒 <?= e(t('admin.blog.status_scheduled')) ?></span>
+                        <br><small style="opacity:.5;font-size:.7rem"><?= e(wt_format_datetime($p['published_at'], 'd/m/Y H:i')) ?></small>
+                      <?php elseif ($p['status'] === 'published'): ?>
                         <span style="color:#22c55e;font-size:.85rem">✅ <?= e(t('admin.blog.status_published')) ?></span>
                       <?php else: ?>
                         <span style="opacity:.6;font-size:.85rem">📝 <?= e(t('admin.blog.status_draft')) ?></span>

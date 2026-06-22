@@ -180,7 +180,7 @@ CREATE TABLE IF NOT EXISTS `shortlink_cooldowns` (
 CREATE TABLE IF NOT EXISTS `transactions` (
   `id`         BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   `user_id`    INT UNSIGNED NOT NULL,
-  `type`       ENUM('faucet','shortlink','ptc','offerwall','referral','withdraw','admin','bonus','daily_bonus','achievement') NOT NULL,
+  `type`       ENUM('faucet','shortlink','ptc','offerwall','referral','withdraw','admin','bonus','daily_bonus','achievement','bingo_buy','bingo_win') NOT NULL,
   `coins`      DECIMAL(18,4) NOT NULL DEFAULT 0,
   `xp`         INT NOT NULL DEFAULT 0,
   `meta`       VARCHAR(255) NULL,
@@ -1352,3 +1352,89 @@ INSERT IGNORE INTO `config` (`k`, `v`) VALUES
  ('fraud.vpn_check_enabled',      '0'),
  ('fraud.risk_threshold_review',  '50'),
  ('fraud.risk_threshold_block',   '80');
+
+-- ============================================================================
+-- BINGO (cycle de 7 jours, jackpot évolutif) — V8.14+
+-- ============================================================================
+CREATE TABLE IF NOT EXISTS `bingo_rounds` (
+  `id`            INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `started_on`    DATE NOT NULL,
+  `max_days`      TINYINT UNSIGNED NOT NULL DEFAULT 7,
+  `draw_count`    TINYINT UNSIGNED NOT NULL DEFAULT 14,
+  `number_max`    TINYINT UNSIGNED NOT NULL DEFAULT 99,
+  `days_drawn`    TINYINT UNSIGNED NOT NULL DEFAULT 0,
+  `jackpot`       BIGINT UNSIGNED NOT NULL DEFAULT 0,
+  `status`        ENUM('active','ending','settled') NOT NULL DEFAULT 'active',
+  `end_reason`    ENUM('','max_days','claim','auto_full') NOT NULL DEFAULT '',
+  `winners_count` INT UNSIGNED NOT NULL DEFAULT 0,
+  `reward_each`   BIGINT UNSIGNED NOT NULL DEFAULT 0,
+  `last_draw_on`  DATE NULL,
+  `ending_at`     DATETIME NULL,
+  `settled_at`    DATETIME NULL,
+  `created_at`    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_status` (`status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS `bingo_draws` (
+  `id`            BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `round_id`      INT UNSIGNED NOT NULL,
+  `draw_index`    TINYINT UNSIGNED NOT NULL,
+  `draw_date`     DATE NOT NULL,
+  `numbers`       VARCHAR(120) NOT NULL,
+  `created_at`    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uniq_round_index` (`round_id`, `draw_index`),
+  UNIQUE KEY `uniq_round_date` (`round_id`, `draw_date`),
+  KEY `idx_round` (`round_id`),
+  CONSTRAINT `fk_bingo_draw_round` FOREIGN KEY (`round_id`) REFERENCES `bingo_rounds`(`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS `bingo_cards` (
+  `id`          BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `round_id`    INT UNSIGNED NOT NULL,
+  `user_id`     INT UNSIGNED NOT NULL,
+  `numbers`     VARCHAR(120) NOT NULL,
+  `slot_index`  TINYINT UNSIGNED NOT NULL,
+  `is_free`     TINYINT(1) NOT NULL DEFAULT 0,
+  `status`      ENUM('locked','active','claimed','void') NOT NULL DEFAULT 'locked',
+  `activated_at` DATETIME NULL,
+  `created_at`  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uniq_round_user_slot` (`round_id`, `user_id`, `slot_index`),
+  KEY `idx_round_user` (`round_id`, `user_id`),
+  KEY `idx_user` (`user_id`),
+  CONSTRAINT `fk_bingo_card_round` FOREIGN KEY (`round_id`) REFERENCES `bingo_rounds`(`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_bingo_card_user` FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS `bingo_card_marks` (
+  `id`        BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `card_id`   BIGINT UNSIGNED NOT NULL,
+  `number`    TINYINT UNSIGNED NOT NULL,
+  `marked_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uniq_card_number` (`card_id`, `number`),
+  KEY `idx_card` (`card_id`),
+  CONSTRAINT `fk_bingo_mark_card` FOREIGN KEY (`card_id`) REFERENCES `bingo_cards`(`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS `bingo_claims` (
+  `id`         BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `round_id`   INT UNSIGNED NOT NULL,
+  `user_id`    INT UNSIGNED NOT NULL,
+  `card_id`    BIGINT UNSIGNED NOT NULL,
+  `reward`     BIGINT UNSIGNED NOT NULL DEFAULT 0,
+  `claimed_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uniq_round_user` (`round_id`, `user_id`),
+  KEY `idx_round` (`round_id`),
+  CONSTRAINT `fk_bingo_claim_round` FOREIGN KEY (`round_id`) REFERENCES `bingo_rounds`(`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_bingo_claim_user` FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+INSERT IGNORE INTO `config` (`k`, `v`) VALUES
+ ('bingo.enabled','1'),('bingo.max_days','7'),('bingo.cards_per_user','5'),
+ ('bingo.free_cards','1'),('bingo.card_price_coins','5000'),('bingo.draw_count','14'),
+ ('bingo.number_max','99'),('bingo.jackpot_base','30000'),('bingo.jackpot_growth_pct','25'),
+ ('bingo.jackpot_carryover','1'),('bingo.test_mode','1'),('bingo.coming_soon','1'),('bingo.launch_at','');

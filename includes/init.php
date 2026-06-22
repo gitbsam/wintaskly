@@ -47,7 +47,7 @@ if (!defined('WT_PERIOD_DASHBOARD_DAYS')) {
 // L'URL latest.json est configurable via la BDD (clé config 'update.feed_url')
 // pour permettre de changer de canal (stable/beta) sans redéployer.
 if (!defined('WT_VERSION')) {
-    define('WT_VERSION', '8.12.0');
+    define('WT_VERSION', '8.15.0');
     define('WT_VERSION_CHANNEL', 'stable');  // stable | beta | dev
     define('WT_UPDATE_FEED_DEFAULT', 'https://gitbsam.github.io/wintaskly/latest.json');
 }
@@ -246,6 +246,7 @@ require __DIR__ . '/daily_bonus.php';
 require __DIR__ . '/achievements.php';
 require __DIR__ . '/blog.php';
 require __DIR__ . '/fraud.php';
+require __DIR__ . '/bingo.php';
 
 // Si l'utilisateur n'a pas de session active mais possède un cookie
 // « remember-me » valide, on connecte automatiquement.

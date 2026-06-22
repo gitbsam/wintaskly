@@ -288,5 +288,15 @@ $base = rtrim($GLOBALS['WT_CONFIG']['base_url'] ?? '', '/');
       </span>
       <?= e(t('admin.antifraud')) ?>
     </a>
+
+    <a href="<?= $base ?>/admin/bingo.php" class="<?= $adminActive==='bingo' ? 'is-active' : '' ?>" style="--idx:9">
+      <span class="wt-admin-v2__nav-ico" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="18" height="18" rx="2"/>
+          <path d="M3 9h18M3 15h18M9 3v18M15 3v18"/>
+        </svg>
+      </span>
+      Bingo
+    </a>
   </nav>
 </aside>
