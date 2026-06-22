@@ -49,6 +49,15 @@ foreach ($cards as $c) {
     if ($c['status'] === 'claimed') { $hasClaimed = true; break; }
 }
 
+// Combien de cartons actifs (active/claimed) ? Au-delà d'un seul carton en
+// jeu (donc un carton payant acheté), la bande du haut affiche les 99
+// numéros (tirés colorés + non tirés éteints) au lieu des seuls tirés.
+$activeCardCount = 0;
+foreach ($cards as $c) {
+    if ($c['status'] === 'active' || $c['status'] === 'claimed') { $activeCardCount++; }
+}
+$showFullBoard = $activeCardCount > 1;
+
 // Lettres B-I-N-G-O avec leurs couleurs
 $bingoLetters = [
     ['l' => 'B', 'c' => '#ef4444'],
@@ -102,18 +111,41 @@ include __DIR__ . '/../../header.php';
     <!-- Numéros tirés -->
     <?php if (!empty($allDrawn)): ?>
       <section class="wt-bingo-drawn" data-reveal>
-        <h2 class="wt-bingo-drawn__title"><?= e(t('bingo.drawn_title')) ?></h2>
+        <h2 class="wt-bingo-drawn__title">
+          <?= $showFullBoard ? e(t('bingo.board_title')) : e(t('bingo.drawn_title')) ?>
+        </h2>
         <div class="wt-bingo-drawn__legend">
           <span><span class="wt-bingo-dot wt-bingo-dot--today"></span> <?= e(t('bingo.legend_today')) ?></span>
           <span><span class="wt-bingo-dot wt-bingo-dot--old"></span> <?= e(t('bingo.legend_old')) ?></span>
+          <?php if ($showFullBoard): ?>
+            <span><span class="wt-bingo-dot wt-bingo-dot--none"></span> <?= e(t('bingo.legend_none')) ?></span>
+          <?php endif; ?>
         </div>
-        <div class="wt-bingo-drawn__balls">
-          <?php foreach ($allDrawn as $n): ?>
-            <span class="wt-bingo-ball <?= isset($todaySet[$n]) ? 'wt-bingo-ball--today' : 'wt-bingo-ball--old' ?>">
-              <?= (int)$n ?>
-            </span>
-          <?php endforeach; ?>
-        </div>
+
+        <?php if ($showFullBoard):
+          // Vue complète 1..number_max : tirés colorés, non tirés éteints
+          $numberMax = (int) ($round['number_max'] ?? 99);
+        ?>
+          <div class="wt-bingo-board">
+            <?php for ($n = 1; $n <= $numberMax; $n++):
+              if (isset($todaySet[$n]))      { $cls = 'wt-bingo-ball--today'; }
+              elseif (isset($drawnSet[$n]))  { $cls = 'wt-bingo-ball--old'; }
+              else                           { $cls = 'wt-bingo-ball--none'; }
+            ?>
+              <span class="wt-bingo-ball <?= $cls ?>"><?= $n ?></span>
+            <?php endfor; ?>
+          </div>
+        <?php else:
+          // Vue simple : seulement les numéros tirés
+        ?>
+          <div class="wt-bingo-drawn__balls">
+            <?php foreach ($allDrawn as $n): ?>
+              <span class="wt-bingo-ball <?= isset($todaySet[$n]) ? 'wt-bingo-ball--today' : 'wt-bingo-ball--old' ?>">
+                <?= (int)$n ?>
+              </span>
+            <?php endforeach; ?>
+          </div>
+        <?php endif; ?>
       </section>
     <?php endif; ?>
 

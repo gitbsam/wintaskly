@@ -13512,3 +13512,28 @@ a.wt-dash-v2__kpi-cta:hover {
   .wt-bingo-card { flex-basis: 270px; }
   .wt-bingo-jackpot__amount { font-size: 2rem; }
 }
+
+/* =====================================================================
+   BINGO — plateau complet 1..99 (joueur avec carton payant)
+   ===================================================================== */
+.wt-bingo-board {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(38px, 1fr));
+  gap: .4rem;
+  margin-top: .25rem;
+}
+@media (min-width: 600px) {
+  .wt-bingo-board { grid-template-columns: repeat(15, 1fr); }
+}
+/* Numéro pas encore tiré : éteint */
+.wt-bingo-ball--none {
+  background: transparent;
+  color: var(--wt-text-soft, #64748b);
+  border: 1px dashed var(--wt-border, #2a3346);
+  opacity: .45;
+}
+/* Pastille de légende "pas encore tiré" */
+.wt-bingo-dot--none {
+  background: transparent;
+  border: 1px dashed var(--wt-text-soft, #64748b);
+}

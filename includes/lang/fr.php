@@ -633,6 +633,8 @@ return [
     'bingo.drawn_title'             => 'Numéros tirés',
     'bingo.legend_today'            => 'Aujourd\'hui',
     'bingo.legend_old'              => 'Jours précédents',
+    'bingo.board_title'           => 'Plateau complet (1 à 99)',
+    'bingo.legend_none'           => 'Pas encore tiré',
     'bingo.my_cards'                => 'Mes cartons',
     'bingo.cards_hint'              => 'Active ton carton gratuit, puis valide les numéros tirés présents sur tes cartons. Complète les 25 cases pour réclamer !',
     'bingo.btn_activate'            => 'Activer le carton',

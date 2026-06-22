@@ -615,6 +615,8 @@ return [
     'bingo.drawn_title'             => 'Drawn numbers',
     'bingo.legend_today'            => 'Today',
     'bingo.legend_old'              => 'Previous days',
+    'bingo.board_title'           => 'Full board (1 to 99)',
+    'bingo.legend_none'           => 'Not drawn yet',
     'bingo.my_cards'                => 'My cards',
     'bingo.cards_hint'              => 'Activate your free card, then mark the drawn numbers on your cards. Complete all 25 cells to claim!',
     'bingo.btn_activate'            => 'Activate card',
