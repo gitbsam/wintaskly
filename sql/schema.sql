@@ -765,7 +765,16 @@ INSERT IGNORE INTO `ad_zones` (`k`,`label`,`code`,`active`) VALUES
 -- Configuration AdSense (Auto Ads) modifiable via /admin/ads.php
 INSERT IGNORE INTO `config` (`k`, `v`) VALUES
  ('ads.adsense_client', ''),
- ('ads.adsense_auto',   '0');
+ ('ads.adsense_auto',   '0'),
+ ('ads.head_enabled',   '0'),
+ ('ads.head_code',      ''),
+ ('ads.body_enabled',   '0'),
+ ('ads.body_code',      ''),
+ ('ads.banner_728',     ''),
+ ('ads.banner_468',     ''),
+ ('ads.banner_300',     ''),
+ ('ads.adsterra_api_token', ''),
+ ('ads.adsterra_domain_id', '');
 
 -- ---------- withdrawal methods ----------
 INSERT IGNORE INTO `withdrawal_methods`

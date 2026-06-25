@@ -484,5 +484,12 @@ if (!empty($GLOBALS['__wt_ach_just_unlocked']) && is_array($GLOBALS['__wt_ach_ju
 </style>
 <?php endif; ?>
 
+<?php
+// Scripts publicitaires globaux à charger une seule fois avant </body>
+// (Social Bar Adsterra, etc.). Gérés via /admin/ads.php.
+if (function_exists('wt_ads_body_scripts')) {
+    echo wt_ads_body_scripts();
+}
+?>
 </body>
 </html>

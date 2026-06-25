@@ -13585,3 +13585,95 @@ a.wt-dash-v2__kpi-cta:hover {
 .wt-ad-scale__inner [data-aa] {
   max-width: none !important;
 }
+
+/* =====================================================================
+   PUBLICITÉS — bannière auto-responsive (choisit le format selon l'écran)
+   =====================================================================
+   wt_ad_banner_auto() rend les 3 formats (728/468/300). Le CSS n'en
+   affiche qu'UN seul selon la largeur, pour ne jamais déborder :
+     - ≥ 768px  → 728x90 (desktop/tablette large)
+     - 480–767px → 468x60 (tablette/grand mobile)
+     - < 480px  → 300x250 (mobile)
+   Chaque format reste en plus protégé par le scale (.wt-ad-scale).
+   ===================================================================== */
+.wt-ad-auto { width: 100%; display: flex; justify-content: center; }
+.wt-ad-auto__fmt { display: none; }  /* masqués par défaut */
+
+/* Mobile (< 480px) : 300x250 */
+.wt-ad-auto__300 { display: block; }
+
+/* Tablette / grand mobile (480–767px) : 468x60 */
+@media (min-width: 480px) {
+  .wt-ad-auto__300 { display: none; }
+  .wt-ad-auto__468 { display: block; }
+}
+
+/* Desktop / tablette large (≥ 768px) : 728x90 */
+@media (min-width: 768px) {
+  .wt-ad-auto__468 { display: none; }
+  .wt-ad-auto__728 { display: block; }
+}
+
+/* Repli : si un format manque, on tombe sur le plus proche disponible.
+   (géré côté PHP : seuls les formats configurés sont rendus) */
+
+/* =====================================================================
+   HERO — état vide de la sidebar retraits (invitation "Sois le premier")
+   Remplace les anciennes fausses données par un appel à l'action sobre.
+   ===================================================================== */
+.wt-hero__withdraw-firstcta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: .5rem;
+  padding: 1.75rem 1.25rem;
+}
+.wt-hero__withdraw-firstcta-icon {
+  font-size: 2.5rem;
+  line-height: 1;
+  filter: drop-shadow(0 4px 12px rgba(0,0,0,.25));
+  animation: wt-firstcta-float 3s ease-in-out infinite;
+}
+@keyframes wt-firstcta-float {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-6px); }
+}
+.wt-hero__withdraw-firstcta-title {
+  font-size: 1.05rem;
+  color: var(--wt-text, #e8eef9);
+  font-family: var(--wt-font-display, inherit);
+}
+.wt-hero__withdraw-firstcta-text {
+  margin: 0;
+  max-width: 28ch;
+  line-height: 1.5;
+}
+/* Respecte les préférences de réduction de mouvement */
+@media (prefers-reduced-motion: reduce) {
+  .wt-hero__withdraw-firstcta-icon { animation: none; }
+}
+
+/* =====================================================================
+   TASK CARDS — finition : l'icône s'anime légèrement au survol de la carte
+   Détail subtil qui rend la grille de tâches plus vivante (revue design).
+   ===================================================================== */
+.wt-task-card__icon {
+  transition: transform .3s var(--wt-ease-emph, cubic-bezier(.34,1.56,.64,1)),
+              box-shadow .3s ease;
+}
+.wt-task-card--rich:hover .wt-task-card__icon {
+  transform: scale(1.08) rotate(-3deg);
+}
+/* Le prix (gain) prend une légère emphase au survol pour attirer l'œil */
+.wt-task-card__price-amount {
+  transition: transform .25s ease;
+  display: inline-block;
+}
+.wt-task-card--rich:hover .wt-task-card__price-amount {
+  transform: scale(1.04);
+}
+@media (prefers-reduced-motion: reduce) {
+  .wt-task-card--rich:hover .wt-task-card__icon,
+  .wt-task-card--rich:hover .wt-task-card__price-amount { transform: none; }
+}

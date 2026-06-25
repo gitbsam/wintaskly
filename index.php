@@ -92,9 +92,9 @@ if ($res = $db->query($sql)) {
 
 /* -------- Top retraits live (panneau flottant hero, desktop only) ---------
  * On affiche les 10 derniers retraits validés (status = 'completed').
- * Username tronqué pour la vie privée : "Saïd K." au lieu de "saidkamal".
- * Si la table est vide, on génère des entrées factices visuelles pour ne
- * pas avoir un panneau vide à la mise en route (mode "vitrine").       */
+ * Username tronqué pour la vie privée : "S•••d" au lieu de "saidkamal".
+ * Si aucun retrait validé n'existe encore, un état vide "Sois le premier"
+ * s'affiche (aucune donnée fictive — voir le rendu plus bas).            */
 $topWithdrawals = [];
 $sql = "SELECT w.payout_amount, w.payout_currency,
                w.created_at, w.processed_at, w.user_id,
@@ -227,32 +227,14 @@ include __DIR__ . '/header.php';
             <?php endforeach; ?>
           </ul>
         <?php else: ?>
-          <!-- Mode vitrine : 4 entrées factices pour ne pas avoir un panel vide -->
-          <ul class="wt-hero__withdraw-list">
-            <?php
-            $demo = [
-                ['S••d K.', 'PayPal', '12.50', '3'],
-                ['M••a R.', 'Orange Money', '8.75', '11'],
-                ['P••o T.', 'Wise', '24.00', '27'],
-                ['L••a B.', 'PayPal', '5.20', '42'],
-            ];
-            foreach ($demo as $i => $d):
-            ?>
-              <li class="wt-hero__withdraw-item" style="--idx:<?= $i ?>">
-                <div class="wt-avatar wt-avatar--xs"><?= e(substr($d[0], 0, 1)) ?></div>
-                <div class="wt-hero__withdraw-info">
-                  <strong><?= e($d[0]) ?></strong>
-                  <small class="wt-muted"><?= e($d[1]) ?> · il y a <?= e($d[3]) ?> min</small>
-                </div>
-                <span class="wt-hero__withdraw-amount">+<?= e($d[2]) ?> €</span>
-              </li>
-            <?php endforeach; ?>
-          </ul>
-          <p class="wt-hero__withdraw-empty">
-            <small class="wt-muted">
-              <?= e(t('home.live.empty')) ?>
-            </small>
-          </p>
+          <!-- État vide élégant : pas de fausses données, on invite à être le premier -->
+          <div class="wt-hero__withdraw-firstcta">
+            <div class="wt-hero__withdraw-firstcta-icon" aria-hidden="true">🏆</div>
+            <strong class="wt-hero__withdraw-firstcta-title"><?= e(t('home.live.be_first_title')) ?></strong>
+            <p class="wt-hero__withdraw-firstcta-text">
+              <small class="wt-muted"><?= e(t('home.live.be_first_text')) ?></small>
+            </p>
+          </div>
         <?php endif; ?>
 
         <footer class="wt-hero__sidebar-foot">
@@ -548,31 +530,6 @@ include __DIR__ . '/header.php';
       </ul>
     <?php endif; ?>
   </section>
-
-  <!-- ===================== OLD FEED (désactivé V8) ============== -->
-  <?php if (false): ?>
-  <section class="wt-feed" data-reveal>
-    <h2 class="wt-section__title"><?= e(t('home.feed.title')) ?></h2>
-    <?php if (!$feed): ?>
-      <p class="wt-muted"><?= e(t('home.feed.empty')) ?></p>
-    <?php else: ?>
-      <ul class="wt-feed__list">
-        <?php foreach ($feed as $f): ?>
-          <li class="wt-feed__item">
-            <span class="wt-feed__user"><?= e($f['username']) ?></span>
-            <span class="wt-feed__type wt-feed__type--<?= e($f['type']) ?>">
-              <?= e(ucfirst($f['type'])) ?>
-            </span>
-            <span class="wt-feed__coins">+<?= e(rtrim(rtrim(number_format((float)$f['coins'], 2, '.', ''), '0'), '.')) ?> <?= e(t('common.coins')) ?></span>
-            <span class="wt-feed__time"
-                  data-fmt-time
-                  data-utc="<?= e($f['created_at']) ?>"><?= e(wt_format_datetime($f['created_at'])) ?></span>
-          </li>
-        <?php endforeach; ?>
-      </ul>
-    <?php endif; ?>
-  </section>
-  <?php endif; ?>
 
   <!-- ===================== LEADERBOARD PREVIEW (V8) ============
    * Top 5 du mois en cours en format podium horizontal :

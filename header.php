@@ -326,6 +326,9 @@ $_ogImage = $_seoOgImage !== '' ? $_seoOgImage : $_base . '/media/wintaskly/img/
 if (function_exists('wt_adsense_head')) {
     echo wt_adsense_head();
 }
+if (function_exists('wt_ads_head_scripts')) {
+    echo wt_ads_head_scripts();
+}
 ?>
 
 </head>

@@ -259,14 +259,31 @@ if (!function_exists('wt_shortlink_create_via_api')) {
             return null;
         }
 
-        // Construit l'URL d'appel : on respecte le séparateur déjà présent dans
-        // l'endpoint (ex: 'https://exe.io/api' n'a pas de '?', mais
-        // 'https://exe.io/api?foo=bar' en a un — on adapte).
+        // Détection du format de la régie d'après l'endpoint.
+        //   - Ad-Maven : paramètre api_token + title obligatoire, réponse
+        //     { type, message: { desturl } }
+        //   - exe.io & compatibles (shrinkme, etc.) : paramètre api + url,
+        //     réponse { status, shortenedUrl }
+        $isAdMaven = (stripos($apiEndpoint, 'ad-maven') !== false)
+                  || (stripos($apiEndpoint, 'admaven') !== false);
+
         $sep = (strpos($apiEndpoint, '?') === false) ? '?' : '&';
-        $callUrl = $apiEndpoint . $sep
-                 . 'api=' . urlencode($apiToken)
-                 . '&url=' . urlencode($destUrl)
-                 . '&format=json';
+
+        if ($isAdMaven) {
+            // Ad-Maven exige un 'title' (max 30 car.). On en génère un court
+            // et unique pour tracer le lien côté panel Ad-Maven.
+            $title = 'wt-' . substr(md5($destUrl . microtime()), 0, 10);
+            $callUrl = $apiEndpoint . $sep
+                     . 'api_token=' . urlencode($apiToken)
+                     . '&title=' . urlencode($title)
+                     . '&url=' . urlencode($destUrl);
+        } else {
+            // Format standard exe.io / adf.ly historique
+            $callUrl = $apiEndpoint . $sep
+                     . 'api=' . urlencode($apiToken)
+                     . '&url=' . urlencode($destUrl)
+                     . '&format=json';
+        }
 
         // Appel HTTP avec cURL (préféré à file_get_contents pour le timeout
         // et la gestion d'erreurs propre).
@@ -310,14 +327,42 @@ if (!function_exists('wt_shortlink_create_via_api')) {
             return null;
         }
 
-        // Format standard exe.io : { "status": "success", "shortenedUrl": "..." }
-        $status = strtolower((string) ($json['status'] ?? ''));
-        $short  = (string) ($json['shortenedUrl'] ?? $json['short'] ?? $json['url'] ?? '');
+        if ($isAdMaven) {
+            // Format Ad-Maven : { type: "created"|"fetched", message: {...} }
+            //   - succès POST : message.desturl
+            //   - succès GET  : message[0].desturl (tableau)
+            //   - erreur      : { type: "error", message: "..." }
+            $type = strtolower((string) ($json['type'] ?? ''));
+            if ($type === 'error') {
+                $msg = is_string($json['message'] ?? null) ? $json['message'] : 'unknown';
+                error_log('[Wintaskly shortlink_api] Ad-Maven error: ' . $msg);
+                return null;
+            }
+            $message = $json['message'] ?? null;
+            $short = '';
+            if (is_array($message)) {
+                if (isset($message['desturl'])) {
+                    // Réponse POST (objet)
+                    $short = (string) $message['desturl'];
+                } elseif (isset($message[0]) && is_array($message[0]) && isset($message[0]['desturl'])) {
+                    // Réponse GET (tableau)
+                    $short = (string) $message[0]['desturl'];
+                }
+            }
+            if ($short === '') {
+                error_log('[Wintaskly shortlink_api] Ad-Maven: no desturl in response: ' . substr((string)$response, 0, 200));
+                return null;
+            }
+        } else {
+            // Format standard exe.io : { "status": "success", "shortenedUrl": "..." }
+            $status = strtolower((string) ($json['status'] ?? ''));
+            $short  = (string) ($json['shortenedUrl'] ?? $json['short'] ?? $json['url'] ?? '');
 
-        if ($status !== 'success' || $short === '') {
-            $msg = (string) ($json['message'] ?? 'unknown');
-            error_log('[Wintaskly shortlink_api] provider returned error: ' . $msg);
-            return null;
+            if ($status !== 'success' || $short === '') {
+                $msg = (string) ($json['message'] ?? 'unknown');
+                error_log('[Wintaskly shortlink_api] provider returned error: ' . $msg);
+                return null;
+            }
         }
 
         // Validation basique de l'URL retournée
@@ -414,5 +459,214 @@ if (!function_exists('wt_adsense_head')) {
         return "\n<!-- Google AdSense Auto Ads -->\n"
              . "<script async src=\"https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client={$c}\""
              . " crossorigin=\"anonymous\"></script>\n";
+    }
+}
+
+if (!function_exists('wt_ads_head_scripts')) {
+    /**
+     * Scripts publicitaires à injecter dans le <head>, une seule fois pour
+     * tout le site. Typiquement le Popunder Adsterra (qui doit être placé
+     * avant </head> selon leur doc).
+     *
+     * Config BDD : 'ads.head_code' = code brut (script Popunder, etc.)
+     * Activation : 'ads.head_enabled' = '1'
+     *
+     * @return string Le code à injecter, ou '' si désactivé/vide
+     */
+    function wt_ads_head_scripts(): string
+    {
+        if ((string) cfg('ads.head_enabled', '0') !== '1') {
+            return '';
+        }
+        $code = trim((string) cfg('ads.head_code', ''));
+        if ($code === '') {
+            return '';
+        }
+        return "\n<!-- Wintaskly ads (head) -->\n" . $code . "\n";
+    }
+}
+
+if (!function_exists('wt_ads_body_scripts')) {
+    /**
+     * Scripts publicitaires à injecter juste avant </body>, une seule fois
+     * pour tout le site. Typiquement la Social Bar Adsterra (qui doit être
+     * placée avant </body> selon leur doc), et tout autre script global
+     * (bannière native sticky, etc.).
+     *
+     * Config BDD : 'ads.body_code' = code brut (Social Bar, etc.)
+     * Activation : 'ads.body_enabled' = '1'
+     *
+     * @return string Le code à injecter, ou '' si désactivé/vide
+     */
+    function wt_ads_body_scripts(): string
+    {
+        if ((string) cfg('ads.body_enabled', '0') !== '1') {
+            return '';
+        }
+        $code = trim((string) cfg('ads.body_code', ''));
+        if ($code === '') {
+            return '';
+        }
+        return "\n<!-- Wintaskly ads (body) -->\n" . $code . "\n";
+    }
+}
+
+if (!function_exists('wt_ad_banner_auto')) {
+    /**
+     * Bannière publicitaire AUTO-RESPONSIVE : affiche le bon format selon
+     * la largeur de l'écran (728x90 desktop, 468x60 tablette, 300x250
+     * mobile). Les 3 codes sont rendus, le CSS n'en montre qu'un seul à la
+     * fois selon les media queries (.wt-ad-auto__728 / __468 / __300).
+     *
+     * Les codes proviennent de 3 zones ad_zones dédiées :
+     *   - 'ads.banner_728' (Bannière 728x90)
+     *   - 'ads.banner_468' (Bannière 468x60)
+     *   - 'ads.banner_300' (Bannière 300x250)
+     *
+     * IMPORTANT : Adsterra recommande de ne pas charger le même code deux
+     * fois sur une page. Ici les 3 codes sont DIFFÉRENTS (formats distincts),
+     * donc c'est conforme. En revanche, n'appelle wt_ad_banner_auto() qu'UNE
+     * fois par page pour éviter de dupliquer un même format.
+     *
+     * @return string Le bloc HTML des 3 bannières (CSS gère l'affichage)
+     */
+    function wt_ad_banner_auto(): string
+    {
+        $b728 = trim((string) cfg('ads.banner_728', ''));
+        $b468 = trim((string) cfg('ads.banner_468', ''));
+        $b300 = trim((string) cfg('ads.banner_300', ''));
+
+        // Rien de configuré → rien à afficher
+        if ($b728 === '' && $b468 === '' && $b300 === '') {
+            return '';
+        }
+
+        $html = '<div class="wt-ad-auto">';
+        if ($b728 !== '') {
+            $html .= '<div class="wt-ad-auto__fmt wt-ad-auto__728">'
+                   . '<div class="wt-ad-scale"><div class="wt-ad-scale__inner">' . $b728 . '</div></div>'
+                   . '</div>';
+        }
+        if ($b468 !== '') {
+            $html .= '<div class="wt-ad-auto__fmt wt-ad-auto__468">'
+                   . '<div class="wt-ad-scale"><div class="wt-ad-scale__inner">' . $b468 . '</div></div>'
+                   . '</div>';
+        }
+        if ($b300 !== '') {
+            $html .= '<div class="wt-ad-auto__fmt wt-ad-auto__300">'
+                   . '<div class="wt-ad-scale"><div class="wt-ad-scale__inner">' . $b300 . '</div></div>'
+                   . '</div>';
+        }
+        $html .= '</div>';
+        return $html;
+    }
+}
+
+if (!function_exists('wt_adsterra_fetch_stats')) {
+    /**
+     * Récupère les statistiques de revenus depuis l'API Publisher Adsterra.
+     *
+     * Endpoint : https://api3.adsterratools.com/publisher/stats.json
+     * Auth     : header X-API-Key (jamais dans l'URL, pour la sécurité)
+     * Méthode  : GET uniquement (l'API Publisher est en lecture seule)
+     *
+     * Config BDD :
+     *   - 'ads.adsterra_api_token'  : le token généré dans Settings → API
+     *   - 'ads.adsterra_domain_id'  : (optionnel) l'ID du site wintaskly.com
+     *
+     * @param string $startDate Date début (Y-m-d)
+     * @param string $finishDate Date fin (Y-m-d)
+     * @param string $groupBy   Regroupement : 'date', 'country', 'placement'...
+     * @return array ['ok'=>bool, 'items'=>array, 'error'=>?string]
+     */
+    function wt_adsterra_fetch_stats(string $startDate, string $finishDate, string $groupBy = 'date'): array
+    {
+        $token = trim((string) cfg('ads.adsterra_api_token', ''));
+        if ($token === '') {
+            return ['ok' => false, 'items' => [], 'error' => 'no_token'];
+        }
+        if (!function_exists('curl_init')) {
+            return ['ok' => false, 'items' => [], 'error' => 'no_curl'];
+        }
+
+        // Validation simple des dates (format Y-m-d)
+        $reDate = '/^\d{4}-\d{2}-\d{2}$/';
+        if (!preg_match($reDate, $startDate) || !preg_match($reDate, $finishDate)) {
+            return ['ok' => false, 'items' => [], 'error' => 'bad_date'];
+        }
+
+        // Construction de l'URL avec paramètres
+        $params = [
+            'start_date'  => $startDate,
+            'finish_date' => $finishDate,
+            'group_by[]'  => $groupBy,
+        ];
+        $domainId = trim((string) cfg('ads.adsterra_domain_id', ''));
+        if ($domainId !== '') {
+            $params['domain'] = $domainId;
+        }
+        $url = 'https://api3.adsterratools.com/publisher/stats.json?' . http_build_query($params);
+
+        $ch = curl_init($url);
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_TIMEOUT        => 15,
+            CURLOPT_HTTPHEADER     => [
+                'Accept: application/json',
+                'X-API-Key: ' . $token,
+            ],
+        ]);
+        $response = curl_exec($ch);
+        $httpCode = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $curlErr  = curl_error($ch);
+        curl_close($ch);
+
+        // Gestion des codes d'erreur documentés par Adsterra
+        if ($response === false) {
+            error_log('[Wintaskly adsterra] curl error: ' . $curlErr);
+            return ['ok' => false, 'items' => [], 'error' => 'network'];
+        }
+        if ($httpCode === 401) {
+            return ['ok' => false, 'items' => [], 'error' => 'token_invalid'];
+        }
+        if ($httpCode === 403) {
+            return ['ok' => false, 'items' => [], 'error' => 'token_expired'];
+        }
+        if ($httpCode !== 200) {
+            error_log('[Wintaskly adsterra] HTTP ' . $httpCode . ': ' . substr((string)$response, 0, 200));
+            return ['ok' => false, 'items' => [], 'error' => 'http_' . $httpCode];
+        }
+
+        $json = json_decode((string) $response, true);
+        if (!is_array($json)) {
+            return ['ok' => false, 'items' => [], 'error' => 'bad_json'];
+        }
+
+        // L'API renvoie typiquement { "items": [ { date, impression, clicks, ctr, cpm, revenue }, ... ] }
+        $items = $json['items'] ?? $json['dates'] ?? $json['data'] ?? [];
+        if (!is_array($items)) {
+            $items = [];
+        }
+
+        return ['ok' => true, 'items' => $items, 'error' => null];
+    }
+}
+
+if (!function_exists('wt_adsterra_error_msg')) {
+    /**
+     * Traduit un code d'erreur de wt_adsterra_fetch_stats() en message i18n.
+     */
+    function wt_adsterra_error_msg(string $code): string
+    {
+        $map = [
+            'no_token'      => t('admin.ads.stats_err_no_token'),
+            'no_curl'       => t('admin.ads.stats_err_no_curl'),
+            'bad_date'      => t('admin.ads.stats_err_bad_date'),
+            'token_invalid' => t('admin.ads.stats_err_token_invalid'),
+            'token_expired' => t('admin.ads.stats_err_token_expired'),
+            'network'       => t('admin.ads.stats_err_network'),
+            'bad_json'      => t('admin.ads.stats_err_bad_json'),
+        ];
+        return $map[$code] ?? (t('admin.ads.stats_err_generic') . ' (' . $code . ')');
     }
 }

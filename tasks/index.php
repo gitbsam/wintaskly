@@ -207,7 +207,7 @@ include __DIR__ . '/../header.php';
     </section>
   <?php endif; ?>
 
-  <!-- =============== LES 4 TÂCHES (grille riche) =============== -->
+  <!-- =============== LES TÂCHES (grille riche) =============== -->
   <section class="wt-tasks-v2__grid" data-reveal>
 
     <!-- ============ FAUCET ============ -->
