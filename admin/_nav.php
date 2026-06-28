@@ -70,6 +70,15 @@ $base = rtrim($GLOBALS['WT_CONFIG']['base_url'] ?? '', '/');
       <?= e(t('admin.security')) ?>
     </a>
 
+    <a href="<?= $base ?>/admin/reencrypt-secrets.php" class="<?= $adminActive==='reencrypt' ? 'is-active' : '' ?>" style="--idx:1">
+      <span class="wt-admin-v2__nav-ico" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+        </svg>
+      </span>
+      Re-chiffrement
+    </a>
+
     <a href="<?= $base ?>/admin/tickets.php" class="<?= $adminActive==='tickets' ? 'is-active' : '' ?>" style="--idx:2">
       <span class="wt-admin-v2__nav-ico" aria-hidden="true">
         <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">

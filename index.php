@@ -108,13 +108,10 @@ $sql = "SELECT w.payout_amount, w.payout_currency,
          LIMIT 10";
 if ($res = $db->query($sql)) {
     while ($row = $res->fetch_assoc()) {
-        // Tronquer le username : premiers caractères + initiale du dernier mot
+        // Masquage du username pour la vie privée (helper global, cohérent
+        // avec le reste du site : parrainage, classement...).
         $name = (string) $row['username'];
-        if (strlen($name) > 3) {
-            $row['display_name'] = substr($name, 0, 1) . str_repeat('•', min(3, strlen($name) - 2)) . substr($name, -1);
-        } else {
-            $row['display_name'] = $name;
-        }
+        $row['display_name'] = wt_mask_username($name);
         // Normalisation des champs pour la suite (compatibilité avec le rendu)
         $row['amount']       = (float) $row['payout_amount'];
         $row['completed_at'] = $row['processed_at'] ?: $row['created_at'];

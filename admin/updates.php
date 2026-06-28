@@ -50,7 +50,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && csrf_check($_POST['_csrf'] ?? null)
         $on = !empty($_POST['banner_on']) ? '1' : '0';
         wt_config_set('update.user_banner_on',    $on);
         wt_config_set('update.user_banner_msg',   trim((string)($_POST['banner_msg'] ?? '')));
-        wt_config_set('update.user_banner_until', trim((string)($_POST['banner_until'] ?? '')));
+        // banner_until : le champ caché porte l'heure en UTC (converti par
+        // wt-datetime-utc.js). On normalise en 'Y-m-d H:i' UTC pour le stockage.
+        $bannerUntilRaw = trim((string)($_POST['banner_until'] ?? ''));
+        if ($bannerUntilRaw !== '') {
+            $bannerUntilRaw = str_replace('T', ' ', $bannerUntilRaw);
+            $buTs = strtotime($bannerUntilRaw . ' UTC');
+            $bannerUntilRaw = $buTs !== false ? gmdate('Y-m-d H:i', $buTs) : '';
+        }
+        wt_config_set('update.user_banner_until', $bannerUntilRaw);
         $notice = (string) t('admin.upd.banner_saved');
     } elseif ($action === 'save_feed_url') {
         $url = trim((string)($_POST['feed_url'] ?? ''));
@@ -72,7 +80,13 @@ $maintOn    = (string) cfg('update.maintenance_on', '0') === '1';
 $maintMsg   = (string) cfg('update.maintenance_msg', '');
 $bannerOn   = (string) cfg('update.user_banner_on', '0') === '1';
 $bannerMsg  = (string) cfg('update.user_banner_msg', '');
-$bannerUntil= (string) cfg('update.user_banner_until', '');
+$bannerUntilRawCfg = (string) cfg('update.user_banner_until', '');
+// Valeur UTC au format datetime-local pour le champ (le JS la convertit en local)
+$bannerUntil = '';
+if ($bannerUntilRawCfg !== '') {
+    $buTs = strtotime(str_replace('T', ' ', $bannerUntilRawCfg) . ' UTC');
+    if ($buTs !== false) { $bannerUntil = gmdate('Y-m-d\TH:i', $buTs); }
+}
 
 $latestData = wt_update_latest_data();
 $hasUpdate  = wt_update_has_pending();
@@ -272,8 +286,11 @@ include __DIR__ . '/../header.php';
 
         <label class="wt-field">
           <span class="wt-field__label"><?= e(t('admin.upd.banner_until')) ?></span>
-          <input class="wt-input" type="datetime-local" name="banner_until"
-                 value="<?= e($bannerUntil) ?>">
+          <input class="wt-input" type="datetime-local"
+                 data-dt-local
+                 data-dt-target="banner_until"
+                 data-utc="<?= e($bannerUntil) ?>">
+          <input type="hidden" name="banner_until" value="<?= e($bannerUntil) ?>">
           <small class="wt-field__hint"><?= e(t('admin.upd.banner_until_hint')) ?></small>
         </label>
 
@@ -346,4 +363,5 @@ include __DIR__ . '/../header.php';
   </div>
 </main>
 
+<script src="<?= e(wt_url('/media/wintaskly/js/wt-datetime-utc.js')) ?>?v=<?= e(WT_VERSION) ?>"></script>
 <?php include __DIR__ . '/../footer.php'; ?>

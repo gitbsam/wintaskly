@@ -47,10 +47,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && csrf_check($_POST['_csrf'] ?? null)
         wt_config_set('bingo.enabled', !empty($_POST['enabled']) ? '1' : '0');
         wt_config_set('bingo.test_mode', !empty($_POST['test_mode']) ? '1' : '0');
         wt_config_set('bingo.coming_soon', !empty($_POST['coming_soon']) ? '1' : '0');
-        // Date de lancement : champ datetime-local → 'Y-m-d H:i' UTC
+        // Date de lancement : le champ caché porte déjà l'heure en UTC
+        // (converti par wt-bingo-launch.js depuis la saisie locale de l'admin).
+        // Format attendu : 'Y-m-d\TH:i' ou 'Y-m-d H:i'. On l'interprète en UTC.
         $launch = trim((string)($_POST['launch_at'] ?? ''));
         if ($launch !== '') {
-            $ts = strtotime($launch);
+            $launch = str_replace('T', ' ', $launch);
+            $ts = strtotime($launch . ' UTC');
             $launch = $ts !== false ? gmdate('Y-m-d H:i', $ts) : '';
         }
         wt_config_set('bingo.launch_at', $launch);
@@ -75,10 +78,12 @@ $testMode   = (string) cfg('bingo.test_mode', '1') === '1';
 $enabled    = (string) cfg('bingo.enabled', '0') === '1';
 $comingSoon = (string) cfg('bingo.coming_soon', '0') === '1';
 $launchRaw  = (string) cfg('bingo.launch_at', '');
-$launchLocal = '';
+// Valeur UTC au format datetime-local (Y-m-d\TH:i). Le JS la convertit en
+// heure locale pour l'affichage et inversement à la soumission.
+$launchUtc = '';
 if ($launchRaw !== '') {
     $ts = strtotime($launchRaw . ' UTC');
-    if ($ts) { $launchLocal = date('Y-m-d\TH:i', $ts); }
+    if ($ts) { $launchUtc = gmdate('Y-m-d\TH:i', $ts); }
 }
 
 $cfgVals = [
@@ -160,7 +165,19 @@ include __DIR__ . '/../header.php';
 
         <label class="wt-field">
           <span class="wt-field__label"><?= e(t('admin.bingo.f_launch')) ?></span>
-          <input class="wt-input" type="datetime-local" name="launch_at" value="<?= e($launchLocal) ?>" style="max-width:280px">
+          <?php
+            // Conversion de fuseau gérée en JS : le serveur stocke/lit en UTC,
+            // mais l'admin saisit dans SON fuseau local. data-utc porte la valeur
+            // UTC source ; wt-bingo-launch.js remplit le champ visible en heure
+            // locale au chargement, et écrit la valeur UTC dans le champ caché à
+            // la soumission. $launchUtc = 'Y-m-d\TH:i' UTC (ou '' si non défini).
+          ?>
+          <input class="wt-input" type="datetime-local"
+                 data-dt-local
+                 data-dt-target="launch_at"
+                 data-utc="<?= e($launchUtc) ?>"
+                 style="max-width:280px">
+          <input type="hidden" name="launch_at" value="<?= e($launchUtc) ?>">
           <small class="wt-field__hint"><?= e(t('admin.bingo.f_launch_hint')) ?></small>
         </label>
 
@@ -314,4 +331,5 @@ include __DIR__ . '/../header.php';
   </div>
 </main>
 
+<script src="<?= e(wt_url('/media/wintaskly/js/wt-datetime-utc.js')) ?>?v=<?= e(WT_VERSION) ?>"></script>
 <?php include __DIR__ . '/../footer.php'; ?>

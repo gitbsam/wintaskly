@@ -107,7 +107,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && csrf_check($_POST['_csrf'] ?? null)
             $row = $stmt->get_result()->fetch_assoc();
             $stmt->close();
             if ($row && !empty($row['api_credentials'])) {
-                $decoded = json_decode((string)$row['api_credentials'], true);
+                // Déchiffrement (rétrocompatible : ancien clair lu tel quel)
+                $rawCreds = function_exists('wt_decrypt')
+                    ? wt_decrypt((string)$row['api_credentials'])
+                    : (string)$row['api_credentials'];
+                $decoded = json_decode($rawCreds, true);
                 if (is_array($decoded)) $existingCreds = $decoded;
             }
         }
@@ -128,6 +132,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && csrf_check($_POST['_csrf'] ?? null)
         }
 
         $credsJson = $newCreds ? json_encode($newCreds, JSON_UNESCAPED_UNICODE) : null;
+        // Chiffrement des credentials avant stockage (défense en profondeur :
+        // illisibles même si la base est compromise). Rétrocompatible.
+        if ($credsJson !== null && function_exists('wt_encrypt')) {
+            $credsJson = wt_encrypt($credsJson);
+        }
 
         // Validations métier
         $errors = [];
@@ -437,7 +446,11 @@ include __DIR__ . '/../header.php';
             $hasExistingCreds = false;
             $existingCredKeys = [];
             if ($editing && !empty($editing['api_credentials'])) {
-                $decoded = json_decode((string)$editing['api_credentials'], true);
+                // Déchiffrement rétrocompatible pour détecter les champs présents
+                $rawEditCreds = function_exists('wt_decrypt')
+                    ? wt_decrypt((string)$editing['api_credentials'])
+                    : (string)$editing['api_credentials'];
+                $decoded = json_decode($rawEditCreds, true);
                 if (is_array($decoded) && $decoded) {
                     $hasExistingCreds = true;
                     $existingCredKeys = array_keys($decoded);

@@ -133,7 +133,7 @@ include __DIR__ . '/../header.php';
             <span class="wt-dash-v2__today-icon" aria-hidden="true">📈</span>
             <div>
               <small><?= e(t('dash.today_gains')) ?></small>
-              <strong>+<?= e(rtrim(rtrim(number_format($todayGains, 4, '.', ''), '0'), '.')) ?></strong>
+              <strong>+<?= e(wt_format_coins((float)$todayGains)) ?></strong>
             </div>
           </div>
         <?php endif; ?>
@@ -270,7 +270,7 @@ include __DIR__ . '/../header.php';
           <div class="wt-dash-v2__kpi-body">
             <small class="wt-dash-v2__kpi-label"><?= e(t('dash.balance')) ?></small>
             <strong class="wt-dash-v2__kpi-value">
-              <?= e(rtrim(rtrim(number_format((float)$u['coins'], 4, '.', ''), '0'), '.')) ?>
+              <?= e(wt_format_coins((float)$u['coins'])) ?>
               <em><?= e(t('common.coins')) ?></em>
             </strong>
             <a class="wt-dash-v2__kpi-cta" href="<?= $base ?>/dashboard/withdraw.php">
@@ -423,7 +423,7 @@ include __DIR__ . '/../header.php';
                 </div>
                 <div class="wt-dash-v2__tx-amount <?= $isNeg ? 'is-neg' : 'is-pos' ?>">
                   <strong>
-                    <?= ($isNeg ? '' : '+') . e(rtrim(rtrim(number_format($coins, 4, '.', ''), '0'), '.')) ?>
+                    <?= ($isNeg ? '' : '+') . e(wt_format_coins((float)$coins)) ?>
                   </strong>
                   <small><?= e(t('common.coins')) ?></small>
                 </div>

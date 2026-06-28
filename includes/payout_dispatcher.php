@@ -74,8 +74,11 @@ function wt_payout_dispatch(array $withdrawal): array
         ];
     }
 
-    /* Decode credentials JSON */
-    $creds = json_decode((string) $method['api_credentials'], true);
+    /* Decode credentials JSON (déchiffrement rétrocompatible) */
+    $rawCreds = function_exists('wt_decrypt')
+        ? wt_decrypt((string) $method['api_credentials'])
+        : (string) $method['api_credentials'];
+    $creds = json_decode($rawCreds, true);
     if (!is_array($creds) || empty($creds)) {
         return [
             'ok' => false,

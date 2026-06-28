@@ -338,6 +338,49 @@ function wt_base32_decode(string $secret): string
 }
 
 /**
+ * Génère un secret TOTP aléatoire encodé en base32 (compatible Google
+ * Authenticator, Authy, etc.). Par défaut 32 caractères base32 (160 bits),
+ * la longueur recommandée par la RFC 4226.
+ *
+ * @param  int $length  Nombre de caractères base32 (défaut 32)
+ * @return string  Secret en base32 (A-Z, 2-7)
+ */
+function auth_totp_generate_secret(int $length = 32): string
+{
+    $alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+    $secret   = '';
+    $max      = strlen($alphabet) - 1;
+    for ($i = 0; $i < $length; $i++) {
+        $secret .= $alphabet[random_int(0, $max)];
+    }
+    return $secret;
+}
+
+/**
+ * Construit l'URI otpauth:// à encoder dans un QR code, pour que l'app
+ * d'authentification (Google Authenticator...) enregistre le compte.
+ *
+ * Format : otpauth://totp/Issuer:label?secret=...&issuer=Issuer&...
+ *
+ * @param  string $secret  Secret base32
+ * @param  string $label   Identifiant du compte (ex: email ou username)
+ * @param  string $issuer  Nom du service (ex: "Wintaskly")
+ * @return string  URI otpauth
+ */
+function auth_totp_provisioning_uri(string $secret, string $label, string $issuer = 'Wintaskly'): string
+{
+    $label  = rawurlencode($issuer) . ':' . rawurlencode($label);
+    $params = http_build_query([
+        'secret'    => $secret,
+        'issuer'    => $issuer,
+        'algorithm' => 'SHA1',
+        'digits'    => 6,
+        'period'    => 30,
+    ]);
+    return 'otpauth://totp/' . $label . '?' . $params;
+}
+
+/**
  * Vérifie un code TOTP à 6 chiffres pour un secret donné.
  * Accepte ±1 fenêtre de 30 s pour amortir la dérive d'horloge.
  */

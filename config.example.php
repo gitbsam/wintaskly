@@ -62,6 +62,13 @@ return [
     'base_url'   => $_baseUrl,
     'app_secret' => 'CHANGE_ME_TO_A_RANDOM_64_CHAR_STRING',  // ⚠️ génère un long token random
 
+    // Clé de chiffrement des secrets stockés en base (clés API de paiement).
+    // ⚠️ DOIT être longue et aléatoire (≥ 32 caractères). Si vide, le système
+    // dérive une clé depuis app_secret (acceptable mais une clé dédiée est
+    // recommandée). Ne JAMAIS la changer une fois des clés chiffrées : les
+    // anciennes deviendraient illisibles. Ne pas versionner ce fichier.
+    'encryption_key' => '',  // ⚠️ << génère un second token random de 64 caractères >>
+
     // =================================================================
     // 3. COOKIES ET SESSIONS
     // =================================================================

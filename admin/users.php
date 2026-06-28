@@ -37,8 +37,8 @@ $params = [];
 $types  = '';
 
 if ($q !== '') {
-    $where[]   = "(u.username LIKE ? OR u.email LIKE ?)";
-    $like      = '%' . $q . '%';
+    $where[]   = "(u.username LIKE ? ESCAPE '\\\\' OR u.email LIKE ? ESCAPE '\\\\')";
+    $like      = '%' . wt_like_escape($q) . '%';
     $params[]  = $like; $params[] = $like;
     $types    .= 'ss';
 }

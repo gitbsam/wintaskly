@@ -90,6 +90,44 @@ function wt_create_message(
 /**
  * Crée une notification courte.
  */
+if (!function_exists('wt_safe_notif_url')) {
+    /**
+     * Valide une URL destinée à une notification/message avant stockage.
+     * Défense en profondeur contre le XSS : même si toutes les URLs sont
+     * aujourd'hui internes (wt_url), on garantit à la source qu'aucun schéma
+     * dangereux (javascript:, data:, vbscript:...) ne pourra être stocké
+     * puis rendu dans un href.
+     *
+     * Règle : on accepte les URLs relatives (commençant par "/") et les
+     * URLs http(s) absolues. Tout le reste est rejeté (→ null).
+     *
+     * @param  string|null $url  URL candidate
+     * @return string|null  URL si sûre, sinon null
+     */
+    function wt_safe_notif_url(?string $url): ?string
+    {
+        if ($url === null) {
+            return null;
+        }
+        $url = trim($url);
+        if ($url === '') {
+            return null;
+        }
+        // URL relative interne (cas normal : wt_url produit "/dashboard/...")
+        if ($url[0] === '/' && (strlen($url) === 1 || $url[1] !== '/')) {
+            return $url;
+        }
+        // URL absolue : uniquement http(s)
+        $scheme = parse_url($url, PHP_URL_SCHEME);
+        if ($scheme !== null && in_array(strtolower($scheme), ['http', 'https'], true)) {
+            return $url;
+        }
+        // Tout le reste (javascript:, data:, //evil.com, schéma inconnu) → rejeté
+        error_log('[Wintaskly wt_notify] URL rejetée (schéma non sûr): ' . substr($url, 0, 80));
+        return null;
+    }
+}
+
 function wt_notify(
     int    $userId,
     string $type,
@@ -97,6 +135,8 @@ function wt_notify(
     ?string $body = null,
     ?string $url  = null
 ): int {
+    // Défense en profondeur : neutralise toute URL au schéma dangereux
+    $url = wt_safe_notif_url($url);
     $ttlDays = (int) cfg('ttl.notif_unread_days', '90');
     $stmt = db()->prepare(
         "INSERT INTO notifications (user_id, type, title, body, url, expires_at)
@@ -107,6 +147,82 @@ function wt_notify(
     $id = (int) $stmt->insert_id;
     $stmt->close();
     return $id;
+}
+
+/**
+ * Diffuse un message à une liste d'utilisateurs de façon performante.
+ * ----------------------------------------------------------------------
+ * Au lieu d'une boucle qui ferait 4 requêtes par destinataire (timeout
+ * garanti sur grosse base), on insère en MASSE par lots : un INSERT
+ * multi-valeurs pour les messages, un autre pour les notifications.
+ * Pour 5000 utilisateurs : ~10 requêtes au lieu de ~20000.
+ *
+ * @param  int[]  $userIds  Liste d'IDs destinataires
+ * @param  string $subject  Sujet du message (= titre de la notif)
+ * @param  string $body     Corps du message
+ * @param  string $url      URL de la notification (page messages)
+ * @param  int    $chunk    Taille des lots (défaut 500)
+ * @return int    Nombre de destinataires traités
+ */
+function wt_broadcast_message(
+    array $userIds,
+    string $subject,
+    string $body,
+    string $url = '',
+    int $chunk = 500
+): int {
+    $userIds = array_values(array_unique(array_map('intval', $userIds)));
+    if (!$userIds) {
+        return 0;
+    }
+
+    $db          = db();
+    $msgTtl      = (int) cfg('ttl.message_unread_days', '90');
+    $notifTtl    = (int) cfg('ttl.notif_unread_days', '90');
+    $safeUrl     = wt_safe_notif_url($url !== '' ? $url : null);
+    $senderRole  = 'admin';
+    $notifType   = 'admin_message';
+    $sent        = 0;
+
+    foreach (array_chunk($userIds, max(1, $chunk)) as $batch) {
+        // --- Insertion groupée des messages ---
+        $placeholders = [];
+        $params       = [];
+        $types        = '';
+        foreach ($batch as $uid) {
+            $placeholders[] = "(?, ?, ?, ?, UTC_TIMESTAMP() + INTERVAL ? DAY)";
+            $params[] = $uid; $params[] = $senderRole; $params[] = $subject;
+            $params[] = $body; $params[] = $msgTtl;
+            $types   .= 'isssi';
+        }
+        $sql  = "INSERT INTO messages (user_id, sender_role, subject, body, expires_at) VALUES "
+              . implode(', ', $placeholders);
+        $stmt = $db->prepare($sql);
+        $stmt->bind_param($types, ...$params);
+        $stmt->execute();
+        $stmt->close();
+
+        // --- Insertion groupée des notifications ---
+        $placeholders = [];
+        $params       = [];
+        $types        = '';
+        foreach ($batch as $uid) {
+            $placeholders[] = "(?, ?, ?, ?, ?, UTC_TIMESTAMP() + INTERVAL ? DAY)";
+            $params[] = $uid; $params[] = $notifType; $params[] = $subject;
+            $params[] = null; $params[] = $safeUrl; $params[] = $notifTtl;
+            $types   .= 'issssi';
+        }
+        $sql  = "INSERT INTO notifications (user_id, type, title, body, url, expires_at) VALUES "
+              . implode(', ', $placeholders);
+        $stmt = $db->prepare($sql);
+        $stmt->bind_param($types, ...$params);
+        $stmt->execute();
+        $stmt->close();
+
+        $sent += count($batch);
+    }
+
+    return $sent;
 }
 
 // =====================================================================

@@ -109,7 +109,7 @@ include __DIR__ . '/../../header.php';
 
       <aside class="wt-ow-v2__recap">
         <div class="wt-ow-v2__recap-item">
-          <small><?= e(t('shortlinks.today')) ?></small>
+          <small><?= e(t('common.today')) ?></small>
           <strong>+<?= e($fmt($owStats['today'])) ?></strong>
           <em><?= e(t('common.coins')) ?></em>
         </div>
@@ -119,7 +119,7 @@ include __DIR__ . '/../../header.php';
           <em><?= e(t('ow.offers')) ?></em>
         </div>
         <div class="wt-ow-v2__recap-item">
-          <small><?= e(t('shortlinks.lifetime')) ?></small>
+          <small><?= e(t('common.lifetime')) ?></small>
           <strong>+<?= e($fmt($owStats['total'])) ?></strong>
           <em><?= e(t('common.coins')) ?></em>
         </div>
@@ -133,7 +133,7 @@ include __DIR__ . '/../../header.php';
         <h2><?= e(t('ow.empty_title')) ?></h2>
         <p><?= e(t('ow.empty')) ?></p>
         <a class="wt-btn wt-btn--ghost" href="<?= e(wt_url('/tasks/')) ?>">
-          ← <?= e(t('shortlinks.back_to_hub')) ?>
+          ← <?= e(t('common.back_to_hub')) ?>
         </a>
       </div>
     <?php else: ?>
@@ -202,7 +202,7 @@ include __DIR__ . '/../../header.php';
         <nav class="wt-ow-v2__filters" aria-label="<?= e(t('ow.filter_label')) ?>">
           <a class="wt-ow-v2__filter <?= $fh === 'all' ? 'is-active' : '' ?>"
              href="<?= e(wt_url('/tasks/offerwalls/?fh=all')) ?>">
-            <?= e(t('shortlinks.filter_all')) ?>
+            <?= e(t('common.filter_all')) ?>
             <span class="wt-ow-v2__filter-count"><?= (int)$cntAll ?></span>
           </a>
           <a class="wt-ow-v2__filter <?= $fh === 'pending' ? 'is-active' : '' ?>"
@@ -224,7 +224,7 @@ include __DIR__ . '/../../header.php';
 
         <?php if (empty($visibleHistory)): ?>
           <div class="wt-ow-v2__history-empty">
-            <p class="wt-muted"><?= e(t('shortlinks.filter_empty')) ?></p>
+            <p class="wt-muted"><?= e(t('common.filter_empty')) ?></p>
           </div>
         <?php else: ?>
           <ul class="wt-ow-v2__history-list">

@@ -585,6 +585,10 @@ if (!function_exists('wt_adsterra_fetch_stats')) {
         if ($token === '') {
             return ['ok' => false, 'items' => [], 'error' => 'no_token'];
         }
+        // Déchiffrement du token (rétrocompatible : clair lu tel quel)
+        if (function_exists('wt_decrypt')) {
+            $token = wt_decrypt($token);
+        }
         if (!function_exists('curl_init')) {
             return ['ok' => false, 'items' => [], 'error' => 'no_curl'];
         }

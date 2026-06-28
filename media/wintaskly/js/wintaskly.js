@@ -1911,11 +1911,61 @@
     paint();
     if (secs <= 0) {
       clearInterval(itv);
-      btn.classList.remove('is-hidden');
-      /* Focus le bouton pour faciliter le clic clavier */
-      try { btn.focus({ preventScroll: true }); } catch (_) {}
+      // Fin du countdown : on récupère l'URL finale par Ajax (elle n'est
+      // jamais dans le DOM initial, pour empêcher tout bypass anti-pub).
+      revealAndFetch();
     }
   }, 1000);
+
+  /*
+   * Récupère l'URL de redirection finale via /api/get_gateway_link.php,
+   * puis révèle le bouton. L'URL (avec le token de transaction) ne touche
+   * le DOM qu'à cet instant, à la demande de l'utilisateur réel.
+   */
+  function revealAndFetch() {
+    const endpoint = btn.getAttribute('data-sl-endpoint');
+    const token    = btn.getAttribute('data-sl-token');
+    const csrf     = btn.getAttribute('data-csrf');
+    if (!endpoint || !token) { return; }
+
+    const body = new FormData();
+    body.append('token', token);
+    body.append('_csrf', csrf || '');
+
+    // État "chargement" du bouton pendant la requête
+    btn.classList.remove('is-hidden');
+    btn.removeAttribute('aria-hidden');
+    btn.disabled = true;
+    const originalLabel = btn.textContent;
+    btn.textContent = '⏳';
+
+    fetch(endpoint, {
+      method: 'POST',
+      body: body,
+      headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    })
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        if (data && data.ok && data.url) {
+          // On stocke l'URL sur le bouton et on l'active
+          btn.dataset.url = data.url;
+          btn.disabled = false;
+          btn.textContent = originalLabel;
+          try { btn.focus({ preventScroll: true }); } catch (_) {}
+          // Au clic : redirection vers l'URL fraîchement récupérée
+          btn.addEventListener('click', function () {
+            window.location.href = btn.dataset.url;
+          });
+        } else {
+          btn.textContent = '⚠';
+          btn.disabled = true;
+        }
+      })
+      .catch(function () {
+        btn.textContent = '⚠';
+        btn.disabled = true;
+      });
+  }
 })();
 
 /* =====================================================================
@@ -2052,4 +2102,78 @@
   }
   ta.addEventListener('input', update);
   update();
+})();
+
+/* =====================================================================
+ *  Shortlinks — Toast de callback + nettoyage d'URL (déplacé inline → JS)
+ *
+ *  Conformité CSP : ce comportement était auparavant un <script> inline
+ *  dans tasks/shortlinks/index.php. Il est maintenant ici, déclenché par
+ *  la présence de [data-sl-callback-toast].
+ *
+ *  - Nettoie l'URL (retire ?success=...&msg=...&credited=...) sans recharger
+ *    ni ajouter d'entrée d'historique (replaceState).
+ *  - Fait disparaître le toast après 6 s avec une transition douce.
+ * ===================================================================== */
+(function () {
+  'use strict';
+  document.addEventListener('DOMContentLoaded', function () {
+    var toast = document.querySelector('[data-sl-callback-toast]');
+    if (!toast) { return; }
+
+    // 1) Nettoie l'URL immédiatement (pas de rechargement)
+    if (window.history && window.history.replaceState) {
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+
+    // 2) Fait disparaître le toast après 6 s
+    setTimeout(function () {
+      toast.style.transition = 'opacity .4s ease, max-height .4s ease, margin .4s ease, padding .4s ease';
+      toast.style.opacity = '0';
+      toast.style.maxHeight = toast.offsetHeight + 'px';
+      void toast.offsetHeight; // reflow pour lancer la transition
+      toast.style.maxHeight = '0';
+      toast.style.marginTop = '0';
+      toast.style.marginBottom = '0';
+      toast.style.paddingTop = '0';
+      toast.style.paddingBottom = '0';
+      toast.style.overflow = 'hidden';
+      setTimeout(function () { toast.remove(); }, 500);
+    }, 6000);
+  });
+})();
+
+/* =====================================================================
+ *  Admin — Confirmation avant diffusion de masse (broadcast)
+ *
+ *  Sur le formulaire [data-broadcast-form], si la cible sélectionnée est
+ *  un envoi de masse ([data-mass] : tous les utilisateurs/admins), on
+ *  demande une confirmation explicite avant l'envoi — pour éviter qu'un
+ *  clic accidentel n'écrive à toute la base sans retour arrière.
+ * ===================================================================== */
+(function () {
+  'use strict';
+  document.addEventListener('DOMContentLoaded', function () {
+    var form = document.querySelector('[data-broadcast-form]');
+    if (!form) { return; }
+    var select = form.querySelector('[data-broadcast-target]');
+    if (!select) { return; }
+
+    form.addEventListener('submit', function (e) {
+      var opt = select.options[select.selectedIndex];
+      var isMass = opt && opt.hasAttribute('data-mass');
+      if (!isMass) { return; } // envoi unitaire : pas de confirmation
+
+      var label = opt.textContent.trim();
+      var ok = window.confirm(
+        'Diffusion de masse\n\n'
+        + 'Tu vas envoyer ce message à : ' + label + '.\n'
+        + 'Cette action est irréversible et notifiera tous ces utilisateurs.\n\n'
+        + 'Confirmer l\'envoi ?'
+      );
+      if (!ok) {
+        e.preventDefault();
+      }
+    });
+  });
 })();

@@ -42,11 +42,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && csrf_check($_POST['_csrf'] ?? null)
                     $stmt->bind_param('iis', $tid, $adminUser['id'], $body);
                     $stmt->execute();
                     $stmt->close();
-                    $db->query(
+                    $stmt = $db->prepare(
                         "UPDATE support_tickets
                             SET last_reply_by='admin', last_reply_at=UTC_TIMESTAMP(), status='answered'
-                          WHERE id = " . $tid
+                          WHERE id = ?"
                     );
+                    $stmt->bind_param('i', $tid);
+                    $stmt->execute();
+                    $stmt->close();
                     // Notifie l'utilisateur connecté…
                     if (!empty($tk['user_id'])) {
                         wt_notify(
@@ -108,13 +111,16 @@ if (!empty($_GET['ticket'])) {
 
     if ($openTicket) {
         // Marquer messages "user/guest" comme lus côté admin
-        $db->query(
+        $stmt = $db->prepare(
             "UPDATE support_messages
                 SET read_at = UTC_TIMESTAMP()
-              WHERE ticket_id = " . (int) $openTicket['id'] . "
+              WHERE ticket_id = ?
                 AND author_role IN ('user','guest')
                 AND read_at IS NULL"
         );
+        $stmt->bind_param('i', $openTicket['id']);
+        $stmt->execute();
+        $stmt->close();
         $stmt = $db->prepare(
             "SELECT id, author_role, body, created_at
                FROM support_messages

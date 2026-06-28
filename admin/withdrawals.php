@@ -89,6 +89,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && csrf_check($_POST['_csrf'] ?? null)
                 $stmt->close();
                 $db->commit();
 
+                // Notifie l'utilisateur que son retrait est validé
+                if (function_exists('wt_notify')) {
+                    $amountStr = wt_format_payout((float) $wd['payout_amount'])
+                               . ' ' . (string) $wd['payout_currency'];
+                    wt_notify(
+                        (int) $wd['user_id'],
+                        'withdraw',
+                        (string) t('notif.wd_approved_title'),
+                        (string) t('notif.wd_approved_body', ['amount' => $amountStr]),
+                        wt_url('/dashboard/withdraw.php')
+                    );
+                }
+
                 // Message adapté selon le mode
                 $notice = $isManual
                     ? (string) t('admin.wd.completed_manual')
@@ -133,6 +146,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && csrf_check($_POST['_csrf'] ?? null)
                 $stmt->close();
 
                 $db->commit();
+
+                // Notifie l'utilisateur du refus + remboursement (avec la raison)
+                if (function_exists('wt_notify')) {
+                    $coinsStr = wt_format_coins($coinsBack);
+                    wt_notify(
+                        $userId,
+                        'withdraw',
+                        (string) t('notif.wd_refused_title'),
+                        (string) t('notif.wd_refused_body', ['coins' => $coinsStr, 'reason' => $reason]),
+                        wt_url('/dashboard/withdraw.php')
+                    );
+                }
+
                 $notice = t('admin.saved');
             }
         } catch (Throwable $e) {
@@ -276,7 +302,7 @@ include __DIR__ . '/../header.php';
               <?= e(rtrim(rtrim(number_format((float)$r['coins_amount'], 4, '.', ''), '0'), '.')) ?>
             </td>
             <td class="wt-table__num">
-              <?= e(rtrim(rtrim(number_format((float)$r['payout_amount'], 8, '.', ''), '0'), '.')) ?>
+              <?= e(wt_format_payout((float)$r['payout_amount'])) ?>
               <?= e($r['payout_currency']) ?>
             </td>
             <td>

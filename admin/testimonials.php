@@ -16,11 +16,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && csrf_check($_POST['_csrf'] ?? null)
     $id     = (int)   ($_POST['id']     ?? 0);
     if ($id > 0) {
         if ($action === 'approve') {
-            $db->query(
+            $stmt = $db->prepare(
                 "UPDATE testimonials
                     SET status='approved', approved_at=UTC_TIMESTAMP(), reject_reason=NULL
-                  WHERE id=" . $id
+                  WHERE id=?"
             );
+            $stmt->bind_param('i', $id);
+            $stmt->execute();
+            $stmt->close();
             $notice = t('admin.saved');
         } elseif ($action === 'reject') {
             $reason = trim((string)($_POST['reject_reason'] ?? ''));

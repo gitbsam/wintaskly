@@ -51,11 +51,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && csrf_check($_POST['_csrf'] ?? null)
         $iframeUrl  = trim((string)($_POST['iframe_url'] ?? ''));
         $redirect   = trim((string)($_POST['redirect_url'] ?? ''));
         $secret     = trim((string)($_POST['callback_secret'] ?? ''));
+        // Préservation : si édition et champ vide, on garde le secret existant
+        $secretKeepExisting = ($id > 0 && $secret === '');
         $desc       = trim((string)($_POST['description'] ?? ''));
         $sortOrder  = (int)   ($_POST['sort_order'] ?? 0);
         $active     = !empty($_POST['active']) ? 1 : 0;
 
         if ($k !== '' && $name !== '') {
+            // Chiffrement du secret (cohérent avec payment_methods/shortlinks).
+            // Préservation : si édition sans re-saisie, garder le secret en base.
+            if ($secretKeepExisting) {
+                $exStmt = $db->prepare("SELECT callback_secret FROM offerwalls WHERE id = ?");
+                $exStmt->bind_param('i', $id);
+                $exStmt->execute();
+                $secretStore = (string)($exStmt->get_result()->fetch_assoc()['callback_secret'] ?? '');
+                $exStmt->close();
+            } else {
+                $secretStore = ($secret !== '' && function_exists('wt_encrypt')) ? wt_encrypt($secret) : $secret;
+            }
             if ($id > 0) {
                 $stmt = $db->prepare(
                     "UPDATE offerwalls SET
@@ -66,7 +79,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && csrf_check($_POST['_csrf'] ?? null)
                 $stmt->bind_param(
                     'sssssssiii',
                     $k, $name, $logo, $iframeUrl, $redirect,
-                    $secret, $desc, $sortOrder, $active, $id
+                    $secretStore, $desc, $sortOrder, $active, $id
                 );
                 $stmt->execute();
                 $stmt->close();
@@ -81,7 +94,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && csrf_check($_POST['_csrf'] ?? null)
                 $stmt->bind_param(
                     'sssssssii',
                     $k, $name, $logo, $iframeUrl, $redirect,
-                    $secret, $desc, $sortOrder, $active
+                    $secretStore, $desc, $sortOrder, $active
                 );
                 $stmt->execute();
                 $stmt->close();
@@ -305,9 +318,16 @@ include __DIR__ . '/../header.php';
           <h3 class="wt-admin-v2__form-section">🔐 <?= e(t('admin.ow.section_security')) ?></h3>
           <label class="wt-field">
             <span class="wt-field__label"><?= e(t('admin.ow.secret')) ?></span>
+            <?php
+              // Le secret reste chiffré en base, mais on l'affiche en clair ici :
+              // l'admin doit pouvoir le copier pour configurer le provider.
+              $owSecretPlain = $editing && !empty($editing['callback_secret'])
+                  ? (function_exists('wt_decrypt') ? wt_decrypt((string)$editing['callback_secret']) : (string)$editing['callback_secret'])
+                  : $defaultSecret;
+            ?>
             <div style="display:flex;gap:.5rem;align-items:stretch">
               <input class="wt-input wt-mono" type="text" name="callback_secret" maxlength="190"
-                     value="<?= e((string)($editing['callback_secret'] ?? $defaultSecret)) ?>"
+                     value="<?= e($owSecretPlain) ?>"
                      placeholder="<?= e(t('admin.ow.secret_placeholder')) ?>"
                      data-ow-secret
                      style="flex:1">

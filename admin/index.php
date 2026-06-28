@@ -307,7 +307,7 @@ include __DIR__ . '/../header.php';
                     <strong><?= e($w['username']) ?></strong>
                     <small>
                       -<?= e(rtrim(rtrim(number_format((float)$w['coins_amount'], 4, '.', ''), '0'), '.')) ?>
-                      → <?= e(rtrim(rtrim(number_format((float)$w['payout_amount'], 6, '.', ''), '0'), '.')) ?>
+                      → <?= e(wt_format_payout((float)$w['payout_amount'])) ?>
                       <?= e($w['payout_currency']) ?>
                     </small>
                   </div>

@@ -60,12 +60,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && csrf_check($_POST['_csrf'] ?? null)
             }
 
             if (!$error && $ids) {
-                foreach ($ids as $uid) {
-                    wt_create_message($uid, $subject, $body, 'admin');
-                    wt_notify($uid, 'admin_message', $subject, null,
-                              wt_url('/dashboard/messages.php'));
+                $msgUrl = wt_url('/dashboard/messages.php');
+                if (count($ids) === 1) {
+                    // Envoi unitaire : simple et direct
+                    wt_create_message($ids[0], $subject, $body, 'admin');
+                    wt_notify($ids[0], 'admin_message', $subject, null, $msgUrl);
+                    $sent = 1;
+                } else {
+                    // Diffusion de masse : insertion groupée (anti-timeout)
+                    $sent = wt_broadcast_message($ids, $subject, $body, $msgUrl);
                 }
-                $notice = sprintf('Message envoyé à %d destinataire(s).', count($ids));
+                $notice = sprintf('Message envoyé à %d destinataire(s).', $sent);
             }
         }
     } elseif ($action === 'ttl_save') {
@@ -125,16 +130,16 @@ include __DIR__ . '/../header.php';
     <?php if ($error):  ?><div class="wt-alert wt-alert--error"><?= e($error)   ?></div><?php endif; ?>
 
     <h2 class="wt-section__title" style="margin-top:1rem">Diffusion</h2>
-    <form method="post" class="wt-form wt-form--grid">
+    <form method="post" class="wt-form wt-form--grid" data-broadcast-form>
       <input type="hidden" name="_csrf"  value="<?= e(csrf_token()) ?>">
       <input type="hidden" name="action" value="send">
 
       <label class="wt-field">
         <span class="wt-field__label">Destinataires</span>
-        <select class="wt-input" name="target">
+        <select class="wt-input" name="target" data-broadcast-target>
           <option value="user">Un utilisateur</option>
-          <option value="all_users">Tous les utilisateurs actifs</option>
-          <option value="admins">Tous les administrateurs</option>
+          <option value="all_users" data-mass>Tous les utilisateurs actifs</option>
+          <option value="admins" data-mass>Tous les administrateurs</option>
         </select>
       </label>
 

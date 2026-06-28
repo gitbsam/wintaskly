@@ -69,8 +69,10 @@ if (empty($ow['callback_secret'])) {
 }
 
 // 2) Vérification HMAC-SHA256 en temps constant
+// Déchiffrement du secret stocké (rétrocompatible : clair lu tel quel)
+$cbSecretPlain = function_exists('wt_decrypt') ? wt_decrypt((string) $ow['callback_secret']) : (string) $ow['callback_secret'];
 $payload   = $k . '|' . $uid . '|' . $tx . '|' . $amt;
-$expected  = hash_hmac('sha256', $payload, (string) $ow['callback_secret']);
+$expected  = hash_hmac('sha256', $payload, $cbSecretPlain);
 if (!hash_equals($expected, $sig)) {
     http_response_code(403);
     echo 'BAD_SIGNATURE';

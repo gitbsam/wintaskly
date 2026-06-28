@@ -42,13 +42,6 @@ while ($row = $res->fetch_assoc()) {
 $stmt->close();
 
 /* Anonymisation partielle : "marie_dupont" → "ma***ont" */
-function wt_mask_username(string $name): string
-{
-    $n = strlen($name);
-    if ($n <= 4) return $name[0] . str_repeat('•', max(1, $n - 1));
-    return substr($name, 0, 2) . str_repeat('•', max(3, $n - 4)) . substr($name, -2);
-}
-
 $shareText = rawurlencode((string) t('ref.share.text') . ' — ' . $refUrl);
 
 $dashActive = 'referrals';
@@ -80,7 +73,7 @@ include __DIR__ . '/../header.php';
           <div>
             <small><?= e(t('ref.stat_earned')) ?></small>
             <strong>
-              <?= e(rtrim(rtrim(number_format($totalEarned, 4, '.', ''), '0'), '.')) ?>
+              <?= e(wt_format_coins((float)$totalEarned)) ?>
               <em><?= e(t('common.coins')) ?></em>
             </strong>
           </div>
@@ -174,7 +167,7 @@ include __DIR__ . '/../header.php';
                 </div>
                 <div class="wt-ref-v2__invitee-earned">
                   <strong>
-                    +<?= e(rtrim(rtrim(number_format($earned, 4, '.', ''), '0'), '.')) ?>
+                    +<?= e(wt_format_coins((float)$earned)) ?>
                   </strong>
                   <small><?= e(t('common.coins')) ?></small>
                 </div>

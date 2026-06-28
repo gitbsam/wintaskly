@@ -127,7 +127,7 @@ CREATE TABLE IF NOT EXISTS `shortlinks` (
   `destination_url` TEXT NOT NULL,
   `api_endpoint`    VARCHAR(255) NULL,
   `api_token`       VARCHAR(255) NULL,
-  `callback_key`    VARCHAR(64)  NULL,
+  `callback_key`    VARCHAR(255) NULL,
   `reward_coins`    DECIMAL(18,4) NOT NULL DEFAULT 0,
   `reward_xp`       INT UNSIGNED NOT NULL DEFAULT 0,
   `cooldown_hours`  SMALLINT UNSIGNED NOT NULL DEFAULT 24,
@@ -342,7 +342,7 @@ CREATE TABLE IF NOT EXISTS `offerwalls` (
   `logo_url`         VARCHAR(255) NULL,
   `iframe_url`       TEXT NULL,
   `redirect_url`     TEXT NULL,
-  `callback_secret`  VARCHAR(120) NULL,
+  `callback_secret`  VARCHAR(255) NULL,
   `description`      TEXT NULL,
   `active`           TINYINT(1) NOT NULL DEFAULT 1,
   `sort_order`       SMALLINT NOT NULL DEFAULT 0,
@@ -397,7 +397,7 @@ CREATE TABLE IF NOT EXISTS `withdrawals` (
   `user_id`         INT UNSIGNED NOT NULL,
   `method_id`       INT UNSIGNED NOT NULL,
   `coins_amount`    DECIMAL(18,4) NOT NULL,
-  `payout_amount`   DECIMAL(18,4) NOT NULL,
+  `payout_amount`   DECIMAL(18,8) NOT NULL,
   `payout_currency` VARCHAR(20)  NOT NULL,
   `payout_address`  VARCHAR(255) NOT NULL,
   `status`          ENUM('pending','completed','refused') NOT NULL DEFAULT 'pending',
@@ -676,6 +676,7 @@ INSERT INTO `config` (`k`,`v`) VALUES
  -- V5
  ('leaderboard.cache_minutes',    '15'),
  ('leaderboard.rewards_enabled',  '1'),
+ ('leaderboard.mask_usernames',   '0'),
  ('leaderboard.reward_coins_1',   '1000'),
  ('leaderboard.reward_coins_2',   '600'),
  ('leaderboard.reward_coins_3',   '400'),
@@ -699,6 +700,15 @@ INSERT INTO `config` (`k`,`v`) VALUES
  ('leaderboard.last_archived_period', ''),
  -- V7 — 2FA methods enabled by admin (1 = available to users, 0 = hidden)
  ('tfa.totp_available',           '1'),
+ ('legal.editor_name',            ''),
+ ('legal.editor_status',          ''),
+ ('legal.editor_address',         ''),
+ ('legal.editor_email',           ''),
+ ('legal.editor_siret',           ''),
+ ('legal.publication_director',   ''),
+ ('legal.host_name',              'LWS'),
+ ('legal.host_address',           '10 rue Penthièvre, 75008 Paris'),
+ ('legal.host_contact',           'https://www.lws.fr'),
  ('tfa.email_available',          '1'),
  ('tfa.sms_available',            '0'),
  ('tfa.sms_provider',             ''),
@@ -835,6 +845,22 @@ INSERT IGNORE INTO `config` (`k`, `v`) VALUES
     ('cron.token',                ''),
     ('cron.last_run_at',          ''),
     ('cron.last_run_summary',     '');
+
+-- ----------------------------------------------------------------------
+-- Journal des actions d'administration (qui a fait quoi sur quel compte).
+-- Alimentée par api/admin_user_action.php, consultée dans /admin/security.php.
+-- ----------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `admin_actions` (
+  `id`         BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `admin_id`   INT UNSIGNED NOT NULL,
+  `target_id`  INT UNSIGNED NOT NULL,
+  `action`     VARCHAR(32) NOT NULL,
+  `meta`       VARCHAR(255) NULL,
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_target` (`target_id`, `created_at`),
+  KEY `idx_admin`  (`admin_id`,  `created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `cron_runs` (
   `id`          BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,

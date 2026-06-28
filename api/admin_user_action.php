@@ -58,20 +58,9 @@ $target = $stmt->get_result()->fetch_assoc();
 $stmt->close();
 if (!$target) wt_json(['ok' => false, 'error' => 'user_not_found'], 404);
 
-/* Création paresseuse de la table de log */
-$db->query(
-    "CREATE TABLE IF NOT EXISTS `admin_actions` (
-        `id`         BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-        `admin_id`   INT UNSIGNED NOT NULL,
-        `target_id`  INT UNSIGNED NOT NULL,
-        `action`     VARCHAR(32) NOT NULL,
-        `meta`       VARCHAR(255) NULL,
-        `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        PRIMARY KEY (`id`),
-        KEY `idx_target` (`target_id`, `created_at`),
-        KEY `idx_admin`  (`admin_id`,  `created_at`)
-     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4"
-);
+/* La table admin_actions est désormais déclarée dans schema.sql
+   (et créée via la migration migration_admin_actions.sql pour les bases
+   existantes). Plus de création paresseuse ici : DDL hors du chemin d'exécution. */
 
 /* ----- Exécution ----- */
 $db->begin_transaction();
@@ -121,14 +110,20 @@ try {
             break;
     }
 
-    $stmt = $db->prepare("INSERT INTO admin_actions (admin_id, target_id, action, meta) VALUES (?, ?, ?, ?)");
-    $meta = $target['username'] . ' (' . $target['email'] . ')';
-    $aid  = (int) $me['id'];
-    $stmt->bind_param('iiss', $aid, $uid, $action, $meta);
-    $stmt->execute();
-    $stmt->close();
-
     $db->commit();
+
+    // Journalisation de l'action — NON bloquante : même si l'écriture du log
+    // échoue (ex. table absente avant migration), l'action métier reste validée.
+    try {
+        $stmt = $db->prepare("INSERT INTO admin_actions (admin_id, target_id, action, meta) VALUES (?, ?, ?, ?)");
+        $meta = $target['username'] . ' (' . $target['email'] . ')';
+        $aid  = (int) $me['id'];
+        $stmt->bind_param('iiss', $aid, $uid, $action, $meta);
+        $stmt->execute();
+        $stmt->close();
+    } catch (Throwable $logEx) {
+        error_log('admin_user_action log skipped: ' . $logEx->getMessage());
+    }
 } catch (Throwable $e) {
     $db->rollback();
     error_log('admin_user_action: ' . $e->getMessage());

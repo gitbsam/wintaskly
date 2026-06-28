@@ -69,6 +69,7 @@ $schema = [
     ],
     'leaderboard' => [
         ['key' => 'leaderboard.rewards_enabled','label'=>'admin.set.lb.rewards_enabled','type'=>'checkbox','hint'=>'admin.set.lb.rewards_enabled_hint'],
+        ['key' => 'leaderboard.mask_usernames', 'label'=>'admin.set.lb.mask_usernames', 'type'=>'checkbox','hint'=>'admin.set.lb.mask_usernames_hint'],
         ['key' => 'leaderboard.reward_xp_1',    'label'=>'admin.set.lb.reward_xp_1',    'type'=>'number',  'hint'=>'admin.set.lb.reward_xp_1_hint',   'min'=>0],
         ['key' => 'leaderboard.reward_xp_2',    'label'=>'admin.set.lb.reward_xp_2',    'type'=>'number',  'hint'=>'admin.set.lb.reward_xp_2_hint',   'min'=>0],
         ['key' => 'leaderboard.reward_xp_3',    'label'=>'admin.set.lb.reward_xp_3',    'type'=>'number',  'hint'=>'admin.set.lb.reward_xp_3_hint',   'min'=>0],
@@ -96,6 +97,17 @@ $schema = [
         ['key' => 'social.youtube',  'label' => 'admin.set.social.youtube',  'type' => 'url', 'hint' => 'admin.set.social.youtube_hint'],
         ['key' => 'social.instagram','label' => 'admin.set.social.instagram','type' => 'url', 'hint' => 'admin.set.social.instagram_hint'],
         ['key' => 'social.tiktok',   'label' => 'admin.set.social.tiktok',   'type' => 'url', 'hint' => 'admin.set.social.tiktok_hint'],
+    ],
+    'legal' => [
+        ['key' => 'legal.editor_name',    'label' => 'admin.set.legal.editor_name',    'type' => 'text',     'hint' => 'admin.set.legal.editor_name_hint',    'maxlen' => 150],
+        ['key' => 'legal.editor_status',  'label' => 'admin.set.legal.editor_status',  'type' => 'text',     'hint' => 'admin.set.legal.editor_status_hint',  'maxlen' => 150],
+        ['key' => 'legal.editor_address', 'label' => 'admin.set.legal.editor_address', 'type' => 'textarea', 'hint' => 'admin.set.legal.editor_address_hint', 'maxlen' => 300],
+        ['key' => 'legal.editor_email',   'label' => 'admin.set.legal.editor_email',   'type' => 'email',    'hint' => 'admin.set.legal.editor_email_hint'],
+        ['key' => 'legal.editor_siret',   'label' => 'admin.set.legal.editor_siret',   'type' => 'text',     'hint' => 'admin.set.legal.editor_siret_hint',   'maxlen' => 60],
+        ['key' => 'legal.publication_director', 'label' => 'admin.set.legal.publication_director', 'type' => 'text', 'hint' => 'admin.set.legal.publication_director_hint', 'maxlen' => 150],
+        ['key' => 'legal.host_name',      'label' => 'admin.set.legal.host_name',      'type' => 'text',     'hint' => 'admin.set.legal.host_name_hint',      'maxlen' => 150],
+        ['key' => 'legal.host_address',   'label' => 'admin.set.legal.host_address',   'type' => 'textarea', 'hint' => 'admin.set.legal.host_address_hint',   'maxlen' => 300],
+        ['key' => 'legal.host_contact',   'label' => 'admin.set.legal.host_contact',   'type' => 'text',     'hint' => 'admin.set.legal.host_contact_hint',   'maxlen' => 150],
     ],
 ];
 
@@ -255,6 +267,7 @@ include __DIR__ . '/../header.php';
               'leaderboard' => ['🏆', 'admin.set.tab.leaderboard'],
               'email'       => ['📧', 'admin.set.tab.email'],
               'social'      => ['🌐', 'admin.set.tab.social'],
+              'legal'       => ['⚖️', 'admin.set.tab.legal'],
           ];
           foreach ($tabIcons as $tab => [$icon, $labelKey]):
             $isActive = $tab === $activeTab;

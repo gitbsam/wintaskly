@@ -44,11 +44,14 @@ if ($u) {
     $stmt->execute();
     $stmt->close();
 
-    $db->query(
+    $stmt = $db->prepare(
         "UPDATE support_tickets
             SET last_reply_by = 'user', last_reply_at = UTC_TIMESTAMP(), status = 'open'
-          WHERE id = " . $ticketId
+          WHERE id = ?"
     );
+    $stmt->bind_param('i', $ticketId);
+    $stmt->execute();
+    $stmt->close();
 
     wt_json(['ok' => true, 'message' => (string) t('contact.reply_sent')]);
 }
@@ -77,10 +80,13 @@ $stmt->bind_param('is', $tkId, $body);
 $stmt->execute();
 $stmt->close();
 
-$db->query(
+$stmt = $db->prepare(
     "UPDATE support_tickets
         SET last_reply_by='guest', last_reply_at=UTC_TIMESTAMP(), status='open'
-      WHERE id = " . $tkId
+      WHERE id = ?"
 );
+$stmt->bind_param('i', $tkId);
+$stmt->execute();
+$stmt->close();
 
 wt_json(['ok' => true, 'message' => (string) t('contact.reply_sent')]);

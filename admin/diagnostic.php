@@ -27,6 +27,7 @@ $expectedTables = [
     'faucet_claims', 'ptc_ads', 'withdrawals', 'withdrawal_methods',
     'auth_tokens', 'messages', 'notifications', 'support_tickets',
     'support_messages', 'cron_runs', 'update_checks', 'applied_migrations',
+    'admin_actions',
 ];
 
 /* Note : certains noms de tables prêtent à confusion —

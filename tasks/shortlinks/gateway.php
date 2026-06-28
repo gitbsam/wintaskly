@@ -86,42 +86,22 @@ $delay    = max(3, (int) $sl['gateway_seconds']);
 $slMode = (string) ($sl['mode'] ?? 'manual');
 $apiError = null;
 
-if ($slMode === 'api'
-    && !empty($sl['api_endpoint'])
-    && !empty($sl['api_token'])
-    && !empty($sl['callback_key'])) {
-
-    // URL de notre callback que le provider redirigera l'user après le shortlink
-    $callbackUrl = wt_url('/api/shortlink_callback.php')
-                 . '?token=' . urlencode($token)
-                 . '&key=' . urlencode($sl['callback_key']);
-
-    // Appel API provider pour générer le lien court
-    $shortUrl = wt_shortlink_create_via_api(
-        (string) $sl['api_endpoint'],
-        (string) $sl['api_token'],
-        $callbackUrl
-    );
-
-    if ($shortUrl !== null) {
-        $finalUrl = $shortUrl;
-    } else {
-        // API provider injoignable / token invalide / quota dépassé.
-        // On invalide la tentative pour ne pas la garder pendante.
-        $stmt = $db->prepare(
-            "UPDATE shortlink_attempts SET status='rejete' WHERE token = ?"
-        );
-        $stmt->bind_param('s', $token);
-        $stmt->execute();
-        $stmt->close();
+/*
+ * SÉCURITÉ : on ne génère PLUS l'URL finale ici (au chargement de la page).
+ * Elle est produite à la demande par /api/get_gateway_link.php, à la fin du
+ * countdown, pour ne jamais l'exposer dans le DOM. On se contente de valider
+ * que la configuration du mode est cohérente, afin d'afficher un éventuel
+ * message d'erreur sans faire patienter l'utilisateur pour rien.
+ */
+if ($slMode === 'api') {
+    $apiConfigOk = !empty($sl['api_endpoint'])
+                && !empty($sl['api_token'])
+                && !empty($sl['callback_key']);
+    if (!$apiConfigOk) {
         $apiError = t('shortlinks.api_error');
-        $finalUrl = ''; // pas d'URL → on affichera un message d'erreur
     }
-} else {
-    // Mode manual : URL pré-collée + on suffixe avec notre token Wintaskly
-    $separator = (strpos($sl['destination_url'], '?') !== false) ? '&' : '?';
-    $finalUrl = $sl['destination_url'] . $separator . 'wt=' . urlencode($token);
 }
+// (mode manual : aucune préparation nécessaire ; l'URL est construite côté API)
 
 $fmt = static function (float $n): string {
     return rtrim(rtrim(number_format($n, 2, '.', ''), '0'), '.');
@@ -204,19 +184,27 @@ include __DIR__ . '/../../header.php';
 
       <?php if ($apiError !== null): ?>
         <!-- Erreur API provider (mode 'api' uniquement) -->
-        <div class="wt-alert wt-alert--error" style="margin-top:1rem">
+        <div class="wt-alert wt-alert--error wt-mt-4">
           ⚠ <?= e($apiError) ?>
         </div>
-        <a class="wt-btn wt-btn--ghost" href="<?= e(wt_url('/tasks/shortlinks/')) ?>"
-           style="margin-top:.75rem">← <?= e(t('common.back')) ?></a>
+        <a class="wt-btn wt-btn--ghost wt-mt-3" href="<?= e(wt_url('/tasks/shortlinks/')) ?>">← <?= e(t('common.back')) ?></a>
       <?php else: ?>
-      <!-- Bouton final caché jusqu'à fin du countdown -->
-      <a class="wt-btn wt-btn--primary wt-btn--lg wt-sl-v2__cta is-hidden"
-         href="<?= e($finalUrl) ?>"
-         rel="noopener noreferrer"
-         data-sl-gateway-go>
+      <!--
+        Bouton final : SANS href au chargement (sécurité anti-bypass).
+        L'URL de redirection (qui porte le token de transaction) n'est PAS
+        dans le DOM initial : elle est récupérée par Ajax à la fin du
+        countdown via /api/get_gateway_link.php. Désactivé + aria-hidden
+        tant que l'attente n'est pas terminée.
+      -->
+      <button type="button"
+              class="wt-btn wt-btn--primary wt-btn--lg wt-sl-v2__cta is-hidden"
+              data-sl-gateway-go
+              data-sl-token="<?= e($token) ?>"
+              data-sl-endpoint="<?= e(wt_url('/api/get_gateway_link.php')) ?>"
+              data-csrf="<?= e(csrf_token()) ?>"
+              disabled aria-hidden="true">
         🚀 <?= e(t('shortlinks.gateway.go')) ?>
-      </a>
+      </button>
       <?php endif; ?>
 
       <!-- Info de bas de page -->

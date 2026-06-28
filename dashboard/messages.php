@@ -42,13 +42,16 @@ if (!empty($_GET['ticket']) && $tab === 'tickets') {
     $stmt->close();
 
     if ($openTicket) {
-        $db->query(
+        $stmt = $db->prepare(
             "UPDATE support_messages
                 SET read_at = UTC_TIMESTAMP()
-              WHERE ticket_id = " . (int) $openTicket['id'] . "
+              WHERE ticket_id = ?
                 AND author_role = 'admin'
                 AND read_at IS NULL"
         );
+        $stmt->bind_param('i', $openTicket['id']);
+        $stmt->execute();
+        $stmt->close();
         $stmt = $db->prepare(
             "SELECT id, author_role, body, created_at
                FROM support_messages

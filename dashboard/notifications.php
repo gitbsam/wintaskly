@@ -23,12 +23,15 @@ $u  = current_user();
 $db = db();
 
 /* Marquer toutes les notifications comme lues à l'ouverture de la page */
-$db->query(
+$stmt = $db->prepare(
     "UPDATE notifications
         SET read_at = UTC_TIMESTAMP()
-      WHERE user_id = " . (int) $u['id'] . "
+      WHERE user_id = ?
         AND read_at IS NULL"
 );
+$stmt->bind_param('i', $u['id']);
+$stmt->execute();
+$stmt->close();
 
 $rows = [];
 $stmt = $db->prepare(

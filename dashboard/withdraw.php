@@ -90,7 +90,7 @@ include __DIR__ . '/../header.php';
         <div>
           <small><?= e(t('wd.balance')) ?></small>
           <strong>
-            <?= e(rtrim(rtrim(number_format((float)$u['coins'], 4, '.', ''), '0'), '.')) ?>
+            <?= e(wt_format_coins((float)$u['coins'])) ?>
             <em><?= e(t('common.coins')) ?></em>
           </strong>
         </div>
@@ -140,7 +140,7 @@ include __DIR__ . '/../header.php';
                     <strong class="wt-wd-v2__method-label"><?= e($m['label']) ?></strong>
                     <small class="wt-wd-v2__method-min">
                       <?= e(t('wd.min')) ?> :
-                      <?= e(rtrim(rtrim(number_format((float)$m['min_coins'], 4, '.', ''), '0'), '.')) ?> Coins
+                      <?= e(wt_format_coins((float)$m['min_coins'])) ?> Coins
                     </small>
                   </div>
                 </label>
@@ -225,11 +225,11 @@ include __DIR__ . '/../header.php';
                 </div>
                 <div class="wt-wd-v2__entry-amounts">
                   <strong>
-                    -<?= e(rtrim(rtrim(number_format((float)$h['coins_amount'], 4, '.', ''), '0'), '.')) ?>
+                    -<?= e(wt_format_coins((float)$h['coins_amount'])) ?>
                   </strong>
                   <small>
                     →
-                    <?= e(rtrim(rtrim(number_format((float)$h['payout_amount'], 6, '.', ''), '0'), '.')) ?>
+                    <?= e(wt_format_payout((float)$h['payout_amount'])) ?>
                     <?= e($h['payout_currency']) ?>
                   </small>
                   <span class="wt-wd-v2__entry-status">

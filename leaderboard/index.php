@@ -20,6 +20,28 @@ $pageTitle = t('lb.title');
 $u         = current_user();
 $db        = db();
 
+/*
+ * Affichage du pseudo dans le classement.
+ * Configurable via /admin/settings.php → onglet Leaderboard :
+ *   - leaderboard.mask_usernames = 0 (défaut) → pseudo complet (gamification)
+ *   - leaderboard.mask_usernames = 1 → pseudo masqué (vie privée : sa•••al)
+ * Le joueur connecté voit toujours SON propre pseudo en entier (il se
+ * reconnaît dans le classement).
+ */
+$lbMaskNames = (int) cfg('leaderboard.mask_usernames', '0') === 1;
+$lbCurrentUid = $u ? (int) $u['id'] : 0;
+$lbDisplayName = static function (array $row) use ($lbMaskNames, $lbCurrentUid): string {
+    $name = (string) ($row['username'] ?? '');
+    if (!$lbMaskNames) {
+        return $name; // pseudos complets
+    }
+    // Masquage activé : le joueur connecté garde son nom complet
+    if ((int) ($row['user_id'] ?? 0) === $lbCurrentUid && $lbCurrentUid > 0) {
+        return $name;
+    }
+    return wt_mask_username($name);
+};
+
 /* Période (par défaut courante) */
 $period = (string)($_GET['period'] ?? wt_lb_period());
 if (!preg_match('/^\d{4}-\d{2}$/', $period)) $period = wt_lb_period();
@@ -213,7 +235,7 @@ include __DIR__ . '/../header.php';
                  aria-hidden="true"><?= wt_avatar_inner($p) ?></div>
 
             <h3 class="wt-lb-v2__step-name">
-              <?= e($p['username']) ?>
+              <?= e($lbDisplayName($p)) ?>
               <?php if ($isMe): ?>
                 <span class="wt-lb-v2__step-you"><?= e(t('lb.you')) ?></span>
               <?php endif; ?>
@@ -263,7 +285,7 @@ include __DIR__ . '/../header.php';
                    aria-hidden="true"><?= wt_avatar_inner($row) ?></div>
 
               <div class="wt-lb-v2__row-user">
-                <strong><?= e($row['username']) ?></strong>
+                <strong><?= e($lbDisplayName($row)) ?></strong>
                 <?php if ($isMe): ?>
                   <span class="wt-lb-v2__row-you-pill"><?= e(t('lb.defend')) ?></span>
                 <?php endif; ?>

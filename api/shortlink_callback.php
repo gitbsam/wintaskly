@@ -102,7 +102,9 @@ $stmt->close();
 if (!$row) {
     $respond(false, 'token_unknown', 404);
 }
-if (!hash_equals((string)$row['callback_key'], $key)) {
+// Déchiffrement de la clé stockée (rétrocompatible : clair lu tel quel)
+$cbKeyStored = function_exists('wt_decrypt') ? wt_decrypt((string)$row['callback_key']) : (string)$row['callback_key'];
+if (!hash_equals($cbKeyStored, $key)) {
     error_log('[Wintaskly shortlink_callback] invalid key for token ' . substr($token, 0, 12) . '...');
     $respond(false, 'invalid_key', 403);
 }

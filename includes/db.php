@@ -134,15 +134,30 @@ if (!function_exists('db_one')) {
      *                         dynamiques utiliser des prepared statements)
      * @return array|null      Première ligne, ou null si vide/erreur
      */
-    function db_one(string $sql): ?array
+    function db_one(string $sql, array $params = [], string $types = ''): ?array
     {
         try {
-            $res = db()->query($sql);
-            if ($res instanceof mysqli_result) {
-                $row = $res->fetch_assoc();
-                $res->free();
-                return $row ?: null;
+            // Sans paramètre : requête directe (rétrocompatible)
+            if ($params === []) {
+                $res = db()->query($sql);
+                if ($res instanceof mysqli_result) {
+                    $row = $res->fetch_assoc();
+                    $res->free();
+                    return $row ?: null;
+                }
+                return null;
             }
+            // Avec paramètres : requête préparée (sécurisé contre l'injection)
+            if ($types === '') {
+                $types = str_repeat('s', count($params));
+            }
+            $stmt = db()->prepare($sql);
+            $stmt->bind_param($types, ...$params);
+            $stmt->execute();
+            $res = $stmt->get_result();
+            $row = $res ? $res->fetch_assoc() : null;
+            $stmt->close();
+            return $row ?: null;
         } catch (Throwable $e) {
             error_log('[Wintaskly db_one] ' . $e->getMessage() . ' — SQL: ' . $sql);
         }
@@ -162,15 +177,30 @@ if (!function_exists('db_all')) {
      * @param  string $sql Requête SQL
      * @return array       Lignes (vide si erreur ou aucun résultat)
      */
-    function db_all(string $sql): array
+    function db_all(string $sql, array $params = [], string $types = ''): array
     {
         try {
-            $res = db()->query($sql);
-            if ($res instanceof mysqli_result) {
-                $rows = $res->fetch_all(MYSQLI_ASSOC);
-                $res->free();
-                return $rows;
+            // Sans paramètre : requête directe (rétrocompatible)
+            if ($params === []) {
+                $res = db()->query($sql);
+                if ($res instanceof mysqli_result) {
+                    $rows = $res->fetch_all(MYSQLI_ASSOC);
+                    $res->free();
+                    return $rows;
+                }
+                return [];
             }
+            // Avec paramètres : requête préparée (sécurisé contre l'injection)
+            if ($types === '') {
+                $types = str_repeat('s', count($params));
+            }
+            $stmt = db()->prepare($sql);
+            $stmt->bind_param($types, ...$params);
+            $stmt->execute();
+            $res = $stmt->get_result();
+            $rows = $res ? $res->fetch_all(MYSQLI_ASSOC) : [];
+            $stmt->close();
+            return $rows;
         } catch (Throwable $e) {
             error_log('[Wintaskly db_all] ' . $e->getMessage() . ' — SQL: ' . $sql);
         }
@@ -305,5 +335,34 @@ if (!function_exists('cfg_bool')) {
         if ($value === null) return $default;
         $v = strtolower(trim((string) $value));
         return in_array($v, ['1', 'true', 'yes', 'on'], true);
+    }
+}
+
+if (!function_exists('wt_like_escape')) {
+    /**
+     * Échappe les jokers SQL LIKE (% et _) dans une saisie utilisateur,
+     * pour qu'une recherche se comporte de façon littérale.
+     *
+     * Sans ça, un utilisateur cherchant "a_b" ou "50%" verrait le _ et le %
+     * interprétés comme des jokers (n'importe quel caractère / n'importe
+     * quelle séquence). À utiliser pour construire le motif AVANT de le
+     * passer en paramètre préparé :
+     *
+     *   $like = '%' . wt_like_escape($q) . '%';
+     *   $stmt->bind_param('s', $like);  // requête : ... LIKE ? ESCAPE '\\'
+     *
+     * Note : la requête doit déclarer ESCAPE '\\' (ou utiliser le backslash
+     * par défaut de MySQL/MariaDB, qui est '\\').
+     *
+     * @param  string $value  Saisie brute
+     * @return string  Saisie avec %, _ et \ échappés
+     */
+    function wt_like_escape(string $value): string
+    {
+        return str_replace(
+            ['\\', '%', '_'],
+            ['\\\\', '\\%', '\\_'],
+            $value
+        );
     }
 }

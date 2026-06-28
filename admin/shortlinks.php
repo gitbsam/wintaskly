@@ -139,6 +139,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && csrf_check($_POST['_csrf'] ?? null)
         $apiEnd    = trim((string)($_POST['api_endpoint'] ?? ''));
         $apiTok    = trim((string)($_POST['api_token']    ?? ''));
         $cbKey     = trim((string)($_POST['callback_key'] ?? ''));
+
+        // Préservation des secrets : si on édite et que le champ est laissé
+        // vide (token masqué non re-saisi), on conserve la valeur en base.
+        // $apiTok/$cbKey portent ici la valeur EN CLAIR (saisie) ou vide.
+        $apiTokKeepExisting = false;
+        $cbKeyKeepExisting  = false;
+        if ($id > 0) {
+            if ($apiTok === '') $apiTokKeepExisting = true;
+            if ($cbKey  === '') $cbKeyKeepExisting  = true;
+        }
         $reward    = (float) ($_POST['reward_coins'] ?? 0);
         $rewardXp  = (int)   ($_POST['reward_xp'] ?? 0);
         $cooldownH = (int)   ($_POST['cooldown_hours'] ?? 24);
@@ -156,13 +166,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && csrf_check($_POST['_csrf'] ?? null)
         //                ET api_endpoint + api_token doivent être renseignés
         //                (Wintaskly appelle l'API du provider à chaque clic).
         $valid = ($name !== '' && filter_var($url, FILTER_VALIDATE_URL));
-        if ($mode === 'api' && ($apiEnd === '' || $apiTok === '')) {
+        if ($mode === 'api' && $apiEnd === '') {
+            $valid = false;
+            $notice = '⚠ ' . t('admin.sl.api_required');
+            $noticeKind = 'error';
+        }
+        // En mode API, le token est requis SAUF s'il est déjà en base (édition)
+        if ($mode === 'api' && $apiTok === '' && !$apiTokKeepExisting) {
             $valid = false;
             $notice = '⚠ ' . t('admin.sl.api_required');
             $noticeKind = 'error';
         }
 
         if ($valid) {
+            // Récupère les secrets existants si on doit les préserver (édition
+            // sans re-saisie). Ils sont déjà chiffrés en base → on les garde tels quels.
+            $apiTokStore = null;
+            $cbKeyStore  = null;
+            if ($apiTokKeepExisting || $cbKeyKeepExisting) {
+                $exStmt = $db->prepare("SELECT api_token, callback_key FROM shortlinks WHERE id = ?");
+                $exStmt->bind_param('i', $id);
+                $exStmt->execute();
+                $exRow = $exStmt->get_result()->fetch_assoc();
+                $exStmt->close();
+                if ($apiTokKeepExisting) $apiTokStore = (string)($exRow['api_token'] ?? '');
+                if ($cbKeyKeepExisting)  $cbKeyStore  = (string)($exRow['callback_key'] ?? '');
+            }
+            // Chiffrement des secrets nouvellement saisis (cohérent avec
+            // payment_methods). Rétrocompatible : déchiffrés à la lecture.
+            if ($apiTokStore === null) {
+                $apiTokStore = ($apiTok !== '' && function_exists('wt_encrypt')) ? wt_encrypt($apiTok) : $apiTok;
+            }
+            if ($cbKeyStore === null) {
+                $cbKeyStore = ($cbKey !== '' && function_exists('wt_encrypt')) ? wt_encrypt($cbKey) : $cbKey;
+            }
             if ($id > 0) {
                 $stmt = $db->prepare(
                     "UPDATE shortlinks SET
@@ -176,7 +213,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && csrf_check($_POST['_csrf'] ?? null)
                 $stmt->bind_param(
                     'sssssssdiiidsiii',
                     $name, $provider, $mode,
-                    $url, $apiEnd, $apiTok, $cbKey,
+                    $url, $apiEnd, $apiTokStore, $cbKeyStore,
                     $reward, $rewardXp, $cooldownH, $gatewayS,
                     $rateAmt, $rateCur, $ratePer,
                     $active, $id
@@ -197,7 +234,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && csrf_check($_POST['_csrf'] ?? null)
                 $stmt->bind_param(
                     'sssssssdiiidsii',
                     $name, $provider, $mode,
-                    $url, $apiEnd, $apiTok, $cbKey,
+                    $url, $apiEnd, $apiTokStore, $cbKeyStore,
                     $reward, $rewardXp, $cooldownH, $gatewayS,
                     $rateAmt, $rateCur, $ratePer,
                     $active
@@ -405,9 +442,15 @@ include __DIR__ . '/../header.php';
 
             <label class="wt-field">
               <span class="wt-field__label">🔐 <?= e(t('admin.sl.api_token')) ?></span>
-              <input class="wt-input wt-mono" type="text" name="api_token"
-                     value="<?= e((string)($editing['api_token'] ?? '')) ?>"
-                     placeholder="060a23e2dcb8ac3f1f4c7a9f16cbc...">
+              <?php
+                // Sécurité : on ne réaffiche jamais le token en clair.
+                // Présence détectée via déchiffrement (rétrocompatible).
+                $slTokRaw = (string)($editing['api_token'] ?? '');
+                $slTokSet = $slTokRaw !== '';
+              ?>
+              <input class="wt-input wt-mono" type="password" name="api_token"
+                     autocomplete="new-password"
+                     placeholder="<?= $slTokSet ? '••••••••••••••••• (token enregistré)' : '060a23e2dcb8ac3f1f4c7a9f16cbc...' ?>">
               <small class="wt-field__hint"><?= e(t('admin.sl.api_token_hint')) ?></small>
             </label>
           </div>

@@ -43,13 +43,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && csrf_check($_POST['_csrf'] ?? null)
         $status  = ($_POST['status'] ?? 'draft') === 'published' ? 'published' : 'draft';
         $reading = max(1, (int)($_POST['reading_minutes'] ?? 3));
 
-        // Date de publication choisie (programmation). Format datetime-local
-        // (ex: 2026-07-15T09:00). Convertie en UTC pour le stockage.
+        // Date de publication choisie (programmation). Le champ caché porte
+        // déjà l'heure en UTC (converti par wt-datetime-utc.js depuis la saisie
+        // locale de l'admin). On l'interprète donc en UTC.
         // Si vide → on utilisera "maintenant" à la première publication.
         $schedRaw = trim((string)($_POST['publish_date'] ?? ''));
         $schedUtc = null;
         if ($schedRaw !== '') {
-            $ts = strtotime($schedRaw);
+            $schedRaw = str_replace('T', ' ', $schedRaw);
+            $ts = strtotime($schedRaw . ' UTC');
             if ($ts !== false) {
                 $schedUtc = gmdate('Y-m-d H:i:s', $ts);
             }
@@ -91,7 +93,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && csrf_check($_POST['_csrf'] ?? null)
                 } else {
                     $id = (int)($_POST['id'] ?? 0);
                     // Récupère l'ancien statut pour gérer published_at
-                    $old = db_one("SELECT status, published_at FROM blog_posts WHERE id = " . $id);
+                    $old = db_one("SELECT status, published_at FROM blog_posts WHERE id = ?", [$id], "i");
                     $pubAt = $old['published_at'] ?? null;
                     // Date choisie explicitement → elle prime (reprogrammation)
                     if ($schedUtc !== null) {
@@ -143,7 +145,7 @@ $editPost = null;
 if (isset($_GET['edit'])) {
     $editSlugOrId = (string)$_GET['edit'];
     if (ctype_digit($editSlugOrId)) {
-        $editPost = db_one("SELECT * FROM blog_posts WHERE id = " . (int)$editSlugOrId);
+        $editPost = db_one("SELECT * FROM blog_posts WHERE id = ?", [(int)$editSlugOrId], "i");
     }
 }
 
@@ -312,12 +314,16 @@ include __DIR__ . '/../header.php';
               <span class="wt-field__label"><?= e(t('admin.blog.f_publish_date')) ?></span>
               <?php
                 // Pré-remplit avec la date existante (convertie en local pour l'input)
-                $schedVal = '';
+                $schedUtcVal = '';
                 if (!empty($editPost['published_at'])) {
-                    $schedVal = date('Y-m-d\TH:i', strtotime($editPost['published_at'] . ' UTC'));
+                    $schedUtcVal = gmdate('Y-m-d\TH:i', strtotime($editPost['published_at'] . ' UTC'));
                 }
               ?>
-              <input class="wt-input" type="datetime-local" name="publish_date" value="<?= e($schedVal) ?>">
+              <input class="wt-input" type="datetime-local"
+                     data-dt-local
+                     data-dt-target="publish_date"
+                     data-utc="<?= e($schedUtcVal) ?>">
+              <input type="hidden" name="publish_date" value="<?= e($schedUtcVal) ?>">
               <small class="wt-field__hint"><?= e(t('admin.blog.f_publish_date_hint')) ?></small>
             </label>
             <button class="wt-btn wt-btn--primary" style="align-self:flex-end">
@@ -390,4 +396,5 @@ include __DIR__ . '/../header.php';
   </div>
 </main>
 
+<script src="<?= e(wt_url('/media/wintaskly/js/wt-datetime-utc.js')) ?>?v=<?= e(WT_VERSION) ?>"></script>
 <?php include __DIR__ . '/../footer.php'; ?>

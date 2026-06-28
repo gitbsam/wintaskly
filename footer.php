@@ -160,6 +160,7 @@ $_yearDisplay = ($_launchYear === $_currentYear)
       <nav class="wt-footer-v2__col" aria-label="<?= e(t('footer.cat_legal')) ?>">
         <h3 class="wt-footer-v2__col-title"><?= e(t('footer.cat_legal')) ?></h3>
         <ul>
+          <li><a href="<?= $_base ?>/legal/mentions.php"><?= e(t('legal.mentions_title')) ?></a></li>
           <li><a href="<?= $_base ?>/legal/cgu.php"><?= e(t('legal.cgu')) ?></a></li>
           <li><a href="<?= $_base ?>/legal/privacy.php"><?= e(t('legal.privacy')) ?></a></li>
           <li><a href="<?= $_base ?>/legal/cookies.php"><?= e(t('legal.cookies_title')) ?></a></li>

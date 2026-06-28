@@ -26,43 +26,57 @@ $db = db();
 $filter = (string)($_GET['r'] ?? 'all');
 if (!in_array($filter, ['all', '5', '4plus', 'featured'], true)) $filter = 'all';
 
-/* ----- Tous les témoignages approuvés ----- */
+/*
+ * OPTIMISATION MÉMOIRE : au lieu de charger TOUS les témoignages (avec leurs
+ * longs champs `body`) puis de filtrer en PHP avec array_filter — ce qui
+ * sature la RAM —, on ne charge QUE les lignes correspondant au filtre actif,
+ * directement en SQL via une clause WHERE dédiée + requête préparée.
+ */
+$extraWhere = match ($filter) {
+    '5'        => " AND t.rating = 5",
+    '4plus'    => " AND t.rating >= 4",
+    'featured' => " AND t.featured = 1",
+    default    => "",
+};
+
 $rows = [];
 $sql = "SELECT t.id, t.rating, t.title, t.body, t.featured, t.created_at,
                u.username, u.avatar_url, u.level
           FROM testimonials t
           JOIN users u ON u.id = t.user_id
-         WHERE t.status = 'approved'
+         WHERE t.status = 'approved'" . $extraWhere . "
          ORDER BY t.featured DESC, t.created_at DESC
          LIMIT 60";
 if ($res = $db->query($sql)) {
     $rows = $res->fetch_all(MYSQLI_ASSOC);
     $res->free();
 }
+// Les lignes chargées SONT déjà les lignes visibles (filtrage fait en SQL)
+$visibleRows = $rows;
 
-/* ----- Stats globales : note moyenne + nombre ----- */
+/*
+ * Compteurs des pills de filtre : une SEULE requête d'agrégation légère
+ * (ne charge aucun `body`, juste des COUNT). Bien plus économe que de
+ * compter en PHP sur des objets complets.
+ */
+$count5 = $count4plus = $countFeat = 0;
 $globalStats = ['count' => 0, 'avg' => 0.0, 'featured_count' => 0];
-$row = $db->query(
-    "SELECT COUNT(*) c, COALESCE(AVG(rating), 0) a,
-            COALESCE(SUM(CASE WHEN featured = 1 THEN 1 ELSE 0 END), 0) f
-       FROM testimonials WHERE status = 'approved'"
-)->fetch_assoc();
-$globalStats['count']          = (int)  $row['c'];
-$globalStats['avg']            = (float)$row['a'];
-$globalStats['featured_count'] = (int)  $row['f'];
-
-/* ----- Compteurs pour les pills de filtre ----- */
-$count5      = count(array_filter($rows, static fn ($r) => (int)$r['rating'] === 5));
-$count4plus  = count(array_filter($rows, static fn ($r) => (int)$r['rating'] >= 4));
-$countFeat   = count(array_filter($rows, static fn ($r) => !empty($r['featured'])));
-
-/* ----- Application du filtre actif ----- */
-$visibleRows = match ($filter) {
-    '5'        => array_filter($rows, static fn ($r) => (int)$r['rating'] === 5),
-    '4plus'    => array_filter($rows, static fn ($r) => (int)$r['rating'] >= 4),
-    'featured' => array_filter($rows, static fn ($r) => !empty($r['featured'])),
-    default    => $rows,
-};
+if ($aggRow = $db->query(
+    "SELECT COUNT(*) c,
+            COALESCE(AVG(rating), 0) a,
+            COALESCE(SUM(rating = 5), 0)  c5,
+            COALESCE(SUM(rating >= 4), 0) c4,
+            COALESCE(SUM(featured = 1), 0) cf
+       FROM testimonials
+      WHERE status = 'approved'"
+)?->fetch_assoc()) {
+    $globalStats['count']          = (int)   $aggRow['c'];
+    $globalStats['avg']            = (float) $aggRow['a'];
+    $globalStats['featured_count'] = (int)   $aggRow['cf'];
+    $count5     = (int) $aggRow['c5'];
+    $count4plus = (int) $aggRow['c4'];
+    $countFeat  = (int) $aggRow['cf'];
+}
 
 /* ----- Stats utilisateur connecté : ses propres témoignages ----- */
 $myStats = ['total' => 0, 'approved' => 0, 'pending' => 0];
@@ -159,8 +173,8 @@ include __DIR__ . '/../header.php';
     <?php elseif (empty($visibleRows)): ?>
       <div class="wt-testi-v2__empty" data-reveal>
         <span class="wt-testi-v2__empty-icon" aria-hidden="true">🤷</span>
-        <h2><?= e(t('shortlinks.filter_empty_title')) ?></h2>
-        <p><?= e(t('shortlinks.filter_empty')) ?></p>
+        <h2><?= e(t('common.filter_empty_title')) ?></h2>
+        <p><?= e(t('common.filter_empty')) ?></p>
         <a class="wt-btn wt-btn--ghost" href="<?= e(wt_url('/testimonials/?r=all')) ?>">
           <?= e(t('testi.see_all')) ?>
         </a>
@@ -272,7 +286,15 @@ include __DIR__ . '/../header.php';
             <fieldset class="wt-testi-v2__rating-field">
               <legend class="wt-field__label"><?= e(t('testi.rating')) ?></legend>
               <div class="wt-testi-v2__rating-group" data-rating-group>
-                <?php for ($i = 5; $i >= 1; $i--): ?>
+                <?php
+                  /*
+                   * Ordre 1 → 5 pour une navigation clavier logique (avant,
+                   * c'était 5 → 1 pour un vieux hack CSS `~` devenu inutile :
+                   * le style repose désormais sur :has(input:checked) et sur
+                   * la classe is-on calculée par PHP, indépendants de l'ordre).
+                   */
+                  for ($i = 1; $i <= 5; $i++):
+                ?>
                   <label class="wt-testi-v2__rating-radio">
                     <input type="radio" name="rating" value="<?= $i ?>" <?= $i === 5 ? 'checked' : '' ?>>
                     <span class="wt-testi-v2__rating-stars" aria-hidden="true">

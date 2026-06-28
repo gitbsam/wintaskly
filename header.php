@@ -550,8 +550,8 @@ if (function_exists('cfg')) {
     if ($_bannerOn && $_bannerMsg !== '') {
         $_showBanner = true;
         if ($_bannerUntil !== '') {
-            // Format datetime-local (YYYY-MM-DDTHH:MM) ou DATETIME MySQL
-            $_until = strtotime($_bannerUntil);
+            // Stocké en UTC ('Y-m-d H:i'). On l'interprète en UTC.
+            $_until = strtotime(str_replace('T', ' ', $_bannerUntil) . ' UTC');
             if ($_until !== false && $_until < time()) {
                 $_showBanner = false;
             }

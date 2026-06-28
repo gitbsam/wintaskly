@@ -47,7 +47,7 @@ if (!defined('WT_PERIOD_DASHBOARD_DAYS')) {
 // L'URL latest.json est configurable via la BDD (clé config 'update.feed_url')
 // pour permettre de changer de canal (stable/beta) sans redéployer.
 if (!defined('WT_VERSION')) {
-    define('WT_VERSION', '8.15.9');
+    define('WT_VERSION', '8.22.0');
     define('WT_VERSION_CHANNEL', 'stable');  // stable | beta | dev
     define('WT_UPDATE_FEED_DEFAULT', 'https://gitbsam.github.io/wintaskly/latest.json');
 }
@@ -234,6 +234,7 @@ if (
 // 4) Inclusions internes
 // ----------------------------------------------------------------------
 require __DIR__ . '/db.php';
+require __DIR__ . '/crypto.php';
 require __DIR__ . '/i18n.php';
 require __DIR__ . '/auth.php';
 require __DIR__ . '/auth_extra.php';
@@ -412,6 +413,54 @@ if (!function_exists('wt_format_coins')) {
     function wt_format_coins(float $coins, bool $thousands = false): string
     {
         $s = rtrim(rtrim(number_format($coins, 4, '.', $thousands ? ' ' : ''), '0'), '.');
+        return $s === '' ? '0' : $s;
+    }
+}
+
+if (!function_exists('wt_mask_username')) {
+    /**
+     * Masque un nom d'utilisateur pour protéger la vie privée dans les
+     * affichages publics (retraits live, parrainage, classement...).
+     *
+     * Règle unique pour tout le site (cohérence) :
+     *   - garde les 2 premières + 2 dernières lettres si le nom est assez long
+     *   - sinon garde la 1re lettre + des points
+     * Multioctet (mb_*) pour gérer accents et caractères spéciaux.
+     *
+     * Exemples : "saidkamal" → "sa•••al", "leo" → "l••", "ab" → "a•".
+     *
+     * @param  string $name  Nom d'utilisateur brut
+     * @return string  Nom masqué
+     */
+    function wt_mask_username(string $name): string
+    {
+        $n = mb_strlen($name);
+        if ($n <= 1) {
+            return $name !== '' ? $name : '•';
+        }
+        if ($n <= 4) {
+            return mb_substr($name, 0, 1) . str_repeat('•', $n - 1);
+        }
+        return mb_substr($name, 0, 2)
+             . str_repeat('•', max(3, $n - 4))
+             . mb_substr($name, -2);
+    }
+}
+
+if (!function_exists('wt_format_payout')) {
+    /**
+     * Formate un montant de PAYOUT (retrait réel) avec une précision adaptée
+     * aux cryptomonnaies : jusqu'à 8 décimales, zéros inutiles retirés.
+     *
+     * Exemples : 5.2000 → "5.2" (PayPal €), 0.00012345 → "0.00012345" (BTC).
+     * Aligné sur le calcul round($payout, 8) et la colonne DECIMAL(18,8).
+     *
+     * @param  float $amount  Montant du payout
+     * @return string
+     */
+    function wt_format_payout(float $amount): string
+    {
+        $s = rtrim(rtrim(number_format($amount, 8, '.', ''), '0'), '.');
         return $s === '' ? '0' : $s;
     }
 }

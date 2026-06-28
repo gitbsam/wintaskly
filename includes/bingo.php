@@ -850,12 +850,7 @@ if (!function_exists('wt_bingo_settle_round')) {
             $round = wt_bingo_round_by_id($roundId);
             $jackpot = (int) ($round['jackpot'] ?? 0);
 
-            $winners = [];
-            $res = $db->query("SELECT id, user_id FROM bingo_claims WHERE round_id = " . $roundId);
-            if ($res instanceof mysqli_result) {
-                while ($w = $res->fetch_assoc()) { $winners[] = $w; }
-                $res->free();
-            }
+            $winners = db_all("SELECT id, user_id FROM bingo_claims WHERE round_id = ?", [$roundId], 'i');
             $n = count($winners);
 
             if ($n === 0) {
@@ -904,12 +899,12 @@ if (!function_exists('wt_bingo_round_stats')) {
                     SUM(status IN ('active','claimed')) ac,
                     SUM(status='active' AND is_free=0) pc,
                     COUNT(DISTINCT user_id) pl
-                  FROM bingo_cards WHERE round_id = " . $roundId);
+                  FROM bingo_cards WHERE round_id = ?", [$roundId], 'i');
             $s['cards_active'] = (int) ($r['ac'] ?? 0);
             $s['cards_paid']   = (int) ($r['pc'] ?? 0);
             $s['players']      = (int) ($r['pl'] ?? 0);
-            $s['claims'] = (int) (db_one("SELECT COUNT(*) c FROM bingo_claims WHERE round_id = " . $roundId)['c'] ?? 0);
-            $s['draws']  = (int) (db_one("SELECT COUNT(*) c FROM bingo_draws WHERE round_id = " . $roundId)['c'] ?? 0);
+            $s['claims'] = (int) (db_one("SELECT COUNT(*) c FROM bingo_claims WHERE round_id = ?", [$roundId], 'i')['c'] ?? 0);
+            $s['draws']  = (int) (db_one("SELECT COUNT(*) c FROM bingo_draws WHERE round_id = ?", [$roundId], 'i')['c'] ?? 0);
         } catch (Throwable $e) {}
         return $s;
     }

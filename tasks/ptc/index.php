@@ -132,7 +132,7 @@ include __DIR__ . '/../../header.php';
 
       <aside class="wt-ptc-v2__recap">
         <div class="wt-ptc-v2__recap-item">
-          <small><?= e(t('shortlinks.today')) ?></small>
+          <small><?= e(t('common.today')) ?></small>
           <strong>+<?= e($fmt($ptcStats['today'])) ?></strong>
           <em><?= e(t('common.coins')) ?></em>
         </div>
@@ -142,7 +142,7 @@ include __DIR__ . '/../../header.php';
           <em><?= e(t('ptc.ads')) ?></em>
         </div>
         <div class="wt-ptc-v2__recap-item">
-          <small><?= e(t('shortlinks.lifetime')) ?></small>
+          <small><?= e(t('common.lifetime')) ?></small>
           <strong>+<?= e($fmt($ptcStats['total'])) ?></strong>
           <em><?= e(t('common.coins')) ?></em>
         </div>
@@ -182,16 +182,16 @@ include __DIR__ . '/../../header.php';
         <h2><?= e(t('ptc.empty_title')) ?></h2>
         <p><?= e(t('ptc.empty')) ?></p>
         <a class="wt-btn wt-btn--ghost" href="<?= e(wt_url('/tasks/')) ?>">
-          ← <?= e(t('shortlinks.back_to_hub')) ?>
+          ← <?= e(t('common.back_to_hub')) ?>
         </a>
       </div>
     <?php elseif (empty($visibleRows)): ?>
       <div class="wt-ptc-v2__empty" data-reveal>
         <span class="wt-ptc-v2__empty-icon" aria-hidden="true">🤷</span>
-        <h2><?= e(t('shortlinks.filter_empty_title')) ?></h2>
-        <p><?= e(t('shortlinks.filter_empty')) ?></p>
+        <h2><?= e(t('common.filter_empty_title')) ?></h2>
+        <p><?= e(t('common.filter_empty')) ?></p>
         <a class="wt-btn wt-btn--ghost" href="<?= e(wt_url('/tasks/ptc/?f=all')) ?>">
-          <?= e(t('shortlinks.see_all')) ?>
+          <?= e(t('common.see_all')) ?>
         </a>
       </div>
     <?php else: ?>
@@ -219,11 +219,11 @@ include __DIR__ . '/../../header.php';
                 </span>
               <?php elseif ($state === 'locked'): ?>
                 <span class="wt-ptc-v2__pill wt-ptc-v2__pill--locked">
-                  ⏱ <?= e(t('shortlinks.cooldown')) ?>
+                  ⏱ <?= e(t('common.cooldown')) ?>
                 </span>
               <?php else: ?>
                 <span class="wt-ptc-v2__pill wt-ptc-v2__pill--ready">
-                  ✓ <?= e(t('shortlinks.ready')) ?>
+                  ✓ <?= e(t('common.ready')) ?>
                 </span>
               <?php endif; ?>
             </header>
@@ -262,7 +262,7 @@ include __DIR__ . '/../../header.php';
                 <small><?= e(t('ptc.next_view_in')) ?></small>
                 <strong data-countdown
                         data-target="<?= e($ad['next_view_at']) ?>"
-                        data-label-ready="<?= e(t('shortlinks.ready_now')) ?>">
+                        data-label-ready="<?= e(t('common.ready_now')) ?>">
                   …
                 </strong>
               </div>

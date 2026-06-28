@@ -45,21 +45,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && csrf_check($_POST['_csrf'] ?? null)
         wt_config_set('ads.banner_300', (string)($_POST['banner_300'] ?? ''));
         $notice = t('admin.ads.saved');
     } elseif ($action === 'save_adsterra_api') {
-        // Sauvegarde du token API + domain ID pour le dashboard de revenus
-        wt_config_set('ads.adsterra_api_token', trim((string)($_POST['adsterra_api_token'] ?? '')));
+        // Sauvegarde du token API + domain ID pour le dashboard de revenus.
+        // Le token est un secret → chiffré en base (cohérent avec les autres
+        // credentials). Préservation : si le champ est vide, on garde l'existant.
+        $tokenInput = trim((string)($_POST['adsterra_api_token'] ?? ''));
+        if ($tokenInput !== '') {
+            $tokenStore = function_exists('wt_encrypt') ? wt_encrypt($tokenInput) : $tokenInput;
+            wt_config_set('ads.adsterra_api_token', $tokenStore);
+        }
+        // (si vide : on ne touche pas au token existant)
         wt_config_set('ads.adsterra_domain_id', trim((string)($_POST['adsterra_domain_id'] ?? '')));
         $notice = t('admin.ads.saved');
-    } elseif ($action === 'save_zones' && !empty($_POST['zones']) && is_array($_POST['zones'])) {
-        $stmt = $db->prepare("UPDATE ad_zones SET code = ?, active = ? WHERE k = ?");
-        foreach ($_POST['zones'] as $k => $z) {
-            $code   = (string)($z['code'] ?? '');
-            $active = !empty($z['active']) ? 1 : 0;
-            $key    = (string) $k;
-            $stmt->bind_param('sis', $code, $active, $key);
-            $stmt->execute();
+    } elseif ($action === 'save_zones') {
+        // La détection d'action est séparée de la validation des données :
+        // si zones est absent/vide, on le signale au lieu d'ignorer en silence.
+        $zonesPost = $_POST['zones'] ?? null;
+        if (!is_array($zonesPost) || $zonesPost === []) {
+            $error = t('admin.ads.zones_empty');
+        } else {
+            $stmt = $db->prepare("UPDATE ad_zones SET code = ?, active = ? WHERE k = ?");
+            $updated = 0;
+            foreach ($zonesPost as $k => $z) {
+                $code   = (string)($z['code'] ?? '');
+                $active = !empty($z['active']) ? 1 : 0;
+                $key    = (string) $k;
+                $stmt->bind_param('sis', $code, $active, $key);
+                $stmt->execute();
+                $updated += $stmt->affected_rows > 0 ? 1 : 0;
+            }
+            $stmt->close();
+            $notice = t('admin.ads.zones_saved');
         }
-        $stmt->close();
-        $notice = t('admin.ads.zones_saved');
+    } else {
+        // Action POST non reconnue : on le signale au lieu d'ignorer en silence
+        $error = t('admin.ads.unknown_action');
     }
 }
 
@@ -78,6 +97,9 @@ $banner300   = (string) cfg('ads.banner_300', '');
 
 // API Publisher Adsterra (dashboard revenus)
 $adsterraToken    = (string) cfg('ads.adsterra_api_token', '');
+// On ne montre jamais le token (placeholder seulement). La fonction
+// wt_adsterra_fetch_stats() le relit et le déchiffre elle-même au besoin.
+$adsterraTokenSet = $adsterraToken !== '';
 $adsterraDomainId = (string) cfg('ads.adsterra_domain_id', '');
 
 // Récupération des stats si demandé (bouton "Actualiser les stats")
@@ -237,8 +259,9 @@ include __DIR__ . '/../header.php';
           <input type="hidden" name="action" value="save_adsterra_api">
           <div style="margin-bottom:.8rem">
             <label style="display:block;margin-bottom:.3rem"><strong><?= e(t('admin.ads.stats_token_label')) ?></strong></label>
-            <input class="wt-input wt-mono" type="text" name="adsterra_api_token"
-                   value="<?= e($adsterraToken) ?>" placeholder="X-API-Key">
+            <input class="wt-input wt-mono" type="password" name="adsterra_api_token"
+                   autocomplete="new-password"
+                   placeholder="<?= $adsterraTokenSet ? '••••••••••••••••• (token enregistré)' : 'X-API-Key' ?>">
             <small class="wt-muted"><?= e(t('admin.ads.stats_token_hint')) ?></small>
           </div>
           <div style="margin-bottom:.8rem">

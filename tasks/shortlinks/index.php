@@ -130,37 +130,6 @@ include __DIR__ . '/../../header.php';
               else: ?>ℹ<?php endif; ?>
         &nbsp;<?= e($callbackToast['text']) ?>
       </div>
-      <script>
-      /* Nettoie l'URL (supprime ?success=...&msg=...&credited=...) + fade le toast
-         après quelques secondes. Sans ça, l'utilisateur garderait dans l'historique
-         et la barre d'adresse une URL polluée par les paramètres callback. */
-      (function () {
-        // 1) Nettoie l'URL IMMÉDIATEMENT via history.replaceState
-        //    (pas de rechargement, pas de nouvelle entrée dans l'historique)
-        if (window.history && window.history.replaceState) {
-          const cleanUrl = window.location.pathname;  // /tasks/shortlinks/
-          window.history.replaceState({}, document.title, cleanUrl);
-        }
-        // 2) Fade le toast après 6s puis le retire du DOM
-        const toast = document.querySelector('[data-sl-callback-toast]');
-        if (toast) {
-          setTimeout(function () {
-            toast.style.transition = 'opacity .4s ease, max-height .4s ease, margin .4s ease, padding .4s ease';
-            toast.style.opacity = '0';
-            toast.style.maxHeight = toast.offsetHeight + 'px';
-            // forcer un reflow pour que la transition se lance
-            void toast.offsetHeight;
-            toast.style.maxHeight = '0';
-            toast.style.marginTop = '0';
-            toast.style.marginBottom = '0';
-            toast.style.paddingTop = '0';
-            toast.style.paddingBottom = '0';
-            toast.style.overflow = 'hidden';
-            setTimeout(function () { toast.remove(); }, 500);
-          }, 6000);
-        }
-      })();
-      </script>
     <?php endif; ?>
 
     <!-- ====== HEADER ====== -->
