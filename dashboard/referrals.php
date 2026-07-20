@@ -178,6 +178,12 @@ include __DIR__ . '/../header.php';
       </section>
 
     </section>
+
+    <?php $_ad = wt_ad_zone('dashboard_referrals_bottom'); if ($_ad !== ''): ?>
+      <div class="wt-ad-zone wt-ad-zone--bottom" style="margin-top:1.5rem;text-align:center">
+        <?= $_ad ?>
+      </div>
+    <?php endif; ?>
   </div>
 </main>
 

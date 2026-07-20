@@ -12,7 +12,7 @@
  */
 declare(strict_types=1);
 require __DIR__ . '/../includes/init.php';
-require __DIR__ . '/../includes/cron.php';
+require_once __DIR__ . '/../includes/cron.php';
 
 $adminUser   = require_admin();
 $pageTitle   = t('admin.title') . ' — ' . t('admin.cron');

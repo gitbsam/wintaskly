@@ -14,7 +14,7 @@
  *                et journalise une transaction de type 'admin'.
  */
 require __DIR__ . '/../includes/init.php';
-require __DIR__ . '/../includes/payout_dispatcher.php';
+require_once __DIR__ . '/../includes/payout_dispatcher.php';
 $adminUser   = require_admin();
 
 $pageTitle   = t('admin.title') . ' — ' . t('admin.withdrawals');

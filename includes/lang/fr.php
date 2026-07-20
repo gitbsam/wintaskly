@@ -278,6 +278,7 @@ return [
     'admin.wd.refuse'       => 'Refuser',
     'admin.wd.refuse_reason'=> 'Motif du refus',
     'admin.wd.refunded'     => 'Les Coins sont automatiquement re-crédités en cas de refus.',
+    'admin.wd.auto'         => 'Envoi automatique',
     'common.confirm'      => 'Confirmer',
     // ----- v3 auth hub ------------------------------------------------------
     'auth.identifier'      => 'E-mail ou nom d’utilisateur',

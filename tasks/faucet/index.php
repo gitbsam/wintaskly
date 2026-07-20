@@ -96,6 +96,12 @@ include __DIR__ . '/../../header.php';
       include __DIR__ . '/_stepper.php';
     ?>
 
+    <?php $_ad = wt_ad_zone('faucet_index_top'); if ($_ad !== ''): ?>
+      <div class="wt-ad-zone wt-ad-zone--top" style="margin:1rem 0;text-align:center">
+        <?= $_ad ?>
+      </div>
+    <?php endif; ?>
+
     <section class="wt-faucet-v2__hero" data-reveal>
       <picture class="wt-faucet-v2__logo" aria-hidden="true">
         <source srcset="<?= e(wt_url('/media/wintaskly/img/logo-dark-192.png')) ?>"

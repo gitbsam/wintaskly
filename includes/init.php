@@ -47,7 +47,7 @@ if (!defined('WT_PERIOD_DASHBOARD_DAYS')) {
 // L'URL latest.json est configurable via la BDD (clé config 'update.feed_url')
 // pour permettre de changer de canal (stable/beta) sans redéployer.
 if (!defined('WT_VERSION')) {
-    define('WT_VERSION', '8.22.0');
+    define('WT_VERSION', '8.24.0');
     define('WT_VERSION_CHANNEL', 'stable');  // stable | beta | dev
     define('WT_UPDATE_FEED_DEFAULT', 'https://gitbsam.github.io/wintaskly/latest.json');
 }
@@ -485,4 +485,29 @@ if (is_banned($_currentUid)) {
        . '<style>body{font-family:system-ui;padding:3rem;text-align:center}</style>'
        . '<h1>Accès refusé</h1><p>Votre accès est suspendu pour activité suspecte.</p>';
     exit;
+}
+
+// ----------------------------------------------------------------------
+// 10) On définit l'EUR à 1 par défaut
+// ----------------------------------------------------------------------
+$ratesToEur = [
+    'EUR' => 1.0
+];
+
+// ----------------------------------------------------------------------
+// 11) Détection et sécurisation de la devise via le cookie (EUR par défaut)
+// ----------------------------------------------------------------------
+$fiat_currency = $_COOKIE['fiat_currency'] ?? 'EUR';
+if (!in_array($fiat_currency, ['EUR', 'USD'])) {
+    $fiat_currency = 'EUR';
+}
+
+// ----------------------------------------------------------------------
+// 12) On définit Rates Cache Json
+// ----------------------------------------------------------------------
+$rates_file = __DIR__ . '/rates_cache.json';
+$rates = [];
+
+if (file_exists($rates_file)) {
+    $rates = json_decode(file_get_contents($rates_file), true);
 }

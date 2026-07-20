@@ -40,6 +40,7 @@ declare(strict_types=1);
  * @return array ['ok' => bool, 'message' => string, 'txid' => ?string,
  *                'manual_required' => bool, 'retry' => bool]
  */
+if (!function_exists('wt_payout_dispatch')) {
 function wt_payout_dispatch(array $withdrawal): array
 {
     $db = db();
@@ -114,6 +115,7 @@ function wt_payout_dispatch(array $withdrawal): array
         'retry' => false,
     ];
 }
+}
 
 /**
  * Handler FaucetPay.
@@ -123,6 +125,7 @@ function wt_payout_dispatch(array $withdrawal): array
  *
  * Paramètres requis : api_key, currency, amount, to (adresse)
  */
+if (!function_exists('wt_payout_faucetpay')) {
 function wt_payout_faucetpay(array $withdrawal, array $method, array $creds): array
 {
     if (empty($creds['api_key'])) {
@@ -134,9 +137,33 @@ function wt_payout_faucetpay(array $withdrawal, array $method, array $creds): ar
         ];
     }
 
+    // 1) Mapping des multiplicateurs selon la plus petite unité (Satoshi, Cents, Sun, Wei, etc.)
+    $multipliers = [
+        // Cryptos (8, 6, 18 décimales)
+        'BTC'  => 100000000,
+        'BCH'  => 100000000,
+        'LTC'  => 100000000,
+        'DOGE' => 100000000,
+        'TRX'  => 1000000,
+        'XRP'  => 1000000,
+        'ETH'  => 1000000000000000000,
+
+        // Stablecoins & Monnaies Fiduciaires (2 décimales / Cents)
+        'USD'  => 100,
+        'USDC' => 100, // Note : Sur la blockchain USDC a parfois 6 décimales (1000000), mais FaucetPay le traite souvent à 2 ou 8 selon leur API. 100 ou 100000000 fonctionne selon leur doc de réception. Si l'API attend des dollars classiques, laissez 100.
+        'EUR'  => 100,
+        'EURO' => 100, // Sécurité si écrit en toutes lettres dans votre BDD
+
+        // Valeur de secours par défaut (8 décimales standard)
+        'DEFAULT' => 100000000 
+    ];
+
+    $currencyElement = strtoupper((string) $withdrawal['payout_currency']);
+    $multiplier = $multipliers[$currencyElement] ?? $multipliers['DEFAULT'];
+
     $payload = [
         'api_key'  => (string) $creds['api_key'],
-        'amount'   => (string) $withdrawal['payout_amount'],
+        'amount'   => (string) round($withdrawal['payout_amount'] * $multiplier),
         'to'       => (string) $withdrawal['payout_address'],
         'currency' => strtoupper((string) $withdrawal['payout_currency']),
     ];
@@ -179,8 +206,16 @@ function wt_payout_faucetpay(array $withdrawal, array $method, array $creds): ar
 
     /* Erreurs métier (pas de retry) */
     $errMap = [
-        456 => 'Solde FaucetPay insuffisant — rechargez votre compte',
-        457 => 'Adresse de destination invalide',
+        200 => 'Succès.',
+        301 => 'Accès refusé, vous n\'utilisez pas une API autorisée.',
+        402 => 'Vous ne disposez pas de fonds suffisants pour cette transaction. — Rechargez votre compte',
+        403 => 'Clé API invalide. Veuillez vous connecter à votre compte et utiliser une clé API valide.',
+        404 => 'Méthode API invalide utilisée.',
+        405 => 'Vous envoyez un montant de paiement invalide à l\'utilisateur.',
+        410 => 'Devise invalide.',
+        450 => 'La limite d\'envoi fixée par le propriétaire du robinet a été atteinte, veuillez réessayer plus tard.',
+        456 => 'Cette adresse n\'appartient à aucun utilisateur.',
+        457 => 'L\'utilisateur a été blacklisté (par vos soins) auprès du système API du robinet. Voir l\'outil de signalement et de mise sur liste noire.',
         458 => 'Montant inférieur au minimum FaucetPay',
         459 => 'Clé API FaucetPay invalide',
     ];
@@ -189,15 +224,17 @@ function wt_payout_faucetpay(array $withdrawal, array $method, array $creds): ar
     return [
         'ok' => false,
         'message' => $msg,
-        'manual_required' => in_array($status, [457, 458], true),
+        'manual_required' => in_array($status, [456, 458], true),
         'retry' => in_array($status, [], true),  // pas de retry sur erreurs métier
     ];
+}
 }
 
 /**
  * Stub Payeer — à implémenter quand tu auras un compte marchand.
  * Doc API : https://payeer.com/en/for-business/main/api-merchant
  */
+if (!function_exists('wt_payout_payeer')) {
 function wt_payout_payeer(array $withdrawal, array $method, array $creds): array
 {
     return [
@@ -207,11 +244,13 @@ function wt_payout_payeer(array $withdrawal, array $method, array $creds): array
         'retry' => false,
     ];
 }
+}
 
 /**
  * Stub Binance Pay — à implémenter.
  * Doc API : https://developers.binance.com/docs/binance-pay/api-payout
  */
+if (!function_exists('wt_payout_binance')) {
 function wt_payout_binance(array $withdrawal, array $method, array $creds): array
 {
     return [
@@ -221,12 +260,14 @@ function wt_payout_binance(array $withdrawal, array $method, array $creds): arra
         'retry' => false,
     ];
 }
+}
 
 /**
  * Helper interne : POST HTTP avec curl, retour décodé JSON.
  *
  * @return array ['ok' => bool, 'data' => array|null, 'error' => string]
  */
+if (!function_exists('wt_payout_http_post')) {
 function wt_payout_http_post(string $url, array $payload, int $timeoutSec = 15): array
 {
     if (!function_exists('curl_init')) {
@@ -261,4 +302,5 @@ function wt_payout_http_post(string $url, array $payload, int $timeoutSec = 15):
     }
 
     return ['ok' => true, 'data' => $data, 'error' => ''];
+}
 }

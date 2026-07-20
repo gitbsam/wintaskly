@@ -234,6 +234,7 @@ $_ogImage = $_seoOgImage !== '' ? $_seoOgImage : $_base . '/media/wintaskly/img/
 <meta name="twitter:creator"    content="<?= e($_seoTwitter) ?>">
 <?php endif; ?>
 
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;500;600;700;800&family=Manrope:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
@@ -246,6 +247,7 @@ $_ogImage = $_seoOgImage !== '' ? $_seoOgImage : $_base . '/media/wintaskly/img/
 <meta name="wt-base"    content="<?= e($_base) ?>">
 <meta name="wt-theme"   content="<?= e($_theme) ?>">
 <meta name="wt-authed"  content="<?= $_u ? '1' : '0' ?>">
+<meta name='admaven-placement' content=BqTwGrjgG>
 
 <script>
   // Anti-FOUC : applique la classe de thème immédiatement

@@ -97,6 +97,12 @@ include __DIR__ . '/../../header.php';
       <?php endif; ?>
     </header>
 
+    <?php $_ad = wt_ad_zone('bingo_top'); if ($_ad !== ''): ?>
+      <div class="wt-ad-zone wt-ad-zone--top" style="margin:1.5rem 0;text-align:center">
+        <?= $_ad ?>
+      </div>
+    <?php endif; ?>
+
     <!-- Notification de fin de partie -->
     <?php if ($isEnding): ?>
       <div class="wt-bingo-ending" data-reveal>

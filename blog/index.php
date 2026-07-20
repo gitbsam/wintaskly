@@ -125,6 +125,12 @@ include __DIR__ . '/../header.php';
       <?php endif; ?>
     <?php endif; ?>
 
+    <?php $_ad = wt_ad_zone('blog_index_bottom'); if ($_ad !== ''): ?>
+      <div class="wt-ad-zone wt-ad-zone--bottom" style="margin-top:1.5rem;text-align:center">
+        <?= $_ad ?>
+      </div>
+    <?php endif; ?>
+
   </div>
 </main>
 

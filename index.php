@@ -841,8 +841,16 @@ include __DIR__ . '/header.php';
 
     <ul class="wt-paymethods__list">
       <?php foreach ($payMethods as $i => $m):
-          $minUnit = (float)$m['min_coins'] / max(1, (float)$m['coins_per_unit']);
-          $minFmt  = rtrim(rtrim(number_format($minUnit, 2, '.', ' '), '0'), '.');
+          // Taux : EUR = 1.0 (base système, jamais dans le cache Binance).
+          // Fallback 1.0 si le taux d'une devise est absent (cache pas encore
+          // généré) — évite un crash public (division par zéro/null corrigée).
+          $mCurrency = (string) $m['currency'];
+          $mRate = ($mCurrency === 'EUR') ? 1.0 : (float) ($rates[$mCurrency] ?? 0);
+          if ($mRate <= 0) { $mRate = 1.0; }
+          $minUnit = (float)$m['min_coins'] / max(1, (float)$m['coins_per_unit']) / $mRate;
+          $isCrypto = in_array($mCurrency, ['BTC', 'ETH', 'BCH', 'LTC', 'DOGE', 'TRX', 'XRP', 'USDC']);
+          $decimals = $isCrypto ? 8 : 2;
+          $minFmt  = e(rtrim(rtrim(number_format($minUnit, $decimals, '.', ' '), '0'), '.'));
       ?>
         <li class="wt-paymethods__item" style="--idx:<?= (int)$i ?>">
           <a class="wt-paymethods__chip" href="<?= e($payHref) ?>"
@@ -978,6 +986,12 @@ include __DIR__ . '/header.php';
       </small>
     </div>
   </section>
+  <?php endif; ?>
+
+  <?php $_ad = wt_ad_zone('home_footer'); if ($_ad !== ''): ?>
+    <div class="wt-ad-zone wt-ad-zone--bottom" style="margin:1.5rem 0;text-align:center">
+      <?= $_ad ?>
+    </div>
   <?php endif; ?>
 
 </main>

@@ -85,14 +85,51 @@ include __DIR__ . '/../header.php';
       </header>
 
       <!-- Hero balance card -->
+      <?php
+      // Taux de secours par défaut au cas où le JSON est inaccessible
+      $usd_rate = $rates['USD'] ?? 0.8741; // 1 USD = 0.8741 EUR
+
+      // Calcul de la contre-valeur fiat
+      $user_coins = (float)($u['coins'] ?? 0);
+      $coins_per_unit = 10000; // 10 000 coins = 1 EUR (valeur de base)
+
+      $value_in_eur = $user_coins / $coins_per_unit;
+
+      if ($fiat_currency === 'USD') {
+        // Conversion EUR vers USD (Division car le taux du JSON est exprimé en base EUR)
+        $fiat_value = $value_in_eur / $usd_rate;
+        $fiat_symbol = '$';
+      } else {
+        $fiat_value = $value_in_eur;
+        $fiat_symbol = '€';
+      }
+
+      // Formatage final (ex: "4.00 €" ou "4.58 $")
+      $formatted_fiat = number_format($fiat_value, 2, '.', ',') . ' ' . $fiat_symbol;
+      ?>
       <section class="wt-wd-v2__balance-hero" data-reveal>
         <span class="wt-wd-v2__balance-icon" aria-hidden="true">💰</span>
         <div>
           <small><?= e(t('wd.balance')) ?></small>
-          <strong>
-            <?= e(wt_format_coins((float)$u['coins'])) ?>
-            <em><?= e(t('common.coins')) ?></em>
-          </strong>
+          <div class="flex flex-col items-start gap-0.5">
+            <strong>
+              <?= e(wt_format_coins((float)$u['coins'])) ?>
+              <em class="not-italic font-normal"><?= e(t('common.coins')) ?></em>
+            </strong>
+
+            <div class="flex items-center gap-1.5 text-xs">
+              <small>
+                = <?= e($formatted_fiat) ?>
+                  
+              </small>
+
+              <!-- Bouton interactif pour basculer de devise -->
+              <button onclick="toggleFiatCurrency()" class="wt-btn wt-btn--primary inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-gradient-to-r from-yellow-400 via-amber-500 to-orange-500 text-white text-xs font-bold shadow hover:brightness-110 active:scale-95 transition-all" title="Changer de devise">
+                <?= e($fiat_currency) ?>
+                  
+                </button>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -108,6 +145,15 @@ include __DIR__ . '/../header.php';
       <?php endif; ?>
 
       <!-- Formulaire de retrait -->
+      <?php
+      if (is_array($rates)) {
+        // Fusionne les taux du JSON dans le tableau de base
+        $ratesToEur = array_merge($ratesToEur, $rates);
+      }
+
+      // Encodage sécurisé de votre tableau $ratesToEur pour le JavaScript
+      $json_rates_js = json_encode($ratesToEur);
+      ?>
       <section class="wt-wd-v2__form-card" data-reveal>
         <form method="post"
               action="<?= e(wt_url('/api/withdraw_submit.php')) ?>"
@@ -175,7 +221,11 @@ include __DIR__ . '/../header.php';
           <!-- Récap conversion live -->
           <div class="wt-wd-v2__summary">
             <span><?= e(t('wd.payout')) ?></span>
-            <strong data-wd-payout>0 USD</strong>
+            <strong data-wd-payout>
+              <!-- Structure scindée pour cibler facilement la valeur et la devise -->
+              <strong data-wd-payout-val>0</strong>
+              <strong data-wd-payout-currency>USD</strong>
+            </strong>
           </div>
 
           <button type="submit" class="wt-btn wt-btn--primary wt-btn--lg wt-btn--block"
@@ -249,17 +299,87 @@ include __DIR__ . '/../header.php';
 <script>
 // Update address label/placeholder when method changes (V7 préservé)
 (function(){
+  // Récupère le tableau fusionné contenant l'EUR à 1.0 + les taux du JSON
+  var currencyRates = <?= $json_rates_js ?>;
+
   var form = document.querySelector('[data-wd-form]');
   if (!form) return;
-  var labelEl = form.querySelector('[data-wd-address-label]');
-  var input   = form.querySelector('[data-wd-address-input]');
-  form.querySelectorAll('input[name="method_id"]').forEach(function(r){
-    r.addEventListener('change', function(){
-      if (labelEl) labelEl.textContent = r.getAttribute('data-address-label') || '';
-      if (input)   input.placeholder    = r.getAttribute('data-address-placeholder') || '';
-    });
+
+  var labelEl     = form.querySelector('[data-wd-address-label]');
+  var inputEl     = form.querySelector('[data-wd-address-input]');
+  var amountInput = form.querySelector('input[name="coins_amount"]');
+  var payoutVal   = form.querySelector('[data-wd-payout-val]');
+  var currencyEl  = form.querySelector('[data-wd-payout-currency]');
+
+  function updatePayout() {
+    var activeRadio = form.querySelector('input[name="method_id"]:checked');
+    if (!activeRadio) return;
+
+    var addressLabel = activeRadio.getAttribute('data-address-label') || '';
+    var addressPlaceholder = activeRadio.getAttribute('data-address-placeholder') || '';
+    var currency = (activeRadio.getAttribute('data-currency') || 'EUR').toUpperCase();
+
+    if (labelEl) labelEl.textContent = addressLabel;
+    if (inputEl) inputEl.placeholder = addressPlaceholder;
+    if (currencyEl) currencyEl.textContent = currency;
+
+    if (amountInput && payoutVal) {
+      var coins = parseFloat(amountInput.value) || 0;
+      var coinsPerEur = parseFloat(activeRadio.getAttribute('data-ratio')) || 10000;
+      
+      // 1. Assis sur la base 10 000 Coins = 1 EUR
+      var valueInEur = coins / coinsPerEur;
+
+      // 2. Pioche le taux dans la variable issue de $ratesToEur
+      var rate = parseFloat(currencyRates[currency]) || 1.0;
+
+      // 3. Calcul final
+      var result = valueInEur / rate;
+
+      var isFiat = ['USD', 'EUR', 'GBP', 'USDC'].includes(currency);
+      var decimals = isFiat ? 2 : 8;
+      var formattedResult = result.toFixed(decimals);
+
+      if (!isFiat) {
+        formattedResult = formattedResult.replace(/\.?0+$/, "");
+        if (formattedResult === "" || formattedResult === ".") {
+          formattedResult = "0";
+        }
+      }
+
+      payoutVal.textContent = formattedResult;
+    }
+  }
+
+  form.querySelectorAll('input[name="method_id"]').forEach(function(radio){
+    radio.addEventListener('change', updatePayout);
   });
+
+  if (amountInput) {
+    amountInput.addEventListener('input', updatePayout);
+  }
+
+  updatePayout();
 })();
+
+function toggleFiatCurrency() {
+  // Récupération de la devise actuelle dans les cookies
+  const cookies = document.cookie.split('; ').reduce((acc, row) => {
+    const [key, val] = row.split('=');
+    acc[key] = val;
+    return acc;
+  }, {});
+  
+  const currentCurrency = cookies['fiat_currency'] || 'EUR';
+  const newCurrency = currentCurrency === 'EUR' ? 'USD' : 'EUR';
+  
+  // Sauvegarde dans le cookie pour 1 an
+  const maxAge = 365 * 24 * 60 * 60;
+  document.cookie = `fiat_currency=${newCurrency}; max-age=${maxAge}; path=/; SameSite=Lax`;
+  
+  // Rechargement de la page pour appliquer la modification en PHP
+  window.location.reload();
+}
 </script>
 
 <?php include __DIR__ . '/../footer.php'; ?>

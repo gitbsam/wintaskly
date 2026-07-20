@@ -160,6 +160,12 @@ include __DIR__ . '/../../header.php';
       </aside>
     </header>
 
+    <?php $_ad = wt_ad_zone('shortlinks_index_top'); if ($_ad !== ''): ?>
+      <div class="wt-ad-zone wt-ad-zone--top" style="margin:1.25rem 0;text-align:center">
+        <?= $_ad ?>
+      </div>
+    <?php endif; ?>
+
     <!-- ====== FILTRE PAR ÉTAT ====== -->
     <?php if ($totalAll > 0): ?>
       <nav class="wt-sl-v2__filters" data-reveal aria-label="<?= e(t('shortlinks.filter_label')) ?>">

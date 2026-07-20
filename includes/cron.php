@@ -35,6 +35,7 @@ $GLOBALS['wt_cron_tasks'] = $GLOBALS['wt_cron_tasks'] ?? [];
  *                                 un string résumé (ou throw en cas d'erreur)
  * @param int      $every_seconds  Fréquence minimale entre 2 runs (en secondes)
  */
+if (!function_exists('wt_cron_register')) {
 function wt_cron_register(string $key, callable $callable, int $every_seconds = 3600): void
 {
     $GLOBALS['wt_cron_tasks'][$key] = [
@@ -42,11 +43,13 @@ function wt_cron_register(string $key, callable $callable, int $every_seconds = 
         'every' => max(1, $every_seconds),
     ];
 }
+}
 
 /**
  * Récupère le timestamp UTC du dernier run "success" pour une tâche.
  * Retourne 0 si la tâche n'a jamais tourné avec succès.
  */
+if (!function_exists('wt_cron_last_success')) {
 function wt_cron_last_success(string $task): int
 {
     $db = db();
@@ -62,6 +65,7 @@ function wt_cron_last_success(string $task): int
     $stmt->close();
     return (int)($row['ts'] ?? 0);
 }
+}
 
 /**
  * Lance l'exécution de toutes les tâches dont l'écart depuis le dernier
@@ -70,6 +74,7 @@ function wt_cron_last_success(string $task): int
  * @param  bool $force  Si true, ignore les délais et lance tout.
  * @return array<string, array{status:string, summary:?string, error:?string}>
  */
+if (!function_exists('wt_cron_run')) {
 function wt_cron_run(bool $force = false): array
 {
     $report = [];
@@ -130,6 +135,7 @@ function wt_cron_run(bool $force = false): array
 
     return $report;
 }
+}
 
 /**
  * V8 — Lance UNE seule tâche par sa clé (force=true ignore le délai).
@@ -140,6 +146,7 @@ function wt_cron_run(bool $force = false): array
  * @return array{status:string,summary:?string,error:?string}
  * @throws RuntimeException Si la tâche n'existe pas dans le registry
  */
+if (!function_exists('wt_cron_run_one')) {
 function wt_cron_run_one(string $key, bool $force = true): array
 {
     if (!isset($GLOBALS['wt_cron_tasks'][$key])) {
@@ -182,22 +189,26 @@ function wt_cron_run_one(string $key, bool $force = true): array
         return ['status' => 'error', 'summary' => null, 'error' => $err];
     }
 }
+}
 
 /**
  * Génère un nouveau token cron sécurisé et le stocke en config.
  * Utilisé au premier déploiement ou via /admin/cron.php (rotation).
  */
+if (!function_exists('wt_cron_rotate_token')) {
 function wt_cron_rotate_token(): string
 {
     $tok = bin2hex(random_bytes(24));  // 48 chars
     cfg_set('cron.token', $tok);
     return $tok;
 }
+}
 
 /**
  * Charge tous les fichiers de tâches dans cron/tasks/*.php.
  * Chaque fichier doit appeler wt_cron_register() à son chargement.
  */
+if (!function_exists('wt_cron_load_tasks')) {
 function wt_cron_load_tasks(): void
 {
     $dir = __DIR__ . '/../cron/tasks';
@@ -205,4 +216,5 @@ function wt_cron_load_tasks(): void
     foreach (glob($dir . '/*.php') ?: [] as $file) {
         require_once $file;
     }
+}
 }

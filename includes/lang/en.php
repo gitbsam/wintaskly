@@ -262,6 +262,7 @@ return [
     'admin.wd.refuse'       => 'Refuse',
     'admin.wd.refuse_reason'=> 'Refusal reason',
     'admin.wd.refunded'     => 'Coins are automatically refunded upon refusal.',
+    'admin.wd.auto'         => 'Automatic payout',
     'common.confirm'      => 'Confirm',
     // ----- v3 auth hub ------------------------------------------------------
     'auth.identifier'      => 'Email or username',

@@ -106,6 +106,12 @@ include __DIR__ . '/header.php';
       <?php endforeach; ?>
     </div>
 
+    <?php $_ad = wt_ad_zone('achievements_bottom'); if ($_ad !== ''): ?>
+      <div class="wt-ad-zone wt-ad-zone--bottom" style="margin-top:1.5rem;text-align:center">
+        <?= $_ad ?>
+      </div>
+    <?php endif; ?>
+
   </div>
 </main>
 

@@ -674,3 +674,76 @@ if (!function_exists('wt_adsterra_error_msg')) {
         return $map[$code] ?? (t('admin.ads.stats_err_generic') . ' (' . $code . ')');
     }
 }
+
+/**
+ * Récupère le prix en temps réel d'une paire sur Binance
+ * @param string $symbol Exemple: "BTCEUR", "LTCEUR", "EURUSDT"
+ * @return float|null Retourne le prix ou null en cas d'erreur
+ */
+function getBinancePrice(string $symbol): ?float {
+    // Nettoyer le symbole (en majuscules, sans espaces)
+    $symbol = strtoupper(trim($symbol));
+
+    $url = "https://api.binance.com/api/v3/ticker/price?symbol=" . urlencode($symbol);
+
+    // Initialisation de cURL
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 5); // Timeout rapide de 5s pour ne pas bloquer le site
+    curl_setopt($ch, CURLOPT_USERAGENT, 'Wintaskly-Admin/1.0');
+
+    $response = curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+
+    if ($httpCode === 200 && $response) {
+        $data = json_decode($response, true);
+        if (isset($data['price'])) {
+            return (float)$data['price'];
+        }
+    }
+
+    return null;
+}
+
+/**
+ * Récupère les taux de change EUR depuis le cache local (ou Binance si expiré)
+ */
+function get_cached_rates(): array {
+    $cacheFile = __DIR__ . '/rates_cache.json';
+    $cacheLifetime = 600; // 10 minutes en secondes
+
+    // Si le fichier existe et est récent, on le lit
+    if (file_exists($cacheFile) && (time() - filemtime($cacheFile)) < $cacheLifetime) {
+        $data = json_decode(file_get_contents($cacheFile), true);
+        if (is_array($data)) {
+            return $data;
+        }
+    }
+
+    // Sinon, on recrée le cache en interrogeant Binance
+    $currencies = ['USD', 'BTC', 'LTC', 'DOGE', 'BCH', 'TRX', 'ETH', 'USDC', 'XRP'];
+
+    foreach ($currencies as $cur) {
+        if ($cur === 'USD' || $cur === 'USDC') {
+            $price = getBinancePrice('EURUSDC'); 
+            $ratesToEur[$cur] = $price > 0 ? round(1 / $price, 4) : 0.92;
+        } else {
+            // Tentative paire EUR directe
+            $price = getBinancePrice($cur . 'EUR');
+            if ($price !== null && $price > 0) {
+                $ratesToEur[$cur] = $price;
+            } else {
+                // Secours via USDC
+                $priceUsdc = getBinancePrice($cur . 'USDC');
+                $eurUsdc = getBinancePrice('EURUSDC');
+                $ratesToEur[$cur] = ($priceUsdc > 0 && $eurUsdc > 0) ? round($priceUsdc / $eurUsdc, 6) : 1.0;
+            }
+        }
+    }
+
+    // Sauvegarde dans le fichier cache
+    file_put_contents($cacheFile, json_encode($ratesToEur));
+    return $ratesToEur;
+}

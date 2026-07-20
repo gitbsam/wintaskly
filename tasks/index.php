@@ -138,7 +138,9 @@ include __DIR__ . '/../header.php';
 <main class="wt-main wt-tasks-v2">
 
   <?php $_ad = wt_ad_zone('tasks_index_top'); if ($_ad !== ''): ?>
-    <div class="wt-ad-zone wt-ad-zone--top" style="margin-bottom:1.5rem;text-align:center"><?= $_ad ?></div>
+    <div class="wt-ad-zone wt-ad-zone--top" style="margin-bottom:1.5rem;text-align:center">
+      <?= $_ad ?>
+    </div>
   <?php endif; ?>
 
   <!-- =============== HEADER + RÉCAP UTILISATEUR =============== -->
@@ -422,15 +424,23 @@ include __DIR__ . '/../header.php';
         <p class="wt-task-card__desc"><?= e(t('bingo.tasks_desc')) ?></p>
 
         <div class="wt-task-card__price">
-          <span class="wt-task-card__price-amount">🎰 <?= e(t('bingo.tasks_jackpot')) ?></span>
+          <span class="wt-task-card__price-amount">🎰 
+            <small><?= e(t('bingo.tasks_jackpot')) ?></small>
+          </span>
         </div>
 
         <ul class="wt-task-card__meta">
-          <li><?= e(t('bingo.tasks_meta_free')) ?></li>
-          <li><?= e(t('bingo.tasks_meta_daily')) ?></li>
+          <li>
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            <?= e(t('bingo.tasks_meta_free')) ?>
+          </li>
+          <li>
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            <?= e(t('bingo.tasks_meta_daily')) ?>
+          </li>
         </ul>
 
-        <a class="wt-task-card__cta" href="<?= e(wt_url('/tasks/bingo/')) ?>">
+        <a class="wt-btn wt-btn--primary wt-task-card__cta" href="<?= e(wt_url('/tasks/bingo/')) ?>">
           <?= e(t('common.start')) ?>
         </a>
       </article>

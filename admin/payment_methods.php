@@ -61,8 +61,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && csrf_check($_POST['_csrf'] ?? null)
                 $stmt->execute();
                 $stmt->close();
                 $notice = t('admin.deleted');
+                $success = true;
             }
+        } else {
+            $errorMsg = "ID invalide.";
         }
+
+        // --- ENVOI DE LA RÉPONSE AU JAVASCRIPT ---
+        header('Content-Type: application/json');
+
+        if ($success) {
+            echo json_encode([
+                'ok' => true,
+                'redirect' => 'payment_methods.php' // Redirige proprement pour afficher le message flash
+            ]);
+        } else {
+            echo json_encode([
+                'ok' => false,
+                'error' => $errorMsg ?: 'Une erreur inconnue est survenue.'
+            ]);
+        }
+        exit; // Très important : arrête l'exécution ici pour ne pas envoyer de HTML !
+    
     } elseif ($action === 'toggle') {
         $id = (int)($_POST['id'] ?? 0);
         if ($id > 0) {
@@ -86,6 +106,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && csrf_check($_POST['_csrf'] ?? null)
         $sortOrder  = (int)   ($_POST['sort_order'] ?? 0);
         $active     = !empty($_POST['active']) ? 1 : 0;
         $autoPayout = !empty($_POST['auto_payout']) ? 1 : 0;
+
+        // 1. Récupérer les taux à jour
+        $ratesToEur = get_cached_rates();
+
+        $currency = strtoupper(trim($_POST['currency'] ?? 'EUR'));
+        $rateInEur = (float)($ratesToEur[$currency] ?? 1.0);
+
+        // 2. Si c'est une crypto, on écrase l'input de l'admin pour lier 1 crypto au prix réel en coins
+        // Formule : 10 000 coins * prix de la crypto en EUR = nombre de coins pour 1 unité de cette crypto
+        $isCrypto = !in_array($currency, ['EUR', 'USD', 'USDC', 'USDT']);
+
+        if ($isCrypto) {
+            // Ex: BTC à 57 000 EUR -> coins_per_unit deviendra 570 000 000
+            $coins_per_unit = $coinsUnit * $rateInEur;
+        } else {
+            // Pour l'USD ou l'EUR, on garde ce que l'administrateur a configuré (ex: 10000)
+            $coins_per_unit = $coinsUnit;
+        }
 
         // ---- Credentials API : merge avec l'existant ----
         // Politique de sécurité :
@@ -247,7 +285,35 @@ $totalUsage = 0;
 foreach ($rows as $r) $totalUsage += (int)$r['usage_count'];
 
 /* ---------- Devises courantes proposées en datalist ----------------- */
-$currencyOptions = ['USD', 'EUR', 'BTC', 'LTC', 'DOGE', 'BCH', 'TRX', 'ETH', 'USDT', 'XRP'];
+$currencyOptions = ['USD', 'EUR', 'BTC', 'LTC', 'DOGE', 'BCH', 'TRX', 'ETH', 'USDC', 'XRP'];
+
+foreach ($currencyOptions as $cur) {
+    if ($cur === 'USD' || $cur === 'USDC') {
+        // L'USDC est conforme et dispose d'une excellente liquidité face à l'Euro sur Binance
+        // 1 USDC = X EUR => le calcul est (1 / Prix de EURUSDC)
+        $eurUsdcPrice = getBinancePrice('EURUSDC'); 
+        if ($eurUsdcPrice > 0) {
+            $ratesToEur[$cur] = round(1 / $eurUsdcPrice, 4);
+        } else {
+            $ratesToEur[$cur] = 0.92; // Valeur de secours EUR/USD
+        }
+    } else {
+        // Pour les cryptos, on cherche la paire directe en EUR (ex: BTCEUR, LTCEUR)
+        $cryptoPrice = getBinancePrice($cur . 'EUR');
+        if ($cryptoPrice !== null) {
+            $ratesToEur[$cur] = $cryptoPrice;
+        } else {
+            // Si pas de paire EUR directe, on passe par l'USDC (conforme Europe) pour convertir
+            $cryptoPriceUsdc = getBinancePrice($cur . 'USDC');
+            $eurUsdcPrice = getBinancePrice('EURUSDC');
+            if ($cryptoPriceUsdc > 0 && $eurUsdcPrice > 0) {
+                $ratesToEur[$cur] = round($cryptoPriceUsdc / $eurUsdcPrice, 6);
+            } else {
+                $ratesToEur[$cur] = 1.0; // Secours
+            }
+        }
+    }
+}
 
 include __DIR__ . '/../header.php';
 ?>
@@ -386,17 +452,69 @@ include __DIR__ . '/../header.php';
             $previewCoins = (float)($editing['coins_per_unit'] ?? 10000);
             $previewCur   = (string)($editing['currency'] ?? 'USD');
             $previewMin   = (float)($editing['min_coins'] ?? 10000);
+
+            // On récupère le taux de change de la devise par rapport à l'EUR (par défaut 1.0)
+            $rateInEur = (float)($ratesToEur[$previewCur] ?? 1.0);
+
+            // Pour éviter la division par zéro si l'API échoue
+            $safeRateInEur = max($rateInEur, 0.000001);
+
+            // Calcul : Combien valent 10 000 Coins dans la devise cible ?
+            // Si EUR : 1 / 1 = 1 EUR
+            // Si USD : 1 / 0.92 = 1.08 USD
+            // Si BTC : 1 / 57159 = 0.00001749 BTC
+            $valueInTargetCurrency = 1 / $safeRateInEur;
+
+            // Détection si c'est une crypto pour le nombre de décimales du retrait minimum
+            $isCrypto = in_array($previewCur, ['BTC', 'ETH', 'BCH', 'LTC', 'DOGE', 'TRX', 'XRP', 'USDC']);
           ?>
           <div class="wt-admin-v2__preview-box">
             💡 <strong><?= e(t('admin.pm.example')) ?></strong> :
-            <?= e(rtrim(rtrim(number_format($previewCoins, 4, '.', ''), '0'), '.')) ?>
-            Coins = 1 <?= e($previewCur) ?>
-            <?php if ($previewMin > 0): ?>
-              · <?= e(t('admin.pm.min_payout')) ?> :
-              <?= e(rtrim(rtrim(number_format($previewMin / max($previewCoins, 0.0001), 6, '.', ''), '0'), '.')) ?>
-              <?= e($previewCur) ?>
+
+            <?php if ($previewCur === 'EUR'): ?>
+                <!-- Cas 1 : EURO -->
+                <?= e(number_format($previewCoins, 0, '.', ' ')) ?> Coins = 1 EUR
+
+                <?php if ($previewMin > 0): ?>
+                    · <?= e(t('admin.pm.min_payout')) ?> :
+                    <strong><?= e(number_format($previewMin / $previewCoins, 2, '.', '')) ?> EUR</strong>
+                <?php endif; ?>
+            <?php else: ?>
+
+                <!-- Cas 2 : Autre devise (USD, BTC, etc.) convertie dynamiquement -->
+                <?= e(number_format($previewCoins, 0, '.', ' ')) ?> Coins = 
+                <strong>
+                    <?php 
+                    // 2 décimales pour les monnaies fiduciaires (USD), 8 décimales pour les cryptos
+                    $decimals = $isCrypto ? 8 : 2;
+                    echo e(rtrim(rtrim(number_format($valueInTargetCurrency, $decimals, '.', ''), '0'), '.'));
+                    ?> 
+                    <?= e($previewCur) ?>
+                </strong>
+
+                <span style="opacity: 0.85; font-size: 0.9em; display: block; margin-top: 0.25rem;">
+                    (Taux actuel : 1 <?= e($previewCur) ?> ≈ <?= e(number_format($rateInEur, $isCrypto ? 2 : 4, ',', ' ')) ?> EUR)
+                </span>
+
+                <?php if ($previewMin > 0): ?>
+                    · <?= e(t('admin.pm.min_payout')) ?> : 
+                    <strong>
+                        <?php 
+                        // Retrait minimum converti dans la devise cible : (Min Coins / 10000) * Valeur en Devise Cible
+                        $rawMinPayout = ($previewMin / $previewCoins) * $valueInTargetCurrency;
+                        echo e(rtrim(rtrim(number_format($rawMinPayout, $isCrypto ? 8 : 4, '.', ''), '0'), '.'));
+                        ?> 
+                        <?= e($previewCur) ?>
+                    </strong>
+
+                    <!-- Rappel de la valeur réelle de ce retrait en Euro pour l'admin -->
+                    <span style="color: #64748b; font-size: 0.9em;">
+                        (≈ <?= e(number_format($previewMin / $previewCoins, 2, ',', ' ')) ?> EUR)
+                    </span>
+                <?php endif; ?>
+
             <?php endif; ?>
-          </div>
+        </div>
 
           <!-- ====== Limites ====== -->
           <h3 class="wt-admin-v2__form-section">📏 <?= e(t('admin.pm.section_limits')) ?></h3>
@@ -590,13 +708,43 @@ include __DIR__ . '/../header.php';
                   </header>
 
                   <div class="wt-admin-v2__entry-meta">
+                    <?php 
+                    // Calcul du retrait min réel stocké en BDD
+                    $minPayout = $r['min_coins'] / max((float)$r['coins_per_unit'], 0.0001);
+
+                    $dbrCoinsPerUnit = (float)($r['coins_per_unit'] ?? 10000);
+                    $dbrCurrency     = (string)($r['currency'] ?? NULL);
+                    $dbrMinCoins     = (float)($r['min_coins'] ?? 10000);
+                    ?>
+                    <!-- Affichage propre de la balance unitaire -->
                     <span title="<?= e(t('admin.pm.coins_per_unit')) ?>">
-                      ⚖ 1 <?= e($r['currency']) ?> =
-                      <?= e(rtrim(rtrim(number_format((float)$r['coins_per_unit'], 4, '.', ''), '0'), '.')) ?> Coins
+                        ⚖ 1 <?php
+                        $rate = (float)($rates[$dbrCurrency] ?? 1.0);
+                        $coinsPerUnit = $rate * (float)$dbrCoinsPerUnit;
+                        echo e($dbrCurrency); ?> = 
+                        <strong>
+                            <?= e(number_format((float)$coinsPerUnit, 0, '.', ' ')) ?>
+                                
+                        </strong> Coins
                     </span>
+                    <!-- Affichage du retrait minimum en crypto (jusqu'à 8 décimales) ou fiat (2 décimales) -->
                     <span title="<?= e(t('admin.pm.min_payout')) ?>">
-                      ⬇ <?= e(rtrim(rtrim(number_format($minPayout, 6, '.', ''), '0'), '.')) ?>
-                      <?= e($r['currency']) ?> min
+                        ⬇ 
+                        <strong>
+                            <?php
+                            // Pour éviter la division par zéro si l'API échoue
+                            $safeRate = max($rate, 0.000001);
+                            $valueTargetCurrency = 1 / $safeRate * $minPayout;
+                            $isCryptoX = in_array($dbrCurrency, ['BTC', 'LTC', 'DOGE', 'BCH', 'TRX', 'ETH', 'USDC', 'XRP']);
+                            $decimalX = $isCryptoX ? 8 : 2;
+                            echo e(rtrim(rtrim(number_format((float)$valueTargetCurrency, $decimalX, '.', ''), '0'), '.'));
+                            ?>
+                                
+                        </strong> 
+                        <?= e($r['currency']) ?> min 
+                        <span style="color: #64748b; font-size: 0.85em;">
+                            (≈ <?= e(number_format($r['min_coins'] / $dbrCoinsPerUnit, 2, ',', ' ')) ?> EUR)
+                        </span>
                     </span>
                     <?php if ($r['max_coins'] !== null): ?>
                       <span title="<?= e(t('admin.pm.max_coins')) ?>">

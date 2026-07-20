@@ -41,7 +41,7 @@ $db->begin_transaction();
 try {
     /* 1) Méthode */
     $stmt = $db->prepare(
-        "SELECT id, label, currency, coins_per_unit, min_coins, max_coins, active
+        "SELECT id, label, currency, coins_per_unit, min_coins, max_coins, auto_payout, active
            FROM withdrawal_methods
           WHERE id = ? LIMIT 1 FOR UPDATE"
     );
@@ -103,10 +103,30 @@ try {
         exit;
     }
 
+    $autoPayout = match ((int)$m['auto_payout']) {
+        0 => 'manual',
+        1 => 'auto',
+        default => 'auto_failed',
+    };
+
     /* 4) Calcul du payout */
-    $ratio   = max(1.0, (float) $m['coins_per_unit']);
-    $payout  = round($coins / $ratio, 8);
     $currency = (string) $m['currency'];
+    $ratio    = max(1.0, (float) $m['coins_per_unit']);
+    // Taux de change : l'EUR est toujours 1.0 (base du système, jamais dans
+    // le cache Binance). Pour les autres devises, on lit $rates (cache
+    // rates_cache.json). Si le taux est absent/nul (cache pas encore généré,
+    // devise inconnue du cache), on rejette proprement plutôt que de planter
+    // en division par zéro/null (bug critique corrigé ici).
+    $rateForCurrency = ($currency === 'EUR')
+        ? 1.0
+        : (float) ($rates[$currency] ?? 0);
+    if ($rateForCurrency <= 0) {
+        $db->rollback();
+        header('Location: ' . wt_url('/dashboard/withdraw.php?err=server'));
+        exit;
+    }
+    $payout = ($coins / $ratio) / $rateForCurrency;
+    $payout = round($payout, 8);
     $ipBin   = wt_ip_bin();
 
     /* 5) Décrémente solde */
@@ -120,12 +140,12 @@ try {
     $stmt = $db->prepare(
         "INSERT INTO withdrawals
             (user_id, method_id, coins_amount, payout_amount,
-             payout_currency, payout_address, ip)
-         VALUES (?, ?, ?, ?, ?, ?, ?)"
+             payout_currency, payout_address, payout_mode, ip)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
     );
     $stmt->bind_param(
-        'iiddsss',
-        $u['id'], $methodId, $coins, $payout, $currency, $address, $ipBin
+        'iiddssss',
+        $u['id'], $methodId, $coins, $payout, $currency, $address, $autoPayout, $ipBin
     );
     $stmt->execute();
     $wdId = $stmt->insert_id;
