@@ -216,6 +216,10 @@ return [
     'ref.share.fb'      => 'Share on Facebook',
     'ref.share.tg'      => 'Share on Telegram',
     'ref.share.wa'      => 'Share on WhatsApp',
+    // Bannières promotionnelles parrainage
+    'ref.banners_title' => 'Banners to share',
+    'ref.banners_lead' => 'Add one of these banners to your website, blog or forum: your referral link is already built in.',
+    'ref.banners_copy' => 'Copy code',
     'ref.list'          => 'My referrals',
     'ref.col.joined'    => 'Joined on',
     'ref.empty'         => 'You have no referrals yet. Share your link!',

@@ -230,6 +230,10 @@ return [
     'ref.share.fb'      => 'Partager sur Facebook',
     'ref.share.tg'      => 'Partager sur Telegram',
     'ref.share.wa'      => 'Partager sur WhatsApp',
+    // Bannières promotionnelles parrainage
+    'ref.banners_title' => 'Bannières à partager',
+    'ref.banners_lead' => 'Ajoute une de ces bannières sur ton site, blog ou forum : ton lien de parrainage y est déjà intégré.',
+    'ref.banners_copy' => 'Copier le code',
     'ref.list'          => 'Mes filleuls',
     'ref.col.joined'    => 'Inscrit le',
     'ref.empty'         => 'Tu n’as pas encore de filleul. Partage ton lien !',

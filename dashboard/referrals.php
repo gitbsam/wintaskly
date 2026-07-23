@@ -136,6 +136,47 @@ include __DIR__ . '/../header.php';
         </div>
       </section>
 
+      <?php
+        // ============ BANNIÈRES PROMOTIONNELLES ============
+        // Affichées uniquement si au moins une bannière active existe.
+        // Le code d'intégration inclut le lien de parrainage PERSONNEL
+        // de l'utilisateur, pour qu'il puisse promouvoir Wintaskly avec
+        // un visuel sur son propre site/forum/blog.
+        $refBanners = [];
+        if ($res = $db->query("SELECT * FROM ad_banners WHERE active = 1 ORDER BY size_key ASC")) {
+            $refBanners = $res->fetch_all(MYSQLI_ASSOC);
+        }
+      ?>
+      <?php if ($refBanners): ?>
+      <section class="wt-ref-v2__banners" data-reveal>
+        <h2 class="wt-dash-v2__section-title">🖼️ <?= e(t('ref.banners_title')) ?></h2>
+        <p class="wt-muted" style="font-size:.9rem"><?= e(t('ref.banners_lead')) ?></p>
+
+        <div class="wt-ref-v2__banners-grid">
+          <?php foreach ($refBanners as $i => $bn):
+              $bnUrl  = wt_url('/media/wintaskly/img/banners/' . $bn['filename']);
+              $embed  = '<a href="' . $refUrl . '" target="_blank" rel="noopener">'
+                      . '<img src="' . $bnUrl . '" width="' . (int) $bn['width']
+                      . '" height="' . (int) $bn['height'] . '" alt="Wintaskly"></a>';
+          ?>
+            <div class="wt-ref-v2__banner-card">
+              <img src="<?= e($bnUrl) ?>" alt="" style="max-width:100%;height:auto;border-radius:6px">
+              <div class="wt-muted" style="font-size:.8rem;margin:.4rem 0">
+                <?= (int) $bn['width'] ?>×<?= (int) $bn['height'] ?>
+              </div>
+              <textarea class="wt-input" id="wt-banner-embed-<?= (int) $i ?>" readonly
+                        style="font-size:.7rem;height:60px" rows="3"><?= e($embed) ?></textarea>
+              <button class="wt-btn wt-btn--ghost wt-btn--xs" type="button"
+                      data-copy-target="#wt-banner-embed-<?= (int) $i ?>"
+                      data-copy-label="<?= e(t('admin.cron.copied')) ?>" style="margin-top:.4rem">
+                📋 <?= e(t('ref.banners_copy')) ?>
+              </button>
+            </div>
+          <?php endforeach; ?>
+        </div>
+      </section>
+      <?php endif; ?>
+
       <!-- ============ LISTE DES FILLEULS ============ -->
       <section class="wt-ref-v2__invitees" data-reveal>
         <h2 class="wt-dash-v2__section-title">👥 <?= e(t('ref.list')) ?></h2>

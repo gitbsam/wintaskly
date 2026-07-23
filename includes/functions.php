@@ -397,10 +397,13 @@ if (!function_exists('wt_ad_zone')) {
         if (!isset($GLOBALS['__wt_ad_zones_cache'])) {
             $GLOBALS['__wt_ad_zones_cache'] = [];
             try {
-                $res = db()->query("SELECT k, code FROM ad_zones WHERE active = 1");
+                $res = db()->query("SELECT k, code, banner_id FROM ad_zones WHERE active = 1");
                 if ($res instanceof mysqli_result) {
                     while ($r = $res->fetch_assoc()) {
-                        $GLOBALS['__wt_ad_zones_cache'][$r['k']] = (string) $r['code'];
+                        $GLOBALS['__wt_ad_zones_cache'][$r['k']] = [
+                            'code'      => (string) $r['code'],
+                            'banner_id' => $r['banner_id'] !== null ? (int) $r['banner_id'] : null,
+                        ];
                     }
                     $res->free();
                 }
@@ -410,21 +413,69 @@ if (!function_exists('wt_ad_zone')) {
             }
         }
 
-        $code = $GLOBALS['__wt_ad_zones_cache'][$key] ?? '';
+        $zone = $GLOBALS['__wt_ad_zones_cache'][$key] ?? null;
+        if ($zone === null) {
+            return '';
+        }
+        $code = $zone['code'];
 
         // On n'affiche pas les placeholders de démo (commentaires HTML seuls)
         $stripped = trim(preg_replace('/<!--.*?-->/s', '', $code));
-        if ($stripped === '') {
-            return '';
+
+        if ($stripped !== '') {
+            // Priorité 1 : régie publicitaire configurée (code réel)
+            return '<div class="wt-ad-scale"><div class="wt-ad-scale__inner">'
+                 . $code
+                 . '</div></div>';
         }
 
-        // Enveloppe le code dans un conteneur de mise à l'échelle responsive.
-        // Les iframes pub à taille fixe (A-ADS 728x90, etc.) sont ainsi
-        // réduites proportionnellement sur mobile au lieu de déborder.
-        // Le script wt-ads-responsive.js calcule l'échelle automatiquement.
-        return '<div class="wt-ad-scale"><div class="wt-ad-scale__inner">'
-             . $code
-             . '</div></div>';
+        // Priorité 2 : pas de régie → bannière maison uploadée, si liée et active
+        if ($zone['banner_id'] !== null) {
+            $banner = wt_ad_banner_get($zone['banner_id']);
+            if ($banner !== null) {
+                $src = e(wt_url('/media/wintaskly/img/banners/' . $banner['filename']));
+                $signup = e(wt_url('/auth/signup.php'));
+                return '<div class="wt-ad-scale"><div class="wt-ad-scale__inner">'
+                     . '<a href="' . $signup . '" class="wt-ad-house">'
+                     . '<img src="' . $src . '" width="' . (int) $banner['width'] . '"'
+                     . ' height="' . (int) $banner['height'] . '" alt="Wintaskly" loading="lazy">'
+                     . '</a></div></div>';
+            }
+        }
+
+        // Priorité 3 : ni régie ni bannière → rien (comportement sûr existant)
+        return '';
+    }
+
+    /**
+     * Récupère une bannière uploadée active par son ID (avec cache mémoire
+     * par requête). Retourne null si absente, inactive, ou table indisponible.
+     *
+     * @return array{id:int,filename:string,width:int,height:int,size_key:string}|null
+     */
+    function wt_ad_banner_get(int $id): ?array
+    {
+        if (!isset($GLOBALS['__wt_ad_banners_cache'])) {
+            $GLOBALS['__wt_ad_banners_cache'] = [];
+            try {
+                $res = db()->query("SELECT id, filename, width, height, size_key FROM ad_banners WHERE active = 1");
+                if ($res instanceof mysqli_result) {
+                    while ($r = $res->fetch_assoc()) {
+                        $GLOBALS['__wt_ad_banners_cache'][(int) $r['id']] = [
+                            'id'       => (int) $r['id'],
+                            'filename' => (string) $r['filename'],
+                            'width'    => (int) $r['width'],
+                            'height'   => (int) $r['height'],
+                            'size_key' => (string) $r['size_key'],
+                        ];
+                    }
+                    $res->free();
+                }
+            } catch (Throwable $e) {
+                error_log('[Wintaskly ad_banner] ' . $e->getMessage());
+            }
+        }
+        return $GLOBALS['__wt_ad_banners_cache'][$id] ?? null;
     }
 }
 

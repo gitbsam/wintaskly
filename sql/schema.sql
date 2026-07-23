@@ -267,14 +267,34 @@ CREATE TABLE IF NOT EXISTS `homepage_blocks` (
 -- ---------------------------------------------------------------------
 -- AD ZONES
 -- ---------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS `ad_zones` (
-  `id`     INT UNSIGNED NOT NULL AUTO_INCREMENT,
-  `k`      VARCHAR(40) NOT NULL,
-  `label`  VARCHAR(120) NOT NULL,
-  `code`   TEXT NOT NULL,
-  `active` TINYINT(1) NOT NULL DEFAULT 1,
+-- ---------------------------------------------------------------------
+-- BANNIÈRES UPLOADÉES (maison) — alternative à une régie publicitaire
+-- Stockées physiquement dans media/wintaskly/img/banners/
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `ad_banners` (
+  `id`            INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `size_key`      VARCHAR(20) NOT NULL COMMENT '728x90, 468x60, 300x250 ou other',
+  `width`         SMALLINT UNSIGNED NOT NULL,
+  `height`        SMALLINT UNSIGNED NOT NULL,
+  `filename`      VARCHAR(190) NOT NULL COMMENT 'Nom de fichier dans media/wintaskly/img/banners/',
+  `original_name` VARCHAR(190) NULL,
+  `active`        TINYINT(1) NOT NULL DEFAULT 1,
+  `uploaded_at`   DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `uniq_k` (`k`)
+  KEY `idx_size_active` (`size_key`, `active`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS `ad_zones` (
+  `id`        INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `k`         VARCHAR(40) NOT NULL,
+  `label`     VARCHAR(120) NOT NULL,
+  `code`      TEXT NOT NULL,
+  `banner_id` INT UNSIGNED NULL COMMENT 'Bannière maison utilisée si aucune régie (code) configurée',
+  `active`    TINYINT(1) NOT NULL DEFAULT 1,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uniq_k` (`k`),
+  KEY `idx_banner` (`banner_id`),
+  CONSTRAINT `fk_adz_banner` FOREIGN KEY (`banner_id`) REFERENCES `ad_banners`(`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- ---------------------------------------------------------------------
