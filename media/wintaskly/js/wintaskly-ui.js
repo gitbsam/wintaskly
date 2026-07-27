@@ -162,6 +162,25 @@
     } catch (e) {}
   }
 
+  // ----- 4bis) HEARTBEAT DE PRÉSENCE (suivi visiteurs V8.26.0) --------
+  // Garde le statut "en ligne" à jour même si l'utilisateur reste
+  // longtemps sur une même page (sans rechargement). Ne tourne que si
+  // l'onglet est visible, pour ne pas gaspiller de requêtes en arrière-plan.
+  (function () {
+    const INTERVAL_MS = 90000; // 90s
+    function pingHeartbeat() {
+      if (document.visibilityState !== 'visible') return;
+      const fd = new FormData();
+      fd.append('_csrf', META('csrf-token'));
+      fetch(BASE + '/api/track_heartbeat.php', { method: 'POST', body: fd, credentials: 'same-origin' })
+        .catch(() => {});
+    }
+    setInterval(pingHeartbeat, INTERVAL_MS);
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') pingHeartbeat();
+    });
+  })();
+
   // ----- 5) TOAST helper (exposé pour wintaskly.js) -------------------
   window.WT = window.WT || {};
   window.WT.toast = function (message, type = 'ok', duration = 3000) {

@@ -26,6 +26,13 @@ $_u     = current_user();
 $_theme = $GLOBALS['WT_THEME'] ?? 'dark';
 $_lang  = $GLOBALS['WT_LANG_CODE'] ?? 'fr';
 
+// Suivi visiteurs (V8.26.0) : on ne tracke pas les pages d'admin
+// (activité de l'admin lui-même, pas pertinente pour "qui visite le site").
+if (function_exists('wt_track_visitor')
+    && strpos((string) ($_SERVER['REQUEST_URI'] ?? ''), '/admin/') === false) {
+    wt_track_visitor();
+}
+
 /* --------------------------------------------------------------------
  * $_base : URL de base du site, normalisée pour ÉVITER LES DOUBLES SLASHES.
  *

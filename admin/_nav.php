@@ -264,6 +264,15 @@ $base = rtrim($GLOBALS['WT_CONFIG']['base_url'] ?? '', '/');
       Bannières
     </a>
 
+    <a href="<?= $base ?>/admin/visitors_analytics.php" class="<?= $adminActive==='visitors' ? 'is-active' : '' ?>" style="--idx:4">
+      <span class="wt-admin-v2__nav-ico" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"/><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/>
+        </svg>
+      </span>
+      Visiteurs
+    </a>
+
     <a href="<?= $base ?>/admin/daily-bonus.php" class="<?= $adminActive==='daily' ? 'is-active' : '' ?>" style="--idx:5">
       <span class="wt-admin-v2__nav-ico" aria-hidden="true">
         <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">

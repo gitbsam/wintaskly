@@ -1712,6 +1712,12 @@ return [
     'legal.privacy_p_transfers'  => 'Some of our sub-processors (Stripe, PayPal, Google) may process your data in the United States. These transfers are framed by the Standard Contractual Clauses (SCC) approved by the European Commission and the EU-US Data Privacy Framework.',
     'legal.privacy_h_cookies'    => 'Cookies',
     'legal.privacy_p_cookies'    => 'Cookie usage is detailed in our',
+    // Politique de confidentialité — section statistiques de fréquentation (V8.26.0)
+    'legal.privacy_h_analytics' => 'Audience statistics',
+    'legal.privacy_p_analytics' => 'To understand how the site is used and detect technical issues, we record certain browsing information (page visited, referrer, visit duration) via a technical session identifier. This tracking does not rely on any third-party advertising cookie.',
+    'legal.privacy_analytics_ip' => 'Your IP address is stored in a non-directly-readable technical form (encoded), never in plain text.',
+    'legal.privacy_analytics_retention' => 'This data is kept for a maximum of 90 days, then automatically deleted.',
+    'legal.privacy_analytics_nosharing' => 'This information is neither sold nor shared with third parties; it is used solely for site administration.',
     'legal.privacy_h_rights'     => 'Your rights',
     'legal.privacy_p_rights_intro' => 'Under GDPR, you have the following rights over your personal data:',
     'legal.privacy_right_access'   => 'Right of access',

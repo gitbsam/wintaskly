@@ -36,11 +36,17 @@ wt_cron_register('clean_expired', static function (): string {
     $res = $db->query("DELETE FROM cron_runs WHERE started_at < UTC_TIMESTAMP() - INTERVAL " . WT_PERIOD_CRON_CLEAN_DAYS . " DAY");
     $counts['cron_runs'] = $db->affected_rows;
 
+    // Sessions visiteurs > 90 jours (garde un historique raisonnable pour
+    // les analytics sans laisser la table grossir indéfiniment)
+    $res = $db->query("DELETE FROM visitor_sessions WHERE last_activity < UTC_TIMESTAMP() - INTERVAL 90 DAY");
+    $counts['visitor_sessions'] = $db->affected_rows;
+
     return sprintf(
-        'Purge: tokens=%d, messages=%d, notifs=%d, cron_runs=%d',
+        'Purge: tokens=%d, messages=%d, notifs=%d, cron_runs=%d, visitor_sessions=%d',
         $counts['auth_tokens'],
         $counts['messages'],
         $counts['notifications'],
-        $counts['cron_runs']
+        $counts['cron_runs'],
+        $counts['visitor_sessions']
     );
 }, /* every */ 21600);  // 6 h

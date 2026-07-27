@@ -894,6 +894,32 @@ CREATE TABLE IF NOT EXISTS `admin_actions` (
   KEY `idx_admin`  (`admin_id`,  `created_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+-- ----------------------------------------------------------------------
+-- SUIVI DES VISITEURS EN TEMPS RÉEL (V8.26.0)
+-- Une ligne = une session technique (session_id PHP). L'IP est stockée
+-- sous forme binaire anonymisée (VARBINARY, comme includes/fraud.php),
+-- jamais en clair. Le referrer n'est capturé qu'à la création de la
+-- ligne (source de trafic d'origine), jamais écrasé ensuite par les
+-- pages internes visitées.
+-- ----------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `visitor_sessions` (
+  `id`            BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `session_key`   CHAR(40)     NOT NULL,
+  `user_id`       INT UNSIGNED NULL,
+  `ip_bin`        VARBINARY(16) NULL,
+  `user_agent`    VARCHAR(255) NULL,
+  `current_page`  VARCHAR(255) NULL,
+  `referrer`      VARCHAR(255) NULL,
+  `started_at`    DATETIME NOT NULL,
+  `last_activity` DATETIME NOT NULL,
+  `page_views`    INT UNSIGNED NOT NULL DEFAULT 1,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uniq_session` (`session_key`),
+  KEY `idx_last_activity` (`last_activity`),
+  KEY `idx_user` (`user_id`),
+  CONSTRAINT `fk_vs_user` FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 CREATE TABLE IF NOT EXISTS `cron_runs` (
   `id`          BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   `task`        VARCHAR(60)  NOT NULL,

@@ -37,6 +37,11 @@ const WT_STANDARD_SIZES = [
     '728x90'  => [728, 90],
     '468x60'  => [468, 60],
     '300x250' => [300, 250],
+    '320x50'  => [320, 50],
+    '320x100' => [320, 100],
+    '970x250' => [970, 250],
+    '160x600' => [160, 600],
+    '300x600' => [300, 600],
 ];
 const WT_TOLERANCE_PX = 2; // tolérance pour un "match exact"
 
@@ -351,7 +356,8 @@ include __DIR__ . '/../header.php';
         <span class="wt-eyebrow">🖼️ Bannières</span>
         <h1 class="wt-admin-v2__title">Bannières publicitaires (maison)</h1>
         <p class="wt-muted">
-          Upload intelligent : la taille (728×90, 468×60, 300×250) est détectée
+          Upload intelligent : la taille (728×90, 468×60, 300×250, 320×50, 320×100,
+          970×250, 160×600, 300×600) est détectée
           automatiquement. Si l'image est plus grande, un recadrage est proposé.
           Formats acceptés : PNG, JPG, WEBP (le GIF n'est pas accepté).
         </p>

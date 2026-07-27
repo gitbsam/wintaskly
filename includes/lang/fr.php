@@ -1777,6 +1777,12 @@ return [
     'legal.privacy_p_transfers'  => 'Certains de nos sous-traitants (Stripe, PayPal, Google) peuvent traiter vos données aux États-Unis. Ces transferts sont encadrés par les Clauses Contractuelles Types (CCT) approuvées par la Commission européenne et le cadre de protection des données UE-US.',
     'legal.privacy_h_cookies'    => 'Cookies',
     'legal.privacy_p_cookies'    => 'L\'usage des cookies est détaillé dans notre',
+    // Politique de confidentialité — section statistiques de fréquentation (V8.26.0)
+    'legal.privacy_h_analytics' => 'Statistiques de fréquentation',
+    'legal.privacy_p_analytics' => 'Pour comprendre comment le site est utilisé et détecter les problèmes techniques, nous enregistrons certaines informations de navigation (page consultée, provenance, durée de visite) via un identifiant de session technique. Ce suivi ne repose sur aucun cookie publicitaire tiers.',
+    'legal.privacy_analytics_ip' => 'Ton adresse IP est stockée sous une forme technique non lisible directement (chiffrée/encodée), jamais en clair.',
+    'legal.privacy_analytics_retention' => 'Ces données sont conservées 90 jours maximum, puis supprimées automatiquement.',
+    'legal.privacy_analytics_nosharing' => 'Ces informations ne sont ni vendues ni partagées avec des tiers ; elles servent uniquement à l\'administration du site.',
     'legal.privacy_h_rights'     => 'Vos droits',
     'legal.privacy_p_rights_intro' => 'Conformément au RGPD, vous disposez des droits suivants sur vos données personnelles :',
     'legal.privacy_right_access'   => 'Droit d\'accès',

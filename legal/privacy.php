@@ -184,8 +184,18 @@ include __DIR__ . '/../header.php';
           </p>
         </section>
 
+        <section id="analytics">
+          <h2>9. <?= e(t('legal.privacy_h_analytics')) ?></h2>
+          <p><?= e(t('legal.privacy_p_analytics')) ?></p>
+          <ul>
+            <li><?= e(t('legal.privacy_analytics_ip')) ?></li>
+            <li><?= e(t('legal.privacy_analytics_retention')) ?></li>
+            <li><?= e(t('legal.privacy_analytics_nosharing')) ?></li>
+          </ul>
+        </section>
+
         <section id="rights">
-          <h2>9. <?= e(t('legal.privacy_h_rights')) ?></h2>
+          <h2>10. <?= e(t('legal.privacy_h_rights')) ?></h2>
           <p><?= e(t('legal.privacy_p_rights_intro')) ?></p>
           <ul>
             <li><strong><?= e(t('legal.privacy_right_access')) ?></strong> —
@@ -205,7 +215,7 @@ include __DIR__ . '/../header.php';
         </section>
 
         <section id="security">
-          <h2>10. <?= e(t('legal.privacy_h_security')) ?></h2>
+          <h2>11. <?= e(t('legal.privacy_h_security')) ?></h2>
           <p><?= e(t('legal.privacy_p_security_intro')) ?></p>
           <ul>
             <li><?= e(t('legal.privacy_security_1')) ?></li>
@@ -217,12 +227,12 @@ include __DIR__ . '/../header.php';
         </section>
 
         <section id="minors">
-          <h2>11. <?= e(t('legal.privacy_h_minors')) ?></h2>
+          <h2>12. <?= e(t('legal.privacy_h_minors')) ?></h2>
           <p><?= nl2br(e(t('legal.privacy_p_minors'))) ?></p>
         </section>
 
         <section id="contact">
-          <h2>12. <?= e(t('legal.privacy_h_contact')) ?></h2>
+          <h2>13. <?= e(t('legal.privacy_h_contact')) ?></h2>
           <p>
             <?= e(t('legal.privacy_p_contact')) ?>
             <a href="<?= e(wt_url('/help/contact.php')) ?>">
