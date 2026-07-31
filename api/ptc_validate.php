@@ -36,6 +36,7 @@ try {
     /* 1) Verrou ligne — session + user + active */
     $stmt = $db->prepare(
         "SELECT s.id, s.ptc_id, s.captcha_target, s.started_at, s.expires_at, s.status,
+                s.heartbeat_count,
                 a.reward_coins, a.reward_xp, a.duration_seconds, a.cooldown_hours, a.title
            FROM ptc_sessions s
            JOIN ptc_ads a ON a.id = s.ptc_id
@@ -72,6 +73,25 @@ try {
     if ($elapsed < $minWait) {
         flag_cheat((int) $u['id'], 'ptc_too_fast', false);
         $upd = $db->prepare("UPDATE ptc_sessions SET status='rejected', reject_reason='too_fast' WHERE id = ?");
+        $upd->bind_param('i', $row['id']);
+        $upd->execute();
+        $upd->close();
+        $db->commit();
+        wt_json(['ok' => false, 'error' => t('faucet.cheat')]);
+    }
+
+    /* 2bis) Preuve de présence (battements reçus pendant que la fenêtre
+     * partenaire JS était ouverte). Empêche de démarrer une session puis
+     * d'appeler directement cette API après un simple délai, sans jamais
+     * avoir réellement ouvert la fenêtre partenaire (contournement du
+     * watcher JS via un script direct sur l'API). Tolérance 50% pour
+     * absorber la latence réseau et le throttling navigateur en arrière-plan. */
+    $heartbeatIntervalSec = 3;
+    $expectedHeartbeats   = (int) floor((int) $row['duration_seconds'] / $heartbeatIntervalSec);
+    $minHeartbeats         = max(1, (int) floor($expectedHeartbeats * 0.5));
+    if ((int) $row['heartbeat_count'] < $minHeartbeats) {
+        flag_cheat((int) $u['id'], 'ptc_no_heartbeat', false);
+        $upd = $db->prepare("UPDATE ptc_sessions SET status='rejected', reject_reason='no_heartbeat' WHERE id = ?");
         $upd->bind_param('i', $row['id']);
         $upd->execute();
         $upd->close();

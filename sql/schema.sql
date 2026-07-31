@@ -328,6 +328,8 @@ CREATE TABLE IF NOT EXISTS `ptc_sessions` (
   `expires_at`      DATETIME NOT NULL,
   `status`          ENUM('active','consumed','expired','rejected','cancelled') NOT NULL DEFAULT 'active',
   `reject_reason`   VARCHAR(120) NULL,
+  `heartbeat_count` SMALLINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'Nb de battements reçus pendant que la fenêtre partenaire était ouverte (preuve serveur anti-triche)',
+  `last_heartbeat_at` DATETIME NULL,
   `ip`              VARBINARY(16) NULL,
   `user_agent`      VARCHAR(255) NULL,
   PRIMARY KEY (`id`),
@@ -773,7 +775,15 @@ INSERT IGNORE INTO `homepage_blocks` (`k`,`title`,`content`,`visible`,`sort_orde
  ('how',
   'Comment ça marche ?',
   'Trois étapes : 1) Crée ton compte. 2) Réclame ton Faucet ou complète un shortlink. 3) Échange tes Coins.',
-  1, 3);
+  1, 3),
+ ('why',
+  'Pourquoi Wintaskly ?',
+  'Wintaskly a été créé pour rendre la monétisation des micro-tâches simple, transparente et sécurisée : chaque gain est traçable, chaque retrait est vérifiable, et notre système anti-fraude protège aussi bien les utilisateurs honnêtes que la valeur des récompenses.',
+  1, 4),
+ ('partners',
+  'Un écosystème de partenaires vérifiés',
+  'Les récompenses distribuées sur Wintaskly sont financées par nos partenaires publicitaires et réseaux d''offres. Les retraits sont traités via des prestataires de paiement reconnus.',
+  1, 5);
 
 -- ---------- ad zones ----------
 INSERT IGNORE INTO `ad_zones` (`k`,`label`,`code`,`active`) VALUES

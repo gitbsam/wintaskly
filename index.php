@@ -278,6 +278,48 @@ include __DIR__ . '/header.php';
     </div>
   </div>
 
+  <!-- ===================== POURQUOI WINTASKLY (V8.26) ============
+   * Section mission/confiance — recommandée pour rassurer avant la
+   * partie "transactionnelle" de la page (showcase, stats...).
+   * 4 piliers présentés en petites cartes, texte principal éditable
+   * depuis l'admin (table homepage_blocks, clé 'why').
+   ========================================================== -->
+  <?php if ($blockVisible('why')):
+    $whyPillars = [
+        ['icon' => 'M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z',
+         't' => t('home.why.pillar1.t'), 'd' => t('home.why.pillar1.d')],
+        ['icon' => 'M12 2 4 6v6c0 5 3.5 9 8 10 4.5-1 8-5 8-10V6l-8-4Z',
+         't' => t('home.why.pillar2.t'), 'd' => t('home.why.pillar2.d')],
+        ['icon' => 'M21 12V7H5a2 2 0 0 1 0-4h14v4M3 5v14a2 2 0 0 0 2 2h16v-5M18 12a2 2 0 0 0 0 4h4v-4Z',
+         't' => t('home.why.pillar3.t'), 'd' => t('home.why.pillar3.d')],
+        ['icon' => 'M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0',
+         't' => t('home.why.pillar4.t'), 'd' => t('home.why.pillar4.d')],
+    ];
+  ?>
+  <section class="wt-why" data-reveal>
+    <div class="wt-why__head">
+      <span class="wt-eyebrow">🧭 <?= e(t('home.why.eyebrow')) ?></span>
+      <h2 class="wt-section__title"><?= e($blockField('why', 'title', t('home.why.title'))) ?></h2>
+      <p class="wt-section__lead"><?= e($blockField('why', 'content', t('home.why.lead'))) ?></p>
+    </div>
+    <div class="wt-why__grid">
+      <?php foreach ($whyPillars as $i => $p): ?>
+        <div class="wt-why__card" style="--idx:<?= (int) $i ?>">
+          <span class="wt-why__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none"
+                 stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round">
+              <path d="<?= e($p['icon']) ?>"/>
+            </svg>
+          </span>
+          <h3><?= e($p['t']) ?></h3>
+          <p><?= e($p['d']) ?></p>
+        </div>
+      <?php endforeach; ?>
+    </div>
+  </section>
+  <?php endif; ?>
+
   <!-- ===================== TASKS SHOWCASE (V8) =================
    * 4 cards marketing présentant chaque module : icône SVG distinctive,
    * mini-pitch, récompense typique (lue depuis config), durée moyenne,
@@ -864,6 +906,36 @@ include __DIR__ . '/header.php';
         </li>
       <?php endforeach; ?>
     </ul>
+  </section>
+  <?php endif; ?>
+
+  <!-- ===================== PARTENAIRES / ÉCOSYSTÈME (V8.26) ======
+   * Explique d'où viennent les récompenses (réseaux pub/offerwalls)
+   * sans citer de marques précises (accords commerciaux confidentiels),
+   * complémentaire à Payment Methods qui liste déjà les moyens de
+   * retrait concrets (FaucetPay, Payeer, BTC).
+   ========================================================== -->
+  <?php if ($blockVisible('partners')): ?>
+  <section class="wt-partners" data-reveal>
+    <div class="wt-partners__head">
+      <span class="wt-eyebrow">🤝 <?= e(t('home.partners.eyebrow')) ?></span>
+      <h2 class="wt-section__title"><?= e($blockField('partners', 'title', t('home.partners.title'))) ?></h2>
+      <p class="wt-section__lead"><?= e($blockField('partners', 'content', t('home.partners.lead'))) ?></p>
+    </div>
+    <div class="wt-partners__grid">
+      <div class="wt-partners__card">
+        <h3><?= e(t('home.partners.ads.t')) ?></h3>
+        <p><?= e(t('home.partners.ads.d')) ?></p>
+      </div>
+      <div class="wt-partners__card">
+        <h3><?= e(t('home.partners.offers.t')) ?></h3>
+        <p><?= e(t('home.partners.offers.d')) ?></p>
+      </div>
+      <div class="wt-partners__card">
+        <h3><?= e(t('home.partners.pay.t')) ?></h3>
+        <p><?= e(t('home.partners.pay.d')) ?></p>
+      </div>
+    </div>
   </section>
   <?php endif; ?>
 

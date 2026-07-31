@@ -143,16 +143,19 @@
 
   /* ----- Cards génériques ----- */
   .wt-card__label {
-    @apply text-xs uppercase tracking-wider text-wt-text-mute font-semibold;
+    @apply text-xs uppercase tracking-wider font-semibold;
+    color: var(--wt-text-mute);
   }
   .wt-card__value {
     @apply font-display font-bold text-3xl leading-tight;
   }
   .wt-card__unit {
-    @apply text-sm text-wt-text-mute ml-1;
+    @apply text-sm ml-1;
+    color: var(--wt-text-mute);
   }
   .wt-card__hint {
-    @apply text-xs text-wt-text-mute mt-1;
+    @apply text-xs mt-1;
+    color: var(--wt-text-mute);
   }
 
   /* ----- Formulaires ----- */
@@ -166,10 +169,12 @@
     @apply flex gap-2 flex-wrap mt-2;
   }
   .wt-fieldset {
-    @apply border border-wt-border rounded-xl p-4 flex flex-col gap-3;
+    @apply border rounded-xl p-4 flex flex-col gap-3;
+    border-color: var(--wt-border);
   }
   .wt-field__label {
-    @apply text-xs uppercase tracking-wider text-wt-text-mute font-semibold mb-1;
+    @apply text-xs uppercase tracking-wider font-semibold mb-1;
+    color: var(--wt-text-mute);
   }
   .wt-field--check {
     @apply flex items-start gap-2 cursor-pointer;
@@ -181,9 +186,16 @@
     @apply text-sm py-1.5 px-2.5;
   }
   .wt-textarea {
-    @apply w-full px-3 py-2 rounded-lg bg-wt-bg-elev border border-wt-border text-wt-text;
-    @apply focus:outline-none focus:ring-2 focus:ring-wt-accent focus:border-wt-accent;
-    @apply transition-colors resize-y min-h-[100px];
+    @apply w-full px-3 py-2 rounded-lg border;
+    @apply transition-colors resize-y min-h-[100px]; 
+    @apply focus:outline-none; 
+    @apply focus:ring-2; 
+    @apply focus:ring-[var(--wt-accent)]; 
+    @apply focus:border-[var(--wt-accent)];
+
+    border-color: var(--wt-border);
+    background: var(--wt-bg-elev);
+    color: var(--wt-text);
   }
 
   /* ----- Footer extras ----- */
@@ -209,10 +221,13 @@
 
   /* ----- KPI cards (admin) ----- */
   .wt-kpi {
-    @apply flex flex-col gap-1 p-4 rounded-xl bg-wt-bg-elev border border-wt-border;
+    @apply flex flex-col gap-1 p-4 rounded-xl border;
+    border-color: var(--wt-border);
+    background: var(--wt-bg-elev);
   }
   .wt-kpi__label {
-    @apply text-xs uppercase tracking-wider text-wt-text-mute font-semibold;
+    @apply text-xs uppercase tracking-wider font-semibold;
+    color: var(--wt-text-mute);
   }
   .wt-kpi__value {
     @apply font-display font-bold text-2xl;

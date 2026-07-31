@@ -14,7 +14,7 @@ start "Serveur PHP" php -S localhost:8000
 echo.
 echo [2/2] Demarrage de Tailwind CSS (watch)...
 :: Lance Tailwind en mode watch depuis la racine du projet, dans une nouvelle fenêtre
-start "Tailwind CSS - Wintaskly" cmd /k "cd /d C:\Users\zawu\wintaskly\televerse_wintaskly && npx @tailwindcss/cli -i ./frontend/src/input.css -o ./media/tailwind/css/tailwind.css --content "./**/*.php" --content "./media/wintaskly/js/**/*.js" --watch"
+start "Tailwind CSS - Wintaskly" cmd /k "cd /d C:\Users\zawu\wintaskly\televerse_wintaskly && npx @tailwindcss/cli -i ./frontend/src/input.css -o ./media/wintaskly/css/tailwind.css --content "./**/*.php" --content "./media/wintaskly/js/**/*.js" --watch"
 
 echo.
 echo ====================================================

@@ -67,6 +67,27 @@ return [
     'home.how.step2.d'  => 'Faucet every 3h + shortlinks on demand.',
     'home.how.step3.t'  => 'Cash out',
     'home.how.step3.d'  => 'Convert your Coins, or refer friends and earn 10% for life.',
+    // Page d'accueil — sections "Pourquoi Wintaskly" et "Partenaires" (V8.26)
+    'home.why.eyebrow' => 'Our commitment',
+    'home.why.title' => 'Why Wintaskly?',
+    'home.why.lead' => 'A platform built for trust: every earning is traceable, every withdrawal verifiable.',
+    'home.why.pillar1.t' => 'Transparency',
+    'home.why.pillar1.d' => 'The Coins conversion rate, withdrawal thresholds, and your earnings history are visible at any time from your dashboard.',
+    'home.why.pillar2.t' => 'Anti-fraud security',
+    'home.why.pillar2.d' => 'Every task (Faucet, PTC, Offerwalls) is server-verified to ensure rewards go to real activity, not scripts.',
+    'home.why.pillar3.t' => 'Real payouts',
+    'home.why.pillar3.d' => 'Withdrawals are processed to FaucetPay, Payeer or Bitcoin, with visible status tracking through to confirmation.',
+    'home.why.pillar4.t' => 'Responsive support',
+    'home.why.pillar4.d' => 'A question about a task or withdrawal? Our help center and support team respond to user requests.',
+    'home.partners.eyebrow' => 'Ecosystem',
+    'home.partners.title' => 'A verified partner ecosystem',
+    'home.partners.lead' => 'Wintaskly relies on a network of partners to fund rewards and secure payments.',
+    'home.partners.ads.t' => 'Advertising networks',
+    'home.partners.ads.d' => 'Campaigns displayed on the platform (PTC, banners) are funded by advertisers paying for visibility and engagement.',
+    'home.partners.offers.t' => 'Offer networks (Offerwalls)',
+    'home.partners.offers.d' => 'Offerwalls provide offers (surveys, trials, app installs) paid by their own advertiser partners, then converted into Coins.',
+    'home.partners.pay.t' => 'Payment providers',
+    'home.partners.pay.d' => 'Withdrawals are processed via established payment providers (FaucetPay, Payeer) or directly on the Bitcoin blockchain.',
 
     'faucet.title'      => 'Faucet',
     'faucet.intro'      => 'Claim your Coins every 3 hours.',
@@ -2131,4 +2152,7 @@ return [
     'admin.csrf_invalid'                   => 'Session expired or invalid security token. Reload the page and try again.',
     'admin.has_errors'                     => 'Validation errors — fix the highlighted fields.',
     'header.sidebar_toggle'                => 'Toggle sidebar menu',
+
+    //Advertisement / Publicité
+    'ad.title.pub'                         => 'Advertisement',
 ];

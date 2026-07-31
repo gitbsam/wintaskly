@@ -35,7 +35,8 @@ if (!function_exists('current_user')) {
                     phone_e164,
                     bio, country,
                     delete_requested_at,
-                    last_login_at
+                    last_login_at,
+                    daily_streak, daily_last_claim_at
              FROM users WHERE id = ? LIMIT 1"
         );
         $uid = (int)$_SESSION['uid'];

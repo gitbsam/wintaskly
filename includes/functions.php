@@ -425,10 +425,10 @@ if (!function_exists('wt_ad_zone')) {
         if ($stripped !== '') {
             // Priorité 1 : régie publicitaire configurée (code réel)
             return '<div class="wt-ad-scale">'
-                 . '<div class="wt-ad-label">Advertisement / Publicité</div>'
-                 . '<div class="wt-ad-scale__inner">'
-                 . $code
-                 . '</div></div>';
+                . '<div class="wt-ad-label">' . e(t('ad.title.pub')) . '</div>'
+                . '<div class="wt-ad-scale__inner">'
+                . $code
+                . '</div></div>';
         }
 
         // Priorité 2 : pas de régie → bannière maison uploadée, si liée et active
@@ -438,7 +438,7 @@ if (!function_exists('wt_ad_zone')) {
                 $src = e(wt_url('/media/wintaskly/img/banners/' . $banner['filename']));
                 $signup = e(wt_url('/auth/signup.php'));
                 return '<div class="wt-ad-scale">'
-                     . '<div class="wt-ad-label">Advertisement / Publicité</div>'
+                     . '<div class="wt-ad-label">' . e(t('ad.title.pub')) . '</div>'
                      . '<div class="wt-ad-scale__inner">'
                      . '<a href="' . $signup . '" class="wt-ad-house">'
                      . '<img src="' . $src . '" width="' . (int) $banner['width'] . '"'

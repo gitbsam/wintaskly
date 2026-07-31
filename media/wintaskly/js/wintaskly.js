@@ -440,16 +440,29 @@
       }
     }
 
-    // ----- Surveillance de l'onglet partenaire -----
+    // ----- Surveillance de l'onglet partenaire + preuve de présence serveur -----
+    let heartbeatTicks = 0;
     function watch() {
       if (!chronoState) return;
       // win.closed est lisible même après une redirection cross-origin
       if (chronoState.win && chronoState.win.closed && !chronoState.ended) {
         stopChrono('cancel');
+        return;
+      }
+      // Toutes les ~3s (6 ticks à 500ms), tant que la fenêtre est toujours
+      // ouverte : preuve de présence envoyée au serveur (voir ptc_heartbeat.php).
+      heartbeatTicks++;
+      if (heartbeatTicks >= 6) {
+        heartbeatTicks = 0;
+        api('/api/ptc_heartbeat.php', { token: chronoState.token }).catch(() => {});
       }
     }
 
     document.title = T.title_running.replace('{s}', duration_seconds).replace('{site}', SITE_TITLE);
+    // Heartbeat immédiat dès le démarrage (en plus des périodiques) : donne
+    // une marge confortable sur les pubs très courtes (5s min) même avec
+    // une latence réseau, plutôt que d'attendre le premier intervalle de 3s.
+    api('/api/ptc_heartbeat.php', { token: chronoState.token }).catch(() => {});
     chronoState.timerId   = setInterval(tick, 1000);
     chronoState.watcherId = setInterval(watch, 500);
   }

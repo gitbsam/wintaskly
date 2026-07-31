@@ -72,6 +72,27 @@ return [
     'home.how.step2.d'  => 'Faucet toutes les 3h + shortlinks à la demande.',
     'home.how.step3.t'  => 'Encaisse',
     'home.how.step3.d'  => 'Convertis tes Coins, ou parraine pour gagner 10% à vie.',
+    // Page d'accueil — sections "Pourquoi Wintaskly" et "Partenaires" (V8.26)
+    'home.why.eyebrow' => 'Notre engagement',
+    'home.why.title' => 'Pourquoi Wintaskly ?',
+    'home.why.lead' => 'Une plateforme pensée pour la confiance : chaque gain est traçable, chaque retrait vérifiable.',
+    'home.why.pillar1.t' => 'Transparence',
+    'home.why.pillar1.d' => 'Le taux de conversion des Coins, les seuils de retrait et l\'historique de tes gains sont visibles à tout moment depuis ton tableau de bord.',
+    'home.why.pillar2.t' => 'Sécurité anti-fraude',
+    'home.why.pillar2.d' => 'Chaque tâche (Faucet, PTC, Offerwalls) est vérifiée côté serveur pour garantir que les récompenses reviennent à une activité réelle, pas à des scripts.',
+    'home.why.pillar3.t' => 'Paiements réels',
+    'home.why.pillar3.d' => 'Les retraits sont traités vers FaucetPay, Payeer ou Bitcoin, avec un suivi de statut visible jusqu\'à confirmation.',
+    'home.why.pillar4.t' => 'Support réactif',
+    'home.why.pillar4.d' => 'Une question sur une tâche ou un retrait ? Notre centre d\'aide et notre support répondent aux demandes des utilisateurs.',
+    'home.partners.eyebrow' => 'Écosystème',
+    'home.partners.title' => 'Un écosystème de partenaires vérifiés',
+    'home.partners.lead' => 'Wintaskly s\'appuie sur un réseau de partenaires pour financer les récompenses et sécuriser les paiements.',
+    'home.partners.ads.t' => 'Réseaux publicitaires',
+    'home.partners.ads.d' => 'Les campagnes affichées sur la plateforme (PTC, bannières) sont financées par des annonceurs qui paient pour la visibilité et l\'engagement.',
+    'home.partners.offers.t' => 'Réseaux d\'offres (Offerwalls)',
+    'home.partners.offers.d' => 'Les offerwalls proposent des offres (sondages, essais, installations d\'apps) rémunérées par leurs propres annonceurs partenaires, reversées ensuite en Coins.',
+    'home.partners.pay.t' => 'Prestataires de paiement',
+    'home.partners.pay.d' => 'Les retraits sont traités via des prestataires de paiement établis (FaucetPay, Payeer) ou directement sur la blockchain Bitcoin.',
 
     // ----- faucet -----------------------------------------------------------
     'faucet.title'      => 'Faucet',
@@ -2225,4 +2246,7 @@ return [
     'admin.csrf_invalid'                   => 'Session expirée ou jeton de sécurité invalide. Recharge la page et réessaie.',
     'admin.has_errors'                     => 'Erreurs de validation — corrige les champs en rouge.',
     'header.sidebar_toggle'                => 'Afficher/masquer le menu latéral',
+
+    //Advertisement / Publicité
+    'ad.title.pub'                         => 'Publicité',
 ];
