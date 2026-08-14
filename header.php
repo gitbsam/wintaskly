@@ -25,6 +25,7 @@
 $_u     = current_user();
 $_theme = $GLOBALS['WT_THEME'] ?? 'dark';
 $_lang  = $GLOBALS['WT_LANG_CODE'] ?? 'fr';
+$_logo  = $_theme === 'dark' ? 'media/wintaskly/img/logo-dark-64.png' : 'media/wintaskly/img/logo-light-64.png';
 
 // Suivi visiteurs (V8.26.0) : on ne tracke pas les pages d'admin
 // (activité de l'admin lui-même, pas pertinente pour "qui visite le site").
@@ -241,12 +242,13 @@ $_ogImage = $_seoOgImage !== '' ? $_seoOgImage : $_base . '/media/wintaskly/img/
 <meta name="twitter:creator"    content="<?= e($_seoTwitter) ?>">
 <?php endif; ?>
 
+<!-- FontAwesome pour les icônes -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;500;600;700;800&family=Manrope:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 
-<link rel="stylesheet" href="<?= $_base ?>/media/tailwind/css/tailwind.css">
 <link rel="stylesheet" href="<?= $_base ?>/media/wintaskly/css/tailwind.css">
 <link rel="stylesheet" href="<?= $_base ?>/media/wintaskly/css/wintaskly.css">
 <link rel="stylesheet" href="<?= $_base ?>/media/wintaskly/css/wintaskly-animations.css">
@@ -353,7 +355,7 @@ if (function_exists('wt_ads_head_scripts')) {
      =================================================================== -->
 <style>
   #wt-preloader{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;
-    justify-content:center;background:#0a0e1a;transition:opacity .35s ease,visibility .35s ease}
+    justify-content:center;transition:opacity .35s ease,visibility .35s ease}
   #wt-preloader.is-hidden{opacity:0;visibility:hidden;pointer-events:none}
   #wt-preloader .wt-preloader__inner{position:relative;width:96px;height:96px;
     display:flex;align-items:center;justify-content:center}
@@ -607,31 +609,46 @@ if (function_exists('cfg')) {
     <!-- ====== Brand ====== -->
     <a href="<?= $_base ?>/" class="wt-header-v2__brand" aria-label="Wintaskly">
       <picture class="wt-header-v2__brand-mark">
-        <source srcset="<?= $_base ?>/media/wintaskly/img/logo-dark-64.png"  media="(prefers-color-scheme: dark)">
-        <img    src="<?= $_base ?>/media/wintaskly/img/logo-light-64.png"
-                alt="Wintaskly" width="32" height="32" decoding="async">
+        <source srcset="<?= $_base . '/' . $_logo ?>" media="(prefers-color-scheme: <?= $_theme ?>)">
+        <img src="<?= $_base . '/' . $_logo ?>" alt="Wintaskly" width="32" height="32" decoding="async">
       </picture>
       <span class="wt-header-v2__brand-name">intaskly</span>
     </a>
 
     <!-- ====== Navigation desktop ====== -->
     <nav class="wt-header-v2__nav" data-nav="desktop" aria-label="<?= e(t('header.nav_main')) ?>">
-      <a class="<?= $_navActive('/') ?>" href="<?= $_base ?>/"><?= e(t('nav.home')) ?></a>
-      <a class="<?= $_navActive('/tasks') ?>" href="<?= $_base ?>/tasks/"><?= e(t('nav.tasks')) ?></a>
-      <?php if ($_u): ?>
-        <a class="<?= $_navActive('/dashboard') ?>" href="<?= $_base ?>/dashboard/">
-          <?= e(t('nav.dashboard')) ?>
-        </a>
-      <?php endif; ?>
-      <a class="<?= $_navActive('/leaderboard') ?>" href="<?= $_base ?>/leaderboard/">
-        <?= e(t('nav.leaderboard')) ?>
-      </a>
-      <a class="<?= $_navActive('/testimonials') ?>" href="<?= $_base ?>/testimonials/">
-        <?= e(t('nav.testimonials')) ?>
-      </a>
-      <a class="<?= $_navActive('/help') ?>" href="<?= $_base ?>/help/">
-        <?= e(t('nav.help')) ?>
-      </a>
+        <ul class="nav">
+            <li class="nav-tem">
+                <a class="nav-link <?= $_navActive('/') ?>" href="<?= $_base ?>/"><?= e(t('nav.home')) ?></a>
+            </li>
+            <li class="nav-tem">
+                <a class="nav-link <?= $_navActive('/tasks') ?>" href="<?= $_base ?>/tasks/"><?= e(t('nav.tasks')) ?></a>
+            </li>
+            <?php if ($_u): ?><li class="nav-tem">
+                <a class="nav-link <?= $_navActive('/dashboard') ?>" href="<?= $_base ?>/dashboard/">
+                    <?= e(t('nav.dashboard')) ?>
+                  
+                </a>
+            </li><?php endif; ?>
+            <li class="nav-tem">
+                <a class="nav-link <?= $_navActive('/leaderboard') ?>" href="<?= $_base ?>/leaderboard/">
+                    <?= e(t('nav.leaderboard')) ?>
+                  
+                </a>
+            </li>
+            <li class="nav-tem">
+                <a class="nav-link <?= $_navActive('/testimonials') ?>" href="<?= $_base ?>/testimonials/">
+                    <?= e(t('nav.testimonials')) ?>
+                
+                </a>
+            </li>
+            <li class="nav-tem">
+                <a class="nav-link <?= $_navActive('/help') ?>" href="<?= $_base ?>/help/">
+                    <?= e(t('nav.help')) ?>
+                  
+                </a>
+            </li>
+        </ul>
     </nav>
 
     <!-- ====== Actions à droite ====== -->
@@ -841,9 +858,8 @@ if ($_isAdminViewer
   <div class="wt-drawer-v2__head">
     <a href="<?= $_base ?>/" class="wt-header-v2__brand">
       <picture class="wt-header-v2__brand-mark">
-        <source srcset="<?= $_base ?>/media/wintaskly/img/logo-dark-64.png"  media="(prefers-color-scheme: dark)">
-        <img    src="<?= $_base ?>/media/wintaskly/img/logo-light-64.png"
-                alt="Wintaskly" width="32" height="32" decoding="async">
+        <source srcset="<?= $_base . '/' . $_logo ?>"  media="(prefers-color-scheme: <?= $_theme ?>)">
+        <img src="<?= $_base . '/' . $_logo ?>" alt="Wintaskly" width="32" height="32" decoding="async">
       </picture>
       <span class="wt-header-v2__brand-name">intaskly</span>
     </a>

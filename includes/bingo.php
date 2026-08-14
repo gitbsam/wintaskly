@@ -220,8 +220,14 @@ if (!function_exists('wt_bingo_tick')) {
 
 if (!function_exists('wt_bingo_open_round')) {
     /**
-     * Ouvre une nouvelle partie (cycle). Le jackpot de départ = base +
-     * report éventuel de la dernière partie réglée sans gagnant.
+     * Ouvre une nouvelle partie (cycle).
+     *
+     * Jackpot de départ, selon l'issue de la partie précédente :
+     *   - jackpot GAGNÉ (ou aucune partie précédente) → nouveau jackpot de
+     *     base (config 'jackpot_base') ;
+     *   - jackpot NON gagné → le jackpot précédent est intégralement REMIS
+     *     EN JEU, sans y rajouter la base (sinon la cagnotte gonflerait
+     *     mécaniquement d'une base à chaque partie sans gagnant).
      *
      * Concurrence : on s'appuie sur le fait qu'il ne doit y avoir qu'une
      * partie active/ending. On vérifie juste avant d'insérer.
@@ -250,7 +256,8 @@ if (!function_exists('wt_bingo_open_round')) {
                     }
                 }
             }
-            $jackpot = $base + $carry;
+            // Report OU base — jamais les deux cumulés.
+            $jackpot = $carry > 0 ? $carry : $base;
 
             $maxDays   = max(1, wt_bingo_cfg('max_days', 7));
             $drawCount = max(1, wt_bingo_cfg('draw_count', 14));

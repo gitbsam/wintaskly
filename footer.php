@@ -146,6 +146,7 @@ $_yearDisplay = ($_launchYear === $_currentYear)
         <ul>
           <li><a href="<?= $_base ?>/help/"><?= e(t('footer.help_center')) ?></a></li>
           <li><a href="<?= $_base ?>/help/faq.php"><?= e(t('faq.title')) ?></a></li>
+          <li><a href="<?= $_base ?>/help/antifraud.php"><?= e(t('antifraud.title')) ?></a></li>
           <li><a href="<?= $_base ?>/help/contact.php"><?= e(t('contact.title')) ?></a></li>
           <?php if (function_exists('wt_blog_enabled') && wt_blog_enabled()): ?>
             <li><a href="<?= $_base ?>/blog"><?= e(t('nav.blog')) ?></a></li>
@@ -160,6 +161,7 @@ $_yearDisplay = ($_launchYear === $_currentYear)
       <nav class="wt-footer-v2__col" aria-label="<?= e(t('footer.cat_legal')) ?>">
         <h3 class="wt-footer-v2__col-title"><?= e(t('footer.cat_legal')) ?></h3>
         <ul>
+          <li><a href="<?= $_base ?>/about/"><?= e(t('about.title')) ?></a></li>
           <li><a href="<?= $_base ?>/legal/mentions.php"><?= e(t('legal.mentions_title')) ?></a></li>
           <li><a href="<?= $_base ?>/legal/cgu.php"><?= e(t('legal.cgu')) ?></a></li>
           <li><a href="<?= $_base ?>/legal/privacy.php"><?= e(t('legal.privacy')) ?></a></li>
@@ -177,11 +179,11 @@ $_yearDisplay = ($_launchYear === $_currentYear)
         💳 <?= e(t('footer.payments_title')) ?>
       </small>
       <div class="wt-footer-v2__payments-list">
-        <span class="wt-footer-v2__payment">PayPal</span>
-        <span class="wt-footer-v2__payment">Bitcoin</span>
-        <span class="wt-footer-v2__payment">USDT</span>
-        <span class="wt-footer-v2__payment">Mobile Money</span>
-        <span class="wt-footer-v2__payment">Orange Money</span>
+        <?php foreach (wt_active_payment_methods() as $_fpm): ?>
+          <span class="wt-footer-v2__payment">
+            <?= wt_pay_icon($_fpm['k']) ?> <?= e($_fpm['label']) ?>
+          </span>
+        <?php endforeach; ?>
       </div>
     </div>
 
@@ -492,5 +494,6 @@ if (function_exists('wt_ads_body_scripts')) {
     echo wt_ads_body_scripts();
 }
 ?>
+
 </body>
 </html>

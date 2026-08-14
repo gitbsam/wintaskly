@@ -397,12 +397,13 @@ if (!function_exists('wt_ad_zone')) {
         if (!isset($GLOBALS['__wt_ad_zones_cache'])) {
             $GLOBALS['__wt_ad_zones_cache'] = [];
             try {
-                $res = db()->query("SELECT k, code, banner_id FROM ad_zones WHERE active = 1");
+                $res = db()->query("SELECT k, code, banner_id, size_key FROM ad_zones WHERE active = 1");
                 if ($res instanceof mysqli_result) {
                     while ($r = $res->fetch_assoc()) {
                         $GLOBALS['__wt_ad_zones_cache'][$r['k']] = [
                             'code'      => (string) $r['code'],
                             'banner_id' => $r['banner_id'] !== null ? (int) $r['banner_id'] : null,
+                            'size_key'  => $r['size_key'] !== null ? (string) $r['size_key'] : null,
                         ];
                     }
                     $res->free();
@@ -425,10 +426,10 @@ if (!function_exists('wt_ad_zone')) {
         if ($stripped !== '') {
             // Priorité 1 : régie publicitaire configurée (code réel)
             return '<div class="wt-ad-scale">'
-                . '<div class="wt-ad-label">' . e(t('ad.title.pub')) . '</div>'
-                . '<div class="wt-ad-scale__inner">'
-                . $code
-                . '</div></div>';
+                 . '<div class="wt-ad-label">' . e(t('ad.title.pub')) . '</div>'
+                 . '<div class="wt-ad-scale__inner">'
+                 . $code
+                 . '</div></div>';
         }
 
         // Priorité 2 : pas de régie → bannière maison uploadée, si liée et active
@@ -447,8 +448,75 @@ if (!function_exists('wt_ad_zone')) {
             }
         }
 
-        // Priorité 3 : ni régie ni bannière → rien (comportement sûr existant)
+        // Priorité 3 : ni régie ni bannière spécifique → rotation automatique
+        // parmi toutes les bannières actives du même format (size_key de la
+        // zone), affichées une à la fois côté client, alternant environ
+        // toutes les 15-30 secondes tant que la page reste ouverte.
+        if ($zone['size_key'] !== null) {
+            $pool = wt_ad_banners_by_size($zone['size_key']);
+            if (!empty($pool)) {
+                return wt_ad_rotator_html($pool);
+            }
+        }
+
+        // Priorité 4 : rien (comportement sûr existant)
         return '';
+    }
+
+    /**
+     * Bannières actives d'un format donné (ex: '300x250'), pour la
+     * rotation automatique. Cache mémoire par requête, par format.
+     *
+     * @return array<int, array{id:int,filename:string,width:int,height:int}>
+     */
+    function wt_ad_banners_by_size(string $sizeKey): array
+    {
+        if (!isset($GLOBALS['__wt_ad_banners_by_size_cache'][$sizeKey])) {
+            $rows = [];
+            try {
+                $stmt = db()->prepare(
+                    "SELECT id, filename, width, height FROM ad_banners
+                      WHERE active = 1 AND size_key = ? ORDER BY id ASC"
+                );
+                $stmt->bind_param('s', $sizeKey);
+                $stmt->execute();
+                $res = $stmt->get_result();
+                $rows = $res->fetch_all(MYSQLI_ASSOC);
+                $stmt->close();
+            } catch (Throwable $e) {
+                error_log('[Wintaskly ad_banners_by_size] ' . $e->getMessage());
+            }
+            $GLOBALS['__wt_ad_banners_by_size_cache'][$sizeKey] = $rows;
+        }
+        return $GLOBALS['__wt_ad_banners_by_size_cache'][$sizeKey];
+    }
+
+    /**
+     * Bloc HTML de rotation : toutes les bannières du pool sont présentes
+     * dans le DOM (seule la première est visible), et media/wintaskly/js/
+     * ad-rotator.js bascule la visibilité toutes les ~15-30s si le pool
+     * contient plus d'une bannière. Avec une seule bannière, s'affiche
+     * simplement telle quelle (pas de JS déclenché).
+     *
+     * @param array<int, array{id:int,filename:string,width:int,height:int}> $pool
+     */
+    function wt_ad_rotator_html(array $pool): string
+    {
+        $signup = e(wt_url('/auth/signup.php'));
+        $slides = '';
+        foreach ($pool as $i => $banner) {
+            $src = e(wt_url('/media/wintaskly/img/banners/' . $banner['filename']));
+            $active = $i === 0 ? ' is-active' : '';
+            $slides .= '<a href="' . $signup . '" class="wt-ad-house wt-ad-rotator__slide' . $active . '">'
+                     . '<img src="' . $src . '" width="' . (int) $banner['width'] . '"'
+                     . ' height="' . (int) $banner['height'] . '" alt="Wintaskly" loading="lazy">'
+                     . '</a>';
+        }
+        return '<div class="wt-ad-scale">'
+             . '<div class="wt-ad-label">' . e(t('ad.title.pub')) . '</div>'
+             . '<div class="wt-ad-scale__inner">'
+             . '<div class="wt-ad-rotator" data-ad-rotator>' . $slides . '</div>'
+             . '</div></div>';
     }
 
     /**
@@ -802,3 +870,92 @@ function get_cached_rates(): array {
     file_put_contents($cacheFile, json_encode($ratesToEur));
     return $ratesToEur;
 }
+
+/**
+ * Types de transactions correspondant à des coins RÉELLEMENT DISTRIBUÉS
+ * aux membres. Exclut volontairement :
+ *   - 'withdraw'   : sortie de coins (retrait), pas une distribution
+ *   - 'bingo_buy'  : dépense du membre (montant négatif en base)
+ *   - 'admin'      : ajustements manuels, non représentatifs de l'activité
+ * 'bingo_win' EST inclus : les gains du Bingo sont bien distribués aux
+ * membres, au même titre que le faucet ou les offerwalls.
+ */
+const WT_TX_TYPES_DISTRIBUTED = [
+    'faucet', 'shortlink', 'ptc', 'offerwall', 'referral',
+    'bonus', 'daily_bonus', 'achievement', 'bingo_win',
+];
+
+/**
+ * Total des coins distribués aux membres.
+ *
+ * @param int|null $days  Limite aux N derniers jours (glissants). null = tout.
+ * @return int            Total arrondi, 0 si aucune donnée.
+ */
+function wt_coins_distributed(?int $days = null): int
+{
+    $types = WT_TX_TYPES_DISTRIBUTED;
+    $in    = implode(',', array_fill(0, count($types), '?'));
+    $sql   = "SELECT COALESCE(SUM(coins),0) s FROM transactions WHERE type IN ($in)";
+    $args  = $types;
+    $kinds = str_repeat('s', count($types));
+
+    if ($days !== null && $days > 0) {
+        $sql   .= " AND created_at >= (UTC_TIMESTAMP() - INTERVAL ? DAY)";
+        $args[] = $days;
+        $kinds .= 'i';
+    }
+
+    try {
+        $stmt = db()->prepare($sql);
+        $stmt->bind_param($kinds, ...$args);
+        $stmt->execute();
+        $row = $stmt->get_result()->fetch_assoc();
+        $stmt->close();
+        return (int) round((float) ($row['s'] ?? 0));
+    } catch (Throwable $e) {
+        error_log('[Wintaskly coins_distributed] ' . $e->getMessage());
+        return 0;
+    }
+}
+
+/**
+ * Méthodes de retrait actives, triées pour affichage public (accueil,
+ * footer, etc.). Source unique : withdrawal_methods (déjà gérée en
+ * admin/payment_methods.php) — évite toute liste codée en dur qui
+ * pourrait diverger de la config réelle.
+ *
+ * @return array<int, array{k:string,label:string,currency:string,min_coins:float,coins_per_unit:float}>
+ */
+function wt_active_payment_methods(): array
+{
+    $rows = [];
+    if ($res = db()->query(
+        "SELECT k, label, currency, min_coins, coins_per_unit
+           FROM withdrawal_methods
+          WHERE active = 1
+          ORDER BY sort_order ASC"
+    )) {
+        $rows = $res->fetch_all(MYSQLI_ASSOC);
+        $res->free();
+    }
+    return $rows;
+}
+
+/**
+ * Emoji visuel associé à une méthode de paiement, déduit de sa clé
+ * interne (ex: 'paypal', 'btc_wallet' → 💳/₿). Repli générique 💸.
+ */
+function wt_pay_icon(string $k): string
+{
+    static $icons = [
+        'paypal' => '💳', 'wise'   => '🏦', 'crypto' => '₿',
+        'btc'    => '₿',  'eth'    => '⟠',  'usdt'   => '₮',
+        'orange' => '📱', 'mpesa'  => '📱', 'mtn'    => '📱',
+        'card'   => '💳', 'bank'   => '🏦',
+    ];
+    foreach ($icons as $needle => $emoji) {
+        if (stripos($k, $needle) !== false) return $emoji;
+    }
+    return '💸';
+}
+

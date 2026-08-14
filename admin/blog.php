@@ -131,6 +131,50 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && csrf_check($_POST['_csrf'] ?? null)
         $stmt->execute();
         $stmt->close();
         $notice = t('admin.blog.deleted');
+
+    } elseif ($action === 'create_category' || $action === 'update_category') {
+        $catName = trim((string)($_POST['name'] ?? ''));
+        $catDesc = trim((string)($_POST['description'] ?? '')) ?: null;
+        $catSort = (int)($_POST['sort_order'] ?? 0);
+
+        if ($catName === '') {
+            $error = t('admin.blog.cat_err_name');
+        } else {
+            try {
+                if ($action === 'create_category') {
+                    $catSlug = wt_blog_slugify($catName);
+                    $stmt = $db->prepare(
+                        "INSERT INTO blog_categories (slug, name, description, sort_order) VALUES (?, ?, ?, ?)"
+                    );
+                    $stmt->bind_param('sssi', $catSlug, $catName, $catDesc, $catSort);
+                    $stmt->execute();
+                    $stmt->close();
+                    $notice = t('admin.blog.cat_created');
+                } else {
+                    $catId = (int)($_POST['id'] ?? 0);
+                    $stmt = $db->prepare(
+                        "UPDATE blog_categories SET name = ?, description = ?, sort_order = ? WHERE id = ?"
+                    );
+                    $stmt->bind_param('ssii', $catName, $catDesc, $catSort, $catId);
+                    $stmt->execute();
+                    $stmt->close();
+                    $notice = t('admin.blog.cat_updated');
+                }
+            } catch (Throwable $ex) {
+                $error = t('admin.blog.cat_err_dup');
+                error_log('[Wintaskly blog admin] category: ' . $ex->getMessage());
+            }
+        }
+
+    } elseif ($action === 'delete_category') {
+        $catId = (int)($_POST['id'] ?? 0);
+        // ON DELETE SET NULL sur blog_posts.category_id : les articles liés
+        // deviennent "sans catégorie" plutôt que d'être supprimés.
+        $stmt = $db->prepare("DELETE FROM blog_categories WHERE id = ?");
+        $stmt->bind_param('i', $catId);
+        $stmt->execute();
+        $stmt->close();
+        $notice = t('admin.blog.cat_deleted');
     }
 }
 
@@ -139,6 +183,12 @@ $enabled  = (string) cfg('blog.enabled', '0') === '1';
 $blogTitle = (string) cfg('blog.title', '');
 $blogDesc  = (string) cfg('blog.description', '');
 $categories = wt_blog_categories();
+
+// Catégorie en cours d'édition ?
+$editCat = null;
+if (isset($_GET['edit_cat'])) {
+    $editCat = db_one("SELECT * FROM blog_categories WHERE id = ?", [(int)$_GET['edit_cat']], "i");
+}
 
 // Article en cours d'édition ?
 $editPost = null;
@@ -216,6 +266,81 @@ include __DIR__ . '/../header.php';
           </label>
           <button class="wt-btn wt-btn--primary" style="margin-top:1rem"><?= e(t('common.save')) ?></button>
         </form>
+      </details>
+
+      <!-- Catégories -->
+      <details class="wt-card wt-card--padded" style="margin-bottom:1.5rem" <?= $editCat ? 'open' : '' ?>>
+        <summary style="cursor:pointer;font-weight:700">🏷️ <?= e(t('admin.blog.cat_title')) ?></summary>
+        <div style="margin-top:1rem">
+
+          <form method="post" style="display:flex;gap:.75rem;flex-wrap:wrap;align-items:flex-end;margin-bottom:1.5rem">
+            <input type="hidden" name="_csrf" value="<?= e(csrf_token()) ?>">
+            <input type="hidden" name="action" value="<?= $editCat ? 'update_category' : 'create_category' ?>">
+            <?php if ($editCat): ?>
+              <input type="hidden" name="id" value="<?= (int)$editCat['id'] ?>">
+            <?php endif; ?>
+            <label class="wt-field" style="margin:0;flex:1;min-width:160px">
+              <span class="wt-field__label"><?= e(t('admin.blog.f_cat_name')) ?> *</span>
+              <input class="wt-input" type="text" name="name" required maxlength="120"
+                     value="<?= e((string)($editCat['name'] ?? '')) ?>">
+            </label>
+            <label class="wt-field" style="margin:0;flex:2;min-width:200px">
+              <span class="wt-field__label"><?= e(t('admin.blog.f_cat_desc')) ?></span>
+              <input class="wt-input" type="text" name="description" maxlength="255"
+                     value="<?= e((string)($editCat['description'] ?? '')) ?>">
+            </label>
+            <label class="wt-field" style="margin:0;width:100px">
+              <span class="wt-field__label"><?= e(t('admin.blog.f_cat_order')) ?></span>
+              <input class="wt-input" type="number" name="sort_order"
+                     value="<?= (int)($editCat['sort_order'] ?? 0) ?>">
+            </label>
+            <button class="wt-btn wt-btn--primary">
+              <?= $editCat ? e(t('common.save')) : e(t('admin.blog.cat_add_btn')) ?>
+            </button>
+            <?php if ($editCat): ?>
+              <a href="<?= e(wt_url('/admin/blog.php')) ?>" class="wt-btn wt-btn--ghost"><?= e(t('common.cancel')) ?></a>
+            <?php endif; ?>
+          </form>
+
+          <?php if (empty($categories)): ?>
+            <p class="wt-muted"><?= e(t('admin.blog.cat_empty')) ?></p>
+          <?php else: ?>
+            <div class="wt-table-wrap">
+              <table class="wt-table">
+                <thead>
+                  <tr>
+                    <th><?= e(t('admin.blog.col_cat_name')) ?></th>
+                    <th><?= e(t('admin.blog.col_cat_slug')) ?></th>
+                    <th><?= e(t('admin.blog.col_cat_desc')) ?></th>
+                    <th><?= e(t('admin.blog.col_cat_order')) ?></th>
+                    <th><?= e(t('admin.blog.col_cat_count')) ?></th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <?php foreach ($categories as $c): ?>
+                    <tr>
+                      <td><strong><?= e($c['name']) ?></strong></td>
+                      <td><code style="font-size:.75rem;opacity:.6"><?= e($c['slug']) ?></code></td>
+                      <td class="wt-muted" style="font-size:.85rem"><?= e((string)($c['description'] ?? '')) ?></td>
+                      <td class="wt-mono"><?= (int)$c['sort_order'] ?></td>
+                      <td class="wt-mono"><?= (int)$c['post_count'] ?></td>
+                      <td style="white-space:nowrap">
+                        <a href="<?= e(wt_url('/admin/blog.php?edit_cat=' . (int)$c['id'])) ?>" class="wt-btn wt-btn--ghost wt-btn--xs">✏️</a>
+                        <form method="post" style="display:inline" onsubmit="return confirm('<?= e(t('admin.blog.cat_confirm_del')) ?>')">
+                          <input type="hidden" name="_csrf" value="<?= e(csrf_token()) ?>">
+                          <input type="hidden" name="action" value="delete_category">
+                          <input type="hidden" name="id" value="<?= (int)$c['id'] ?>">
+                          <button type="submit" class="wt-btn wt-btn--ghost wt-btn--xs" style="color:#ef4444">🗑</button>
+                        </form>
+                      </td>
+                    </tr>
+                  <?php endforeach; ?>
+                </tbody>
+              </table>
+            </div>
+          <?php endif; ?>
+        </div>
       </details>
 
       <!-- Formulaire création/édition -->

@@ -187,10 +187,10 @@
   }
   .wt-textarea {
     @apply w-full px-3 py-2 rounded-lg border;
-    @apply transition-colors resize-y min-h-[100px]; 
-    @apply focus:outline-none; 
-    @apply focus:ring-2; 
-    @apply focus:ring-[var(--wt-accent)]; 
+    @apply transition-colors resize-y min-h-[100px];
+    @apply focus:outline-none;
+    @apply focus:ring-2;
+    @apply focus:ring-[var(--wt-accent)];
     @apply focus:border-[var(--wt-accent)];
 
     border-color: var(--wt-border);
@@ -222,8 +222,8 @@
   /* ----- KPI cards (admin) ----- */
   .wt-kpi {
     @apply flex flex-col gap-1 p-4 rounded-xl border;
-    border-color: var(--wt-border);
     background: var(--wt-bg-elev);
+    border-color: var(--wt-border);
   }
   .wt-kpi__label {
     @apply text-xs uppercase tracking-wider font-semibold;

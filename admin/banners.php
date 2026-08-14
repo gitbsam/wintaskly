@@ -311,14 +311,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'delet
     }
 }
 
-/* Associer une bannière à une zone */
+/* Associer une bannière et/ou un format de repli à une zone */
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'assign_zone') {
     if (csrf_check($_POST['_csrf'] ?? null)) {
         $zoneId      = (int) ($_POST['zone_id'] ?? 0);
         $bannerIdRaw = (string) ($_POST['banner_id'] ?? '');
         $bannerIdVal = $bannerIdRaw === '' ? null : (int) $bannerIdRaw;
-        $stmt = $db->prepare("UPDATE ad_zones SET banner_id = ? WHERE id = ?");
-        $stmt->bind_param('ii', $bannerIdVal, $zoneId);
+        $sizeKeyRaw  = (string) ($_POST['size_key'] ?? '');
+        $sizeKeyVal  = ($sizeKeyRaw !== '' && isset(WT_STANDARD_SIZES[$sizeKeyRaw])) ? $sizeKeyRaw : null;
+        $stmt = $db->prepare("UPDATE ad_zones SET banner_id = ?, size_key = ? WHERE id = ?");
+        $stmt->bind_param('isi', $bannerIdVal, $sizeKeyVal, $zoneId);
         $stmt->execute();
         $stmt->close();
         $notice = 'Association mise à jour.';
@@ -334,7 +336,7 @@ if ($res = $db->query("SELECT * FROM ad_banners ORDER BY uploaded_at DESC")) {
 }
 
 $zones = [];
-if ($res = $db->query("SELECT id, k, label, code, banner_id FROM ad_zones ORDER BY k ASC")) {
+if ($res = $db->query("SELECT id, k, label, code, banner_id, size_key FROM ad_zones ORDER BY k ASC")) {
     $zones = $res->fetch_all(MYSQLI_ASSOC);
 }
 
@@ -474,10 +476,18 @@ include __DIR__ . '/../header.php';
       <p class="wt-muted" style="font-size:.9rem">
         Une bannière maison ne s'affiche sur une zone que si <strong>aucune régie</strong>
         (AdSense/Adsterra) n'y est configurée. Sinon, la régie reste toujours prioritaire.
+        Si aucune bannière spécifique n'est choisie non plus, le <strong>format de repli</strong>
+        déclenche une rotation automatique parmi toutes les bannières actives de ce format
+        (alternance ~15-30s côté visiteur, tant qu'il reste sur la page).
       </p>
       <div class="wt-table-wrap">
         <table class="wt-table">
-          <thead><tr><th>Zone</th><th>Régie configurée ?</th><th>Bannière associée</th></tr></thead>
+          <thead>
+            <tr>
+              <th>Zone</th><th>Régie configurée ?</th>
+              <th>Bannière spécifique</th><th>Format de repli (rotation auto)</th>
+            </tr>
+          </thead>
           <tbody>
             <?php foreach ($zones as $z):
               $stripped = trim(preg_replace('/<!--.*?-->/s', '', (string) $z['code']));
@@ -491,11 +501,19 @@ include __DIR__ . '/../header.php';
                     <input type="hidden" name="_csrf" value="<?= e(csrf_token()) ?>">
                     <input type="hidden" name="action" value="assign_zone">
                     <input type="hidden" name="zone_id" value="<?= (int) $z['id'] ?>">
-                    <select name="banner_id" class="wt-input" style="max-width:220px" onchange="this.form.submit()">
+                    <select name="banner_id" class="wt-input" style="max-width:200px" onchange="this.form.submit()">
                       <option value="">— Aucune —</option>
                       <?php foreach ($banners as $b): if ((int) $b['active'] !== 1) continue; ?>
                         <option value="<?= (int) $b['id'] ?>" <?= (int) $z['banner_id'] === (int) $b['id'] ? 'selected' : '' ?>>
                           #<?= (int) $b['id'] ?> — <?= e($b['size_key']) ?>
+                        </option>
+                      <?php endforeach; ?>
+                    </select>
+                    <select name="size_key" class="wt-input" style="max-width:160px" onchange="this.form.submit()">
+                      <option value="">— Aucun —</option>
+                      <?php foreach (array_keys(WT_STANDARD_SIZES) as $sk): ?>
+                        <option value="<?= e($sk) ?>" <?= (string) $z['size_key'] === $sk ? 'selected' : '' ?>>
+                          <?= e($sk) ?>
                         </option>
                       <?php endforeach; ?>
                     </select>

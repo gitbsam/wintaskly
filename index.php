@@ -51,10 +51,16 @@ $statsTodayBoost = (int) cfg('stats_tasks_today', '0');
 // Valeurs réelles depuis la BDD (toujours calculées pour transparence admin)
 $_ru = db_one("SELECT COUNT(*) c FROM users WHERE status='active'");
 $realUsers = (int) ($_ru['c'] ?? 0);
-$_rp = db_one("SELECT COALESCE(SUM(coins),0) s FROM transactions WHERE type IN ('faucet','shortlink','referral','bonus')");
-$realPaid  = (int) ($_rp['s'] ?? 0);
+// Tous les types de gains réellement distribués, Bingo inclus (voir
+// WT_TX_TYPES_DISTRIBUTED dans includes/functions.php).
+$realPaid  = wt_coins_distributed();
 $_rt = db_one("SELECT COUNT(*) c FROM transactions WHERE type IN ('faucet','shortlink') AND created_at >= UTC_DATE()");
 $realToday = (int) ($_rt['c'] ?? 0);
+
+// Coins distribués sur les 7 derniers jours glissants — chiffre RÉEL, jamais
+// boosté : il est affiché avec une affirmation explicite ("cette semaine"),
+// donc il doit rester vérifiable.
+$statsPaidWeek = wt_coins_distributed(7);
 
 // Application du mode
 switch ($statsMode) {
@@ -128,6 +134,7 @@ include __DIR__ . '/header.php';
   <!-- ===================== HERO ============================================ -->
   <?php if ($blockVisible('hero')): ?>
   <section class="wt-hero" data-reveal>
+    <div class="wt-container-xl">
     <!-- Orbs décoratifs (couleur accent + accent2 mélangées en fond) -->
     <div class="wt-hero__orbs" aria-hidden="true">
       <span class="wt-orb wt-orb--a"></span>
@@ -242,11 +249,12 @@ include __DIR__ . '/header.php';
       </aside>
 
     </div>
+  </div>
   </section>
   <?php endif; ?>
 
   <?php $_ad = wt_ad_zone('home_hero_bottom'); if ($_ad !== ''): ?>
-    <div class="wt-ad-zone wt-ad-zone--home" style="max-width:1240px;margin:0 auto 1.5rem;padding:0 1rem;text-align:center"><?= $_ad ?></div>
+    <div class="wt-ad-zone wt-ad-zone--home" style="margin:1.5rem 0;text-align:center"><?= $_ad ?></div>
   <?php endif; ?>
 
   <!-- ===================== TRUST BAR STICKY (V8) =================
@@ -277,6 +285,99 @@ include __DIR__ . '/header.php';
       </a>
     </div>
   </div>
+
+  <!-- ==========================================================
+       SECTION DISCOVER
+      =========================================================== -->
+      <section class="wt-discover" data-discover>
+        <div class="wt-container-xl">
+          <div class="wt-discover__layout">
+
+            <!-- CONTENU -->
+            <div class="wt-discover__content">
+              <span class="wt-eyebrow font-bold px-3 py-1 rounded-full text-xs tracking-wider">
+                <?= e(t('home.discover.eyebrow')) ?>
+              </span>
+
+              <h2 class="wt-discover__title">
+                <?= e(t('home.discover.title')) ?>
+                <span>Wintaskly</span>
+              </h2>
+              <p class="wt-discover__lead">
+                <?= e(t('home.discover.lead')) ?>
+              </p>
+
+              <div class="wt-discover__actions">
+                <a href="/auth/signup.php" class="wt-btn wt-btn--primary wt-btn--lg">
+                  <?= e(t('home.discover.cta_primary')) ?>
+                </a>
+                <a href="/tasks" class="wt-btn wt-btn--ghost wt-btn--lg ">
+                  <?= e(t('home.discover.cta_secondary')) ?>
+                </a>
+              </div>
+
+              <div class="wt-discover__features text-xs font-medium">
+                <div class="wt-discover__feature">
+                  <i class="fa-solid fa-circle-check"></i>
+                  <?= e(t('home.discover.feature1')) ?>
+                </div>
+
+                <div class="wt-discover__feature">
+                  <i class="fa-solid fa-circle-check"></i>
+                  <?= e(t('home.discover.feature2')) ?>
+                </div>
+
+                <div class="wt-discover__feature">
+                  <i class="fa-solid fa-circle-check"></i>
+                  <?= e(t('home.discover.feature3')) ?>
+                </div>
+              </div>
+            </div>
+
+            <!-- VISUEL -->
+            <div class="wt-discover__visual">
+              <div class="wt-discover-card">
+
+                <div class="wt-discover-card__top">
+                  <div class="wt-discover-card__icon">
+                    <i class="fa-solid fa-wallet"></i>
+                  </div>
+                  <span class="wt-badge uppercase">
+                    <?= e(t('home.discover.card_badge')) ?>
+                  </span>
+                </div>
+
+                <div class="wt-discover-card__body pt-4">
+                  <h3>
+                    +<strong data-countup="<?= e((string)$statsPaidWeek) ?>">0</strong> <?= e(t('common.coins')) ?>
+                  </h3>
+                  <p>
+                    <?= e(t('home.discover.card_desc')) ?>
+                  </p>
+                </div>
+
+                <div class="wt-discover-card__stats">
+                  <div>
+                    <span><strong data-countup="<?= e((string)$statsUsers) ?>">0</strong>+</span>
+                    <span><?= e(t('home.stats.users')) ?></span>
+                  </div>
+
+                  <div>
+                    <strong>98%</strong>
+                    <span><?= e(t('home.discover.stat_satisfaction')) ?></span>
+                  </div>
+
+                  <div>
+                    <strong>24/7</strong>
+                    <span><?= e(t('home.discover.stat_available')) ?></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
 
   <!-- ===================== POURQUOI WINTASKLY (V8.26) ============
    * Section mission/confiance — recommandée pour rassurer avant la
@@ -842,37 +943,9 @@ include __DIR__ . '/header.php';
    * est connecté, sinon vers /auth/signup pour pousser l'inscription.
    ========================================================== -->
   <?php
-    $payMethods = [];
-    if ($res = $db->query("SELECT k, label, currency, min_coins, coins_per_unit
-                             FROM withdrawal_methods
-                            WHERE active = 1
-                            ORDER BY sort_order ASC")) {
-        $payMethods = $res->fetch_all(MYSQLI_ASSOC);
-        $res->free();
-    }
+    $payMethods = wt_active_payment_methods();
     if (!empty($payMethods)):
         $payHref = $u ? wt_url('/dashboard/withdraw.php') : wt_url('/auth/signup.php');
-
-        /* Mapping clé interne → emoji visuel (rapide et universel) */
-        $payIcons = [
-            'paypal'    => '💳',
-            'wise'      => '🏦',
-            'crypto'    => '₿',
-            'btc'       => '₿',
-            'eth'       => '⟠',
-            'usdt'      => '₮',
-            'orange'    => '📱',
-            'mpesa'     => '📱',
-            'mtn'       => '📱',
-            'card'      => '💳',
-            'bank'      => '🏦',
-        ];
-        $getPayIcon = static function (string $k) use ($payIcons): string {
-            foreach ($payIcons as $needle => $emoji) {
-                if (stripos($k, $needle) !== false) return $emoji;
-            }
-            return '💸';
-        };
   ?>
   <section class="wt-paymethods" data-reveal>
     <div class="wt-paymethods__head">
@@ -897,7 +970,7 @@ include __DIR__ . '/header.php';
         <li class="wt-paymethods__item" style="--idx:<?= (int)$i ?>">
           <a class="wt-paymethods__chip" href="<?= e($payHref) ?>"
              title="<?= e(sprintf((string)t('home.pay.tooltip'), $minFmt, $m['currency'])) ?>">
-            <span class="wt-paymethods__icon" aria-hidden="true"><?= $getPayIcon($m['k']) ?></span>
+            <span class="wt-paymethods__icon" aria-hidden="true"><?= wt_pay_icon($m['k']) ?></span>
             <span class="wt-paymethods__label">
               <strong><?= e($m['label']) ?></strong>
               <small><?= e(sprintf((string)t('home.pay.min'), $minFmt, $m['currency'])) ?></small>
@@ -1010,7 +1083,12 @@ include __DIR__ . '/header.php';
         <article class="wt-home-blog__card">
           <a href="<?= e(wt_url('/blog/' . $post['slug'])) ?>" class="wt-home-blog__link">
             <div class="wt-home-blog__cover">
-              <span class="wt-home-blog__emoji"><?= e($post['cover_emoji'] ?: '📄') ?></span>
+              <?php if (!empty($post['cover_image'])): ?>
+                <img src="<?= e(wt_url('/media/wintaskly/img/blog/' . $post['cover_image'])) ?>"
+                     alt="" loading="lazy" class="wt-home-blog__cover-img">
+              <?php else: ?>
+                <span class="wt-home-blog__emoji"><?= e($post['cover_emoji'] ?: '📄') ?></span>
+              <?php endif; ?>
             </div>
             <div class="wt-home-blog__body">
               <?php if (!empty($post['category_name'])): ?>

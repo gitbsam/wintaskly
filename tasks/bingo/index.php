@@ -122,14 +122,15 @@ include __DIR__ . '/../../header.php';
         </h2>
         <div class="wt-bingo-drawn__legend">
           <span><span class="wt-bingo-dot wt-bingo-dot--today"></span> <?= e(t('bingo.legend_today')) ?></span>
-          <span><span class="wt-bingo-dot wt-bingo-dot--old"></span> <?= e(t('bingo.legend_old')) ?></span>
           <?php if ($showFullBoard): ?>
+            <span><span class="wt-bingo-dot wt-bingo-dot--old"></span> <?= e(t('bingo.legend_old')) ?></span>
             <span><span class="wt-bingo-dot wt-bingo-dot--none"></span> <?= e(t('bingo.legend_none')) ?></span>
           <?php endif; ?>
         </div>
 
         <?php if ($showFullBoard):
-          // Vue complète 1..number_max : tirés colorés, non tirés éteints
+          // Carton payant supplémentaire actif : vue complète 1..number_max
+          // (tirés colorés + non tirés éteints), historique complet visible.
           $numberMax = (int) ($round['number_max'] ?? 99);
         ?>
           <div class="wt-bingo-board">
@@ -142,15 +143,22 @@ include __DIR__ . '/../../header.php';
             <?php endfor; ?>
           </div>
         <?php else:
-          // Vue simple : seulement les numéros tirés
+          // Pas de carton payant supplémentaire : seuls les numéros tirés
+          // AUJOURD'HUI sont visibles — l'historique des jours précédents
+          // reste verrouillé tant qu'un carton supplémentaire n'est pas acheté.
         ?>
-          <div class="wt-bingo-drawn__balls">
-            <?php foreach ($allDrawn as $n): ?>
-              <span class="wt-bingo-ball <?= isset($todaySet[$n]) ? 'wt-bingo-ball--today' : 'wt-bingo-ball--old' ?>">
-                <?= (int)$n ?>
-              </span>
-            <?php endforeach; ?>
-          </div>
+          <?php if (!empty($todayDrawn)): ?>
+            <div class="wt-bingo-drawn__balls">
+              <?php foreach ($todayDrawn as $n): ?>
+                <span class="wt-bingo-ball wt-bingo-ball--today">
+                  <?= (int)$n ?>
+                </span>
+              <?php endforeach; ?>
+            </div>
+          <?php endif; ?>
+          <?php if (count($allDrawn) > count($todayDrawn)): ?>
+            <p class="wt-bingo-drawn__locked-hint"><?= e(t('bingo.locked_history_hint')) ?></p>
+          <?php endif; ?>
         <?php endif; ?>
       </section>
     <?php endif; ?>
@@ -245,6 +253,34 @@ include __DIR__ . '/../../header.php';
           </article>
         <?php endforeach; ?>
       </div>
+    </section>
+
+    <section class="wt-task-how wt-task-how--bingo" data-reveal>
+      <h2 class="wt-task-how__title"><?= e(t('bingo.how_title')) ?></h2>
+      <div class="wt-task-how__steps">
+        <div class="wt-task-how__step">
+          <span class="wt-task-how__num">1</span>
+          <div>
+            <strong><?= e(t('bingo.how_step1_t')) ?></strong>
+            <p><?= e(t('bingo.how_step1_d')) ?></p>
+          </div>
+        </div>
+        <div class="wt-task-how__step">
+          <span class="wt-task-how__num">2</span>
+          <div>
+            <strong><?= e(t('bingo.how_step2_t')) ?></strong>
+            <p><?= e(t('bingo.how_step2_d')) ?></p>
+          </div>
+        </div>
+        <div class="wt-task-how__step">
+          <span class="wt-task-how__num">3</span>
+          <div>
+            <strong><?= e(t('bingo.how_step3_t')) ?></strong>
+            <p><?= e(t('bingo.how_step3_d')) ?></p>
+          </div>
+        </div>
+      </div>
+      <p class="wt-task-how__tip">💡 <?= e(t('bingo.how_tip')) ?></p>
     </section>
 
   </div>

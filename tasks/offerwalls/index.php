@@ -92,6 +92,12 @@ $initials = static function (string $name): string {
 include __DIR__ . '/../../header.php';
 ?>
 
+<!-- BANNIÈRE DE SÉCURITÉ / RÈGLES ANTI-FRAUDE -->
+<div class="wt-ow-v2__security-banner">
+  <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+  <span><?= e(t('ow.security_banner')) ?></span>
+</div>
+
 <main class="wt-main wt-ow-v2">
   <div class="wt-ow-v2__wrap">
 
@@ -125,6 +131,9 @@ include __DIR__ . '/../../header.php';
         </div>
       </aside>
     </header>
+
+    <div class="wt-ow-v2__layout">
+      <div class="wt-ow-v2__main">
 
     <!-- ====== GRILLE PARTENAIRES ====== -->
     <?php if (!$rows): ?>
@@ -189,6 +198,24 @@ include __DIR__ . '/../../header.php';
         <?php endforeach; ?>
       </section>
     <?php endif; ?>
+
+      </div>
+
+      <aside class="wt-ow-v2__sidebar">
+        <!-- ENCART D'ASSISTANCE RAPIDE -->
+        <div class="wt-ow-v2__support">
+          <h4 class="wt-ow-v2__support-title">
+            <i class="fa-solid fa-headset" aria-hidden="true"></i>
+            <?= e(t('ow.support_title')) ?>
+          </h4>
+          <p class="wt-ow-v2__support-body"><?= e(t('ow.support_body')) ?></p>
+        </div>
+
+        <?php $_adSide = wt_ad_zone('offerwall_sidebar'); if ($_adSide !== ''): ?>
+          <div class="wt-ad-zone wt-ad-zone--sidebar"><?= $_adSide ?></div>
+        <?php endif; ?>
+      </aside>
+    </div>
 
     <!-- ====== HISTORIQUE CONVERSIONS ====== -->
     <?php if ($cntAll > 0): ?>

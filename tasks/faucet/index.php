@@ -188,6 +188,34 @@ include __DIR__ . '/../../header.php';
       </div>
     </section>
 
+    <section class="wt-task-how wt-task-how--faucet" data-reveal>
+      <h2 class="wt-task-how__title"><?= e(t('faucet.how_title')) ?></h2>
+      <div class="wt-task-how__steps">
+        <div class="wt-task-how__step">
+          <span class="wt-task-how__num">1</span>
+          <div>
+            <strong><?= e(t('faucet.how_step1_t')) ?></strong>
+            <p><?= e(t('faucet.how_step1_d')) ?></p>
+          </div>
+        </div>
+        <div class="wt-task-how__step">
+          <span class="wt-task-how__num">2</span>
+          <div>
+            <strong><?= e(t('faucet.how_step2_t')) ?></strong>
+            <p><?= e(t('faucet.how_step2_d')) ?></p>
+          </div>
+        </div>
+        <div class="wt-task-how__step">
+          <span class="wt-task-how__num">3</span>
+          <div>
+            <strong><?= e(t('faucet.how_step3_t')) ?></strong>
+            <p><?= e(t('faucet.how_step3_d')) ?></p>
+          </div>
+        </div>
+      </div>
+      <p class="wt-task-how__tip">💡 <?= e(t('faucet.how_tip')) ?></p>
+    </section>
+
     <p class="wt-faucet-v2__bonus">
       <?= e(t('faucet.referral_bonus')) ?>
       <a href="<?= e(wt_url('/dashboard/referrals.php')) ?>"><?= e(t('faucet.referral_link')) ?> →</a>

@@ -290,6 +290,7 @@ CREATE TABLE IF NOT EXISTS `ad_zones` (
   `label`     VARCHAR(120) NOT NULL,
   `code`      TEXT NOT NULL,
   `banner_id` INT UNSIGNED NULL COMMENT 'Bannière maison utilisée si aucune régie (code) configurée',
+  `size_key`  VARCHAR(20) NULL COMMENT 'Format IAB pour la rotation automatique (ex: 300x250) si ni régie ni bannière spécifique',
   `active`    TINYINT(1) NOT NULL DEFAULT 1,
   PRIMARY KEY (`id`),
   UNIQUE KEY `uniq_k` (`k`),
@@ -637,8 +638,13 @@ ALTER TABLE `users`
   MODIFY `status` ENUM('active','pending','suspended','banned') NOT NULL DEFAULT 'active';
 
 -- transactions.type — extension de l'ENUM pour 'ptc','offerwall','bonus' (V2 sur V1)
+-- ⚠️ Cet ALTER redéfinit l'ENUM en entier : toute valeur omise ici est
+-- SUPPRIMÉE du type, même si le CREATE TABLE plus haut la déclarait.
+-- 'bingo_buy'/'bingo_win' manquaient, ce qui faisait rejeter silencieusement
+-- (troncature en chaîne vide) toutes les transactions Bingo — les gains du
+-- jackpot n'apparaissaient donc dans aucune statistique par type.
 ALTER TABLE `transactions`
-  MODIFY `type` ENUM('faucet','shortlink','ptc','offerwall','referral','withdraw','admin','bonus','daily_bonus','achievement') NOT NULL;
+  MODIFY `type` ENUM('faucet','shortlink','ptc','offerwall','referral','withdraw','admin','bonus','daily_bonus','achievement','bingo_buy','bingo_win') NOT NULL;
 
 -- referral_earnings.source — extension pour 'ptc','offerwall' (V2 sur V1)
 ALTER TABLE `referral_earnings`
@@ -813,6 +819,24 @@ INSERT IGNORE INTO `ad_zones` (`k`,`label`,`code`,`active`) VALUES
 INSERT IGNORE INTO `ad_zones` (`k`,`label`,`code`,`active`) VALUES
  ('blog_article_top',    'Blog — Haut d''article',  '<!-- Insérer ici le code AdSense responsive -->', 1),
  ('blog_article_bottom', 'Blog — Bas d''article',   '<!-- Insérer ici le code AdSense responsive -->', 1);
+
+-- Zones ajoutées avec les colonnes latérales (blog, tâches, offerwalls)
+INSERT IGNORE INTO `ad_zones` (`k`,`label`,`code`,`active`) VALUES
+ ('blog_index_top',      'Blog — Haut de la liste',       '<!-- Insérer ici le code AdSense responsive -->', 1),
+ ('blog_sidebar',        'Blog — Colonne latérale',       '<!-- Insérer ici le code AdSense responsive -->', 1),
+ ('offerwall_sidebar',   'Offerwalls — Colonne latérale', '<!-- Insérer ici le code AdSense responsive -->', 1),
+ ('tasks_index_sidebar', 'Tâches — Colonne latérale',     '<!-- Insérer ici le code AdSense responsive -->', 1),
+ ('tasks_index_mid',     'Tâches — Après la grille',      '<!-- Insérer ici le code AdSense responsive -->', 1);
+
+-- Format de repli par défaut (rotation automatique) selon le nom de la
+-- zone — modifiable librement ensuite via admin/banners.php. Les zones
+-- de type "sidebar"/"center"/gateway reçoivent un rectangle 300x250,
+-- toutes les autres un bandeau large 728x90.
+UPDATE `ad_zones` SET `size_key` = '300x250'
+ WHERE `size_key` IS NULL
+   AND (`k` LIKE '%sidebar%' OR `k` LIKE '%_center' OR `k` = 'shortlink_gateway');
+UPDATE `ad_zones` SET `size_key` = '728x90'
+ WHERE `size_key` IS NULL;
 
 -- Configuration AdSense (Auto Ads) modifiable via /admin/ads.php
 INSERT IGNORE INTO `config` (`k`, `v`) VALUES
@@ -1114,6 +1138,8 @@ CREATE TABLE IF NOT EXISTS `blog_posts` (
   `meta_description` VARCHAR(320) NULL,
   `status`          ENUM('draft','published') NOT NULL DEFAULT 'draft',
   `views`           INT UNSIGNED NOT NULL DEFAULT 0,
+  `helpful_yes`     INT UNSIGNED NOT NULL DEFAULT 0,
+  `helpful_no`      INT UNSIGNED NOT NULL DEFAULT 0,
   `reading_minutes` SMALLINT UNSIGNED NOT NULL DEFAULT 3,
   `published_at`    DATETIME NULL,
   `created_at`      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -1127,8 +1153,24 @@ CREATE TABLE IF NOT EXISTS `blog_posts` (
     ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+CREATE TABLE IF NOT EXISTS `blog_post_feedback` (
+  `id`         BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `post_id`    INT UNSIGNED NOT NULL,
+  `user_id`    INT UNSIGNED NULL,
+  `ip_hash`    CHAR(64) NOT NULL,
+  `is_helpful` TINYINT(1) NOT NULL,
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uniq_post_ip` (`post_id`, `ip_hash`),
+  KEY `idx_post` (`post_id`),
+  CONSTRAINT `fk_feedback_post`
+    FOREIGN KEY (`post_id`) REFERENCES `blog_posts`(`id`)
+    ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 INSERT IGNORE INTO `blog_categories` (`slug`, `name`, `description`, `sort_order`) VALUES
  ('guides',      'Guides',          'Tutoriels pas à pas pour bien démarrer',          10),
+ ('finance',     'Finance',         'Épargne, budget, inflation : les bases de la finance personnelle', 15),
  ('crypto',      'Crypto',          'Comprendre les cryptomonnaies et les paiements',  20),
  ('astuces',     'Astuces',         'Conseils pour optimiser tes gains',               30),
  ('actualites',  'Actualités',      'Nouveautés et mises à jour de la plateforme',     40);

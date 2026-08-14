@@ -209,6 +209,35 @@ include __DIR__ . '/../header.php';
     </section>
   <?php endif; ?>
 
+  <div class="wt-tasks-v2__layout">
+    <aside class="wt-tasks-v2__sidebar">
+      <!-- Notice éducative : charte d'utilisation éthique -->
+      <div class="wt-tasks-v2__charter">
+        <h4 class="wt-tasks-v2__charter-title">
+          <i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i>
+          <?= e(t('tasks.charter_title')) ?>
+        </h4>
+        <p class="wt-tasks-v2__charter-intro"><?= e(t('tasks.charter_intro')) ?></p>
+        <ul class="wt-tasks-v2__charter-list">
+          <li><?= e(t('tasks.charter_li1')) ?></li>
+          <li><?= e(t('tasks.charter_li2')) ?></li>
+          <li><?= e(t('tasks.charter_li3')) ?></li>
+        </ul>
+        <p class="wt-tasks-v2__charter-footer"><?= e(t('tasks.charter_footer')) ?></p>
+      </div>
+
+      <?php $_adSide = wt_ad_zone('tasks_index_sidebar'); if ($_adSide !== ''): ?>
+        <div class="wt-ad-zone wt-ad-zone--sidebar"><?= $_adSide ?></div>
+      <?php endif; ?>
+    </aside>
+
+    <div class="wt-tasks-v2__main">
+      <!-- Message de bienvenue explicatif -->
+      <div class="wt-tasks-v2__welcome">
+        <h2 class="wt-tasks-v2__welcome-title"><?= e(t('tasks.welcome_title')) ?></h2>
+        <p class="wt-tasks-v2__welcome-body"><?= e(t('tasks.welcome_body')) ?></p>
+      </div>
+
   <!-- =============== LES TÂCHES (grille riche) =============== -->
   <section class="wt-tasks-v2__grid" data-reveal>
 
@@ -488,6 +517,14 @@ include __DIR__ . '/../header.php';
     <?php endif; ?>
 
   </section>
+    </div>
+  </div>
+
+  <?php $_adMid = wt_ad_zone('tasks_index_mid'); if ($_adMid !== ''): ?>
+    <div class="wt-ad-zone wt-ad-zone--mid" style="margin:1.5rem 0;text-align:center">
+      <?= $_adMid ?>
+    </div>
+  <?php endif; ?>
 
   <!-- =============== TES GAINS DU JOUR (utilisateur connecté + données) =============== -->
   <?php if ($u && $todayTotal > 0): ?>

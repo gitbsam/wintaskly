@@ -85,4 +85,33 @@
     scaleAll();
     if (tries >= 5) { clearInterval(poll); }
   }, 700);
+
+  /**
+   * Rotation automatique des bannières maison (zones sans régie ni
+   * bannière spécifique assignée — voir wt_ad_zone() côté PHP). Chaque
+   * conteneur [data-ad-rotator] contient déjà TOUTES les bannières du
+   * format dans le DOM ; on bascule juste laquelle est visible, toutes
+   * les ~15-30 secondes, tant que la page reste ouverte. Ne fait rien si
+   * un conteneur ne contient qu'une seule bannière (rien à alterner).
+   */
+  function randRotateDelay() {
+    return (15 + Math.random() * 15) * 1000; // 15 000 à 30 000 ms
+  }
+
+  function initRotator(rotator) {
+    var slides = rotator.querySelectorAll('.wt-ad-rotator__slide');
+    if (slides.length < 2) return;
+
+    var idx = 0;
+    function nextSlide() {
+      slides[idx].classList.remove('is-active');
+      idx = (idx + 1) % slides.length;
+      slides[idx].classList.add('is-active');
+      setTimeout(nextSlide, randRotateDelay());
+    }
+    setTimeout(nextSlide, randRotateDelay());
+  }
+
+  var rotators = document.querySelectorAll('[data-ad-rotator]');
+  for (var r = 0; r < rotators.length; r++) { initRotator(rotators[r]); }
 })();

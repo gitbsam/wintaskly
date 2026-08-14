@@ -115,6 +115,20 @@ include __DIR__ . '/../header.php';
       ?>
     </div>
 
+    <!-- Avis "cet article vous a-t-il aidé ?" -->
+    <div class="wt-article__feedback" data-post-id="<?= (int) $post['id'] ?>" data-reveal>
+      <p class="wt-article__feedback-q"><?= e(t('blog.feedback.question')) ?></p>
+      <div class="wt-article__feedback-btns">
+        <button type="button" class="wt-article__feedback-btn" data-helpful="1">
+          👍 <?= e(t('blog.feedback.yes')) ?>
+        </button>
+        <button type="button" class="wt-article__feedback-btn" data-helpful="0">
+          👎 <?= e(t('blog.feedback.no')) ?>
+        </button>
+      </div>
+      <p class="wt-article__feedback-thanks" hidden><?= e(t('blog.feedback.thanks')) ?></p>
+    </div>
+
     <!-- Partage sur les réseaux sociaux -->
     <?php
       // URL absolue de l'article (pour le partage)
@@ -203,6 +217,62 @@ include __DIR__ . '/../header.php';
       document.body.removeChild(t); done();
     }
   });
+})();
+</script>
+
+<script>
+(function () {
+  var box = document.querySelector('.wt-article__feedback');
+  if (!box) return;
+
+  var postId = box.getAttribute('data-post-id');
+  var csrfMeta = document.querySelector('meta[name="csrf-token"]');
+  var csrf = csrfMeta ? csrfMeta.getAttribute('content') : '';
+  var btns = box.querySelectorAll('.wt-article__feedback-btn');
+  var thanks = box.querySelector('.wt-article__feedback-thanks');
+  var storageKey = 'wt_blog_feedback_' + postId;
+
+  function showThanks() {
+    box.classList.add('is-done');
+    if (thanks) thanks.hidden = false;
+  }
+
+  function disableBtns(state) {
+    for (var i = 0; i < btns.length; i++) btns[i].disabled = state;
+  }
+
+  // Déjà voté sur cet appareil (persistance locale, en plus de la
+  // déduplication serveur par IP) → on n'affiche pas les boutons à nouveau.
+  if (window.localStorage && localStorage.getItem(storageKey)) {
+    disableBtns(true);
+    showThanks();
+    return;
+  }
+
+  for (var i = 0; i < btns.length; i++) {
+    btns[i].addEventListener('click', function () {
+      var helpful = this.getAttribute('data-helpful');
+      disableBtns(true);
+
+      var body = new URLSearchParams();
+      body.set('post_id', postId || '');
+      body.set('helpful', helpful || '');
+      body.set('_csrf', csrf);
+
+      fetch('<?= e(wt_url('/api/blog_feedback.php')) ?>', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: body.toString()
+      }).then(function () {
+        if (window.localStorage) {
+          try { localStorage.setItem(storageKey, '1'); } catch (e) {}
+        }
+        showThanks();
+      }).catch(function () {
+        disableBtns(false);
+      });
+    });
+  }
 })();
 </script>
 
