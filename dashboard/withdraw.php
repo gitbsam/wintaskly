@@ -98,14 +98,9 @@ include __DIR__ . '/../header.php';
       if ($fiat_currency === 'USD') {
         // Conversion EUR vers USD (Division car le taux du JSON est exprimé en base EUR)
         $fiat_value = $value_in_eur / $usd_rate;
-        $fiat_symbol = '$';
       } else {
         $fiat_value = $value_in_eur;
-        $fiat_symbol = '€';
       }
-
-      // Formatage final (ex: "4.00 €" ou "4.58 $")
-      $formatted_fiat = number_format($fiat_value, 2, '.', ',') . ' ' . $fiat_symbol;
       ?>
       <section class="wt-wd-v2__balance-hero" data-reveal>
         <span class="wt-wd-v2__balance-icon" aria-hidden="true">💰</span>
@@ -118,16 +113,15 @@ include __DIR__ . '/../header.php';
             </strong>
 
             <div class="flex items-center gap-1.5 text-xs">
-              <small>
-                = <?= e($formatted_fiat) ?>
-                  
-              </small>
+              <small>=</small>
 
-              <!-- Bouton interactif pour basculer de devise -->
-              <button onclick="toggleFiatCurrency()" class="wt-btn wt-btn--primary inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-gradient-to-r from-yellow-400 via-amber-500 to-orange-500 text-white text-xs font-bold shadow hover:brightness-110 active:scale-95 transition-all" title="Changer de devise">
-                <?= e($fiat_currency) ?>
-                  
-                </button>
+              <!-- Valeur fiat + devise directement sur le bouton de bascule :
+                   un seul élément lisible, et le clic alterne EUR / USD. -->
+              <button type="button" onclick="toggleFiatCurrency()"
+                      class="wt-wd-v2__fiat-toggle"
+                      title="<?= e(t('wd.fiat_toggle_title')) ?>">
+                <?= e(number_format($fiat_value, 2, '.', ',')) ?> <?= e($fiat_currency) ?>
+              </button>
             </div>
           </div>
         </div>

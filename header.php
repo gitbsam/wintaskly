@@ -249,9 +249,9 @@ $_ogImage = $_seoOgImage !== '' ? $_seoOgImage : $_base . '/media/wintaskly/img/
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;500;600;700;800&family=Manrope:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 
-<link rel="stylesheet" href="<?= $_base ?>/media/wintaskly/css/tailwind.css">
-<link rel="stylesheet" href="<?= $_base ?>/media/wintaskly/css/wintaskly.css">
-<link rel="stylesheet" href="<?= $_base ?>/media/wintaskly/css/wintaskly-animations.css">
+<link rel="stylesheet" href="<?= $_base ?>/media/wintaskly/css/tailwind.css?v=<?= e(WT_VERSION) ?>">
+<link rel="stylesheet" href="<?= $_base ?>/media/wintaskly/css/wintaskly.css?v=<?= e(WT_VERSION) ?>">
+<link rel="stylesheet" href="<?= $_base ?>/media/wintaskly/css/wintaskly-animations.css?v=<?= e(WT_VERSION) ?>">
 
 <meta name="csrf-token" content="<?= e($_csrf) ?>">
 <meta name="wt-base"    content="<?= e($_base) ?>">
@@ -942,6 +942,12 @@ if ($_isAdminViewer
            style="--idx:3">
           <span aria-hidden="true">🎁</span> <?= e(t('nav.offerwalls')) ?>
         </a>
+        <?php if (function_exists('wt_bingo_visible_for') && wt_bingo_visible_for($_u)): ?>
+          <a class="<?= $_navActive('/tasks/bingo') ?>" href="<?= $_base ?>/tasks/bingo/"
+             style="--idx:4">
+            <span aria-hidden="true">🎲</span> <?= e(t('nav.bingo')) ?>
+          </a>
+        <?php endif; ?>
       </div>
 
       <!-- Section : Mon compte -->

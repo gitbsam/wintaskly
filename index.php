@@ -54,7 +54,11 @@ $realUsers = (int) ($_ru['c'] ?? 0);
 // Tous les types de gains réellement distribués, Bingo inclus (voir
 // WT_TX_TYPES_DISTRIBUTED dans includes/functions.php).
 $realPaid  = wt_coins_distributed();
-$_rt = db_one("SELECT COUNT(*) c FROM transactions WHERE type IN ('faucet','shortlink') AND created_at >= UTC_DATE()");
+// Nombre de tâches accomplies aujourd'hui : toutes les activités
+// rémunératrices, pas seulement faucet/shortlink (le compteur ignorait
+// PTC, offerwalls, bonus quotidiens, succès et Bingo).
+$_todayIn = "'" . implode("','", array_map(static fn($t) => db()->real_escape_string($t), WT_TX_TYPES_DISTRIBUTED)) . "'";
+$_rt = db_one("SELECT COUNT(*) c FROM transactions WHERE type IN ($_todayIn) AND coins > 0 AND created_at >= UTC_DATE()");
 $realToday = (int) ($_rt['c'] ?? 0);
 
 // Coins distribués sur les 7 derniers jours glissants — chiffre RÉEL, jamais
@@ -82,12 +86,17 @@ switch ($statsMode) {
         break;
 }
 
-/* -------- Flux des dernières récompenses (5 dernières) -------------------- */
+/* -------- Flux des dernières récompenses (5 dernières) --------------------
+ * Tous les types de gains réellement distribués (WT_TX_TYPES_DISTRIBUTED) :
+ * le flux excluait auparavant les bonus quotidiens, PTC, offerwalls,
+ * succès et gains Bingo, qui n'apparaissaient donc jamais en direct. */
 $feed = [];
+$_feedTypes = WT_TX_TYPES_DISTRIBUTED;
+$_feedIn    = "'" . implode("','", array_map(static fn($t) => db()->real_escape_string($t), $_feedTypes)) . "'";
 $sql = "SELECT t.type, t.coins, t.created_at, u.username
         FROM transactions t
         JOIN users u ON u.id = t.user_id
-        WHERE t.type IN ('faucet','shortlink','referral','bonus')
+        WHERE t.type IN ($_feedIn)
           AND t.coins > 0
         ORDER BY t.id DESC
         LIMIT 6";

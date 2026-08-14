@@ -5193,6 +5193,44 @@ html.dark .wt-lb__row.is-me::before { background: #facc15; }
   line-height: 1.5;
 }
 /* =====================================================================
+   RACCOURCIS INTER-TÂCHES (fin de contenu des pages tasks/*)
+   ===================================================================== */
+.wt-task-switch {
+  max-width: 900px; margin: 2.5rem auto 0;
+  padding: 1.1rem 1.25rem;
+  background: var(--wt-bg-elev, #131829);
+  border: 1px solid var(--wt-border, #232a40);
+  border-radius: var(--wt-radius-lg, 16px);
+  text-align: center;
+}
+.wt-task-switch__label {
+  display: block; margin-bottom: .75rem;
+  font-size: .78rem; font-weight: 700; letter-spacing: .05em;
+  text-transform: uppercase; opacity: .65;
+}
+.wt-task-switch__links {
+  display: flex; flex-wrap: wrap; gap: .5rem; justify-content: center;
+}
+.wt-task-switch__link {
+  display: inline-flex; align-items: center; gap: .4rem;
+  padding: .45rem .9rem;
+  border-radius: var(--wt-radius-pill, 999px);
+  background: var(--wt-bg-soft, rgba(255,255,255,.04));
+  border: 1px solid var(--wt-border, #232a40);
+  color: inherit; text-decoration: none;
+  font-size: .84rem; font-weight: 600;
+  transition: border-color .15s ease, transform .15s ease;
+}
+.wt-task-switch__link:hover {
+  border-color: var(--wt-accent);
+  transform: translateY(-2px);
+}
+.wt-task-switch__link--all {
+  background: color-mix(in srgb, var(--wt-accent) 12%, transparent);
+  border-color: color-mix(in srgb, var(--wt-accent) 35%, var(--wt-border));
+}
+
+/* =====================================================================
    COMPOSANT PARTAGÉ — "Comment ça marche" (toutes les pages tasks/*)
    Couleur d'accent par module via modificateur --wt-task-how--<module>.
    ===================================================================== */
@@ -12554,6 +12592,26 @@ a.wt-dash-v2__kpi-cta:hover {
   opacity: .9;
   margin-left: .25rem;
 }
+
+/* Bouton valeur fiat + devise (clic = bascule EUR/USD). Posé sur le
+   dégradé du bloc solde : fond translucide plutôt qu'une couleur figée,
+   pour rester lisible quel que soit le thème. */
+.wt-wd-v2__fiat-toggle {
+  display: inline-flex; align-items: center; gap: .35rem;
+  padding: .3rem .75rem;
+  border-radius: var(--wt-radius-pill, 999px);
+  background: rgba(255, 255, 255, .22);
+  border: 1px solid rgba(255, 255, 255, .35);
+  color: inherit;
+  font-family: var(--wt-font-mono);
+  font-size: .8rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  transition: background .15s ease, transform .1s ease;
+}
+.wt-wd-v2__fiat-toggle:hover { background: rgba(255, 255, 255, .32); }
+.wt-wd-v2__fiat-toggle:active { transform: scale(.96); }
 
 /* Form card */
 .wt-wd-v2__form-card {

@@ -266,9 +266,9 @@ window.WT_I18N = {
   common_cancel:          <?= json_encode(t('common.cancel'),              JSON_UNESCAPED_UNICODE) ?>
 };
 </script>
-<script src="<?= $_base ?>/media/wintaskly/js/wintaskly-ui.js" defer></script>
-<script src="<?= $_base ?>/media/wintaskly/js/wintaskly.js" defer></script>
-<script src="<?= $_base ?>/media/wintaskly/js/wt-ads-responsive.js" defer></script>
+<script src="<?= $_base ?>/media/wintaskly/js/wintaskly-ui.js?v=<?= e(WT_VERSION) ?>" defer></script>
+<script src="<?= $_base ?>/media/wintaskly/js/wintaskly.js?v=<?= e(WT_VERSION) ?>" defer></script>
+<script src="<?= $_base ?>/media/wintaskly/js/wt-ads-responsive.js?v=<?= e(WT_VERSION) ?>" defer></script>
 
 <!-- =====================================================================
      PWA — Service Worker + Bannière d'installation

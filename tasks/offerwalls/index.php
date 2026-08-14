@@ -302,6 +302,37 @@ include __DIR__ . '/../../header.php';
       </section>
     <?php endif; ?>
 
+    <?php
+      /* Raccourcis vers les autres tâches : évite de repasser par /tasks/
+         pour changer d'activité. La tâche courante est exclue de la liste,
+         et le Bingo n'apparaît que s'il est réellement jouable. */
+      $wtCurrentTask = 'offerwalls';
+      $wtSwitchTasks = [
+        'faucet'     => ['url' => '/tasks/faucet/',     'icon' => '💧', 'label' => 'nav.faucet'],
+        'shortlinks' => ['url' => '/tasks/shortlinks/', 'icon' => '🔗', 'label' => 'nav.shortlinks'],
+        'ptc'        => ['url' => '/tasks/ptc/',        'icon' => '📺', 'label' => 'nav.ptc'],
+        'offerwalls' => ['url' => '/tasks/offerwalls/', 'icon' => '🎁', 'label' => 'nav.offerwalls'],
+      ];
+      if (function_exists('wt_bingo_visible_for') && wt_bingo_visible_for($u ?? null)) {
+        $wtSwitchTasks['bingo'] = ['url' => '/tasks/bingo/', 'icon' => '🎲', 'label' => 'nav.bingo'];
+      }
+      unset($wtSwitchTasks[$wtCurrentTask]);
+    ?>
+    <nav class="wt-task-switch" aria-label="<?= e(t('tasks.switch_title')) ?>">
+      <span class="wt-task-switch__label"><?= e(t('tasks.switch_title')) ?></span>
+      <div class="wt-task-switch__links">
+        <?php foreach ($wtSwitchTasks as $wtSw): ?>
+          <a class="wt-task-switch__link" href="<?= e(wt_url($wtSw['url'])) ?>">
+            <span aria-hidden="true"><?= $wtSw['icon'] ?></span>
+            <?= e(t($wtSw['label'])) ?>
+          </a>
+        <?php endforeach; ?>
+        <a class="wt-task-switch__link wt-task-switch__link--all" href="<?= e(wt_url('/tasks/')) ?>">
+          <span aria-hidden="true">🎯</span> <?= e(t('tasks.switch_all')) ?>
+        </a>
+      </div>
+    </nav>
+
     <!-- ====== FOOTER BONUS ====== -->
     <p class="wt-ow-v2__bonus">
       <?= e(t('faucet.referral_bonus')) ?>

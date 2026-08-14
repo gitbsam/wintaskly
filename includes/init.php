@@ -47,7 +47,7 @@ if (!defined('WT_PERIOD_DASHBOARD_DAYS')) {
 // L'URL latest.json est configurable via la BDD (clé config 'update.feed_url')
 // pour permettre de changer de canal (stable/beta) sans redéployer.
 if (!defined('WT_VERSION')) {
-    define('WT_VERSION', '8.28.3');
+    define('WT_VERSION', '8.29.0');
     define('WT_VERSION_CHANNEL', 'stable');  // stable | beta | dev
     define('WT_UPDATE_FEED_DEFAULT', 'https://gitbsam.github.io/wintaskly/latest.json');
 }
@@ -181,15 +181,29 @@ if (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') {
 //   - 'unsafe-inline' sur style aussi car Tailwind+CSS inline présents
 //   - cdnjs et fonts.googleapis pour les fonts/icônes optionnelles
 //   - les images depuis n'importe où en https (avatars hash-color etc.)
+//   - les régies publicitaires et la mesure d'audience réellement utilisées
+//     par le site (Google AdSense, Google Analytics/gtag, Adsterra). Sans
+//     ces domaines, le navigateur bloque purement et simplement leurs
+//     scripts : aucune pub ne s'affiche et aucune visite n'est mesurée.
+//     AdSense et Analytics chargent en cascade d'autres sous-domaines et
+//     ouvrent des connexions XHR/beacon + des iframes : script-src seul ne
+//     suffit pas, d'où les ajouts sur connect-src, img-src et frame-src.
 // Si tu veux durcir, retire 'unsafe-inline' et passe à des nonces.
+$_cspAds = "https://pagead2.googlesyndication.com https://*.googlesyndication.com "
+         . "https://partner.googleadservices.com https://tpc.googlesyndication.com "
+         . "https://*.adsterranet.com https://*.adsterratools.com https://*.highperformanceformat.com";
+$_cspAnalytics = "https://www.googletagmanager.com https://www.google-analytics.com "
+               . "https://*.google-analytics.com https://*.analytics.google.com";
+
 header(
     "Content-Security-Policy: "
     . "default-src 'self'; "
-    . "script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; "
+    . "script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com "
+        . $_cspAds . " " . $_cspAnalytics . "; "
     . "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; "
     . "font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com data:; "
     . "img-src 'self' data: https:; "
-    . "connect-src 'self'; "
+    . "connect-src 'self' " . $_cspAds . " " . $_cspAnalytics . "; "
     . "frame-src 'self' https:; "
     . "object-src 'none'; "
     . "base-uri 'self'; "

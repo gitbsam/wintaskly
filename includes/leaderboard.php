@@ -93,7 +93,7 @@ function wt_lb_compute_top(string $ym, int $limit = 10): array
                AND t.coins > 0
                AND u.status = 'active'
                AND (
-                    t.type IN ('faucet','shortlink','ptc','offerwall','referral')
+                    t.type IN ('faucet','shortlink','ptc','offerwall','referral','daily_bonus','achievement')
                  OR (t.type = 'bonus' AND (t.meta IS NULL OR t.meta NOT LIKE 'leaderboard:%'))
                )
              GROUP BY t.user_id
@@ -241,7 +241,10 @@ function wt_lb_user_rank(int $userId, ?string $ym = null): array
            FROM transactions
           WHERE user_id = ?
             AND created_at >= ? AND created_at < ?
-            AND type IN ('faucet','shortlink','ptc','offerwall','referral','bonus')
+            AND (
+                 type IN ('faucet','shortlink','ptc','offerwall','referral','daily_bonus','achievement')
+              OR (type = 'bonus' AND (meta IS NULL OR meta NOT LIKE 'leaderboard:%'))
+            )
             AND coins > 0"
     );
     $stmt->bind_param('iss', $userId, $start, $end);
@@ -260,7 +263,10 @@ function wt_lb_user_rank(int $userId, ?string $ym = null): array
                FROM transactions t
                JOIN users u ON u.id = t.user_id
               WHERE t.created_at >= ? AND t.created_at < ?
-                AND t.type IN ('faucet','shortlink','ptc','offerwall','referral','bonus')
+                AND (
+                     t.type IN ('faucet','shortlink','ptc','offerwall','referral','daily_bonus','achievement')
+                  OR (t.type = 'bonus' AND (t.meta IS NULL OR t.meta NOT LIKE 'leaderboard:%'))
+                )
                 AND t.coins > 0
                 AND u.status = 'active'
                 AND t.user_id <> ?

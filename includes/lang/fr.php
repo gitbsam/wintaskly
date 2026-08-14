@@ -351,6 +351,7 @@ return [
     'wd.amount'         => 'Montant en Coins',
     'wd.address'        => 'Adresse / destinataire',
     'wd.balance'        => 'Solde actuel',
+    'wd.fiat_toggle_title' => 'Changer de devise (EUR / USD)',
     'wd.min'            => 'Minimum',
     'wd.payout'         => 'Tu recevras',
     'wd.submit'         => 'Demander le retrait',
@@ -462,6 +463,9 @@ return [
     'nav.profile'        => 'Profil',
     'nav.ptc'            => 'PTC',
     'nav.offerwalls'     => 'Offres',
+    'nav.bingo'          => 'Bingo',
+    'tasks.switch_title' => 'Changer de tâche',
+    'tasks.switch_all'   => 'Toutes les tâches',
 
     // ----- v4 témoignages ---------------------------------------------
     'testi.title'             => 'Ce que disent nos membres',

@@ -336,6 +336,7 @@ return [
     'wd.amount'         => 'Amount in Coins',
     'wd.address'        => 'Address / recipient',
     'wd.balance'        => 'Current balance',
+    'wd.fiat_toggle_title' => 'Switch currency (EUR / USD)',
     'wd.min'            => 'Minimum',
     'wd.payout'         => 'You will receive',
     'wd.submit'         => 'Request withdrawal',
@@ -446,6 +447,9 @@ return [
     'nav.profile'        => 'Profile',
     'nav.ptc'            => 'PTC',
     'nav.offerwalls'     => 'Offers',
+    'nav.bingo'          => 'Bingo',
+    'tasks.switch_title' => 'Switch task',
+    'tasks.switch_all'   => 'All tasks',
 
     // ----- v4 testimonials --------------------------------------------
     'testi.title'             => 'What our members say',
