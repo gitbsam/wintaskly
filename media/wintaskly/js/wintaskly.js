@@ -1622,7 +1622,7 @@
           <strong>${escapeHtml(it.name)}</strong>
           <small class="wt-muted">${escapeHtml(it.method)} · ${escapeHtml(timeAgoFR(it.at))}</small>
         </div>
-        <span class="wt-hero__withdraw-amount">+${escapeHtml(it.amount)} €</span>
+        <span class="wt-hero__withdraw-amount">+${escapeHtml(it.amount)} ${escapeHtml(it.currency || "")}</span>
       </li>
     `).join('');
   }

@@ -156,6 +156,21 @@ if ($res = $db->query($sql)) {
     $res->free();
 }
 
+/* Données structurées FAQPage.
+ *
+ * Doit être empilé AVANT l'inclusion du header : c'est header.php qui rend
+ * le bloc JSON-LD, donc tout wt_schema_add() postérieur serait ignoré.
+ * Les mêmes clés alimentent l'accordéon plus bas — Google exige que les
+ * questions balisées soient réellement visibles sur la page. */
+$homeFaq = [
+    ['q' => t('home.faq.q1'), 'a' => t('home.faq.a1')],
+    ['q' => t('home.faq.q2'), 'a' => t('home.faq.a2')],
+    ['q' => t('home.faq.q3'), 'a' => t('home.faq.a3')],
+    ['q' => t('home.faq.q4'), 'a' => t('home.faq.a4')],
+    ['q' => t('home.faq.q5'), 'a' => t('home.faq.a5')],
+];
+wt_schema_add(wt_schema_faq($homeFaq));
+
 include __DIR__ . '/header.php';
 ?>
 
@@ -230,6 +245,13 @@ include __DIR__ . '/header.php';
        * Visible UNIQUEMENT en desktop (data-nav="desktop").
        * En mobile l'utilisateur voit cette info plus bas dans le feed.
        * ----------------------------------------------------------------- -->
+      <?php
+        /* Seuil d'affichage : en dessous de 5 retraits validés, ce panneau
+           n'affiche qu'une ou deux lignes et souligne le manque d'activité
+           au lieu de le masquer. Un bloc absent vaut mieux qu'un bloc qui
+           met le vide en évidence. Il réapparaît seul au 5e retrait. */
+        if (count($topWithdrawals) >= 5):
+      ?>
       <aside class="wt-hero__sidebar" data-nav="desktop" aria-label="<?= e(t('home.live.title')) ?>">
         <header class="wt-hero__sidebar-head">
           <span class="wt-hero__live-dot" aria-hidden="true"></span>
@@ -255,7 +277,13 @@ include __DIR__ . '/header.php';
                   </small>
                 </div>
                 <span class="wt-hero__withdraw-amount">
-                  +<?= e(number_format((float)$w['amount'], 2, ',', ' ')) ?> €
+                  <?php /* wt_format_payout() gère jusqu'à 8 décimales : un
+                           retrait en BTC vaut ~0,00002 — arrondi à 2
+                           décimales il s'affichait « 0,00 ». Et la devise
+                           réelle du retrait est affichée, plus un « € »
+                           figé qui était faux pour toute méthode crypto. */ ?>
+                  +<?= e(wt_format_payout((float)$w['amount'])) ?>
+                  <?= e((string)($w['payout_currency'] ?? '')) ?>
                 </span>
               </li>
             <?php endforeach; ?>
@@ -277,6 +305,7 @@ include __DIR__ . '/header.php';
           </a>
         </footer>
       </aside>
+      <?php endif; ?>
 
     </div>
   </div>
@@ -378,13 +407,17 @@ include __DIR__ . '/header.php';
   <?php if ($blockVisible('why')):
     $whyPillars = [
         ['icon' => 'M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z',
-         't' => t('home.why.pillar1.t'), 'd' => t('home.why.pillar1.d')],
+         't' => t('home.why.pillar1.t'), 'd' => t('home.why.pillar1.d'),
+         'url' => '/about/'],
         ['icon' => 'M12 2 4 6v6c0 5 3.5 9 8 10 4.5-1 8-5 8-10V6l-8-4Z',
-         't' => t('home.why.pillar2.t'), 'd' => t('home.why.pillar2.d')],
+         't' => t('home.why.pillar2.t'), 'd' => t('home.why.pillar2.d'),
+         'url' => '/help/antifraud.php'],
         ['icon' => 'M21 12V7H5a2 2 0 0 1 0-4h14v4M3 5v14a2 2 0 0 0 2 2h16v-5M18 12a2 2 0 0 0 0 4h4v-4Z',
-         't' => t('home.why.pillar3.t'), 'd' => t('home.why.pillar3.d')],
+         't' => t('home.why.pillar3.t'), 'd' => t('home.why.pillar3.d'),
+         'url' => '/legal/privacy.php'],
         ['icon' => 'M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0',
-         't' => t('home.why.pillar4.t'), 'd' => t('home.why.pillar4.d')],
+         't' => t('home.why.pillar4.t'), 'd' => t('home.why.pillar4.d'),
+         'url' => '/help/faq.php'],
     ];
   ?>
   <section class="wt-why" data-reveal>
@@ -395,7 +428,11 @@ include __DIR__ . '/header.php';
     </div>
     <div class="wt-why__grid">
       <?php foreach ($whyPillars as $i => $p): ?>
-        <div class="wt-why__card" style="--idx:<?= (int) $i ?>">
+        <?php /* Chaque pilier renvoie vers la page qui le documente : le bloc
+                 était un cul-de-sac (aucun lien sortant), alors qu'il parle
+                 justement de transparence et de sécurité — autant permettre
+                 au visiteur de le vérifier. */ ?>
+        <a class="wt-why__card" href="<?= e(wt_url($p['url'])) ?>" style="--idx:<?= (int) $i ?>">
           <span class="wt-why__icon" aria-hidden="true">
             <svg viewBox="0 0 24 24" width="22" height="22" fill="none"
                  stroke="currentColor" stroke-width="2"
@@ -405,7 +442,7 @@ include __DIR__ . '/header.php';
           </span>
           <h3><?= e($p['t']) ?></h3>
           <p><?= e($p['d']) ?></p>
-        </div>
+        </a>
       <?php endforeach; ?>
     </div>
   </section>
@@ -951,19 +988,32 @@ include __DIR__ . '/header.php';
           // généré) — évite un crash public (division par zéro/null corrigée).
           $mCurrency = (string) $m['currency'];
           $mRate = ($mCurrency === 'EUR') ? 1.0 : (float) ($rates[$mCurrency] ?? 0);
-          if ($mRate <= 0) { $mRate = 1.0; }
-          $minUnit = (float)$m['min_coins'] / max(1, (float)$m['coins_per_unit']) / $mRate;
-          $isCrypto = in_array($mCurrency, ['BTC', 'ETH', 'BCH', 'LTC', 'DOGE', 'TRX', 'XRP', 'USDC']);
-          $decimals = $isCrypto ? 8 : 2;
-          $minFmt  = e(rtrim(rtrim(number_format($minUnit, $decimals, '.', ' '), '0'), '.'));
+          /* Taux indisponible (cache non généré, API de cotation muette) :
+             on N'AFFICHE PAS le minimum plutôt que de le calculer avec un
+             taux de repli à 1.0, qui donnerait « Min 2 BTC » au lieu de
+             « Min 0.00002 BTC ». Un chiffre absent vaut mieux qu'un chiffre
+             faux sur une page publique. */
+          $minFmt = null;
+          if ($mRate > 0) {
+              $minUnit  = (float)$m['min_coins'] / max(1, (float)$m['coins_per_unit']) / $mRate;
+              $isCrypto = in_array($mCurrency, ['BTC', 'ETH', 'BCH', 'LTC', 'DOGE', 'TRX', 'XRP', 'USDC']);
+              $decimals = $isCrypto ? 8 : 2;
+              $minFmt   = rtrim(rtrim(number_format($minUnit, $decimals, '.', ' '), '0'), '.');
+          }
       ?>
         <li class="wt-paymethods__item" style="--idx:<?= (int)$i ?>">
           <a class="wt-paymethods__chip" href="<?= e($payHref) ?>"
-             title="<?= e(sprintf((string)t('home.pay.tooltip'), $minFmt, $m['currency'])) ?>">
+             <?php if ($minFmt !== null): ?>
+             title="<?= e(sprintf((string)t('home.pay.tooltip'), $minFmt, $m['currency'])) ?>"
+             <?php endif; ?>>
             <span class="wt-paymethods__icon" aria-hidden="true"><?= wt_pay_icon($m['k']) ?></span>
             <span class="wt-paymethods__label">
               <strong><?= e($m['label']) ?></strong>
-              <small><?= e(sprintf((string)t('home.pay.min'), $minFmt, $m['currency'])) ?></small>
+              <?php if ($minFmt !== null): ?>
+                <small><?= e(sprintf((string)t('home.pay.min'), $minFmt, $m['currency'])) ?></small>
+              <?php else: ?>
+                <small><?= e($m['currency']) ?></small>
+              <?php endif; ?>
             </span>
           </a>
         </li>
@@ -991,8 +1041,12 @@ include __DIR__ . '/header.php';
          partenaire configuré n'affiche pas de liste vide : seul le texte
          descriptif reste. */
       $_partners = wt_partners_real();
-      $_pCard = static function (string $titleKey, string $descKey, array $names): void {
-          echo '<div class="wt-partners__card">';
+      /* Chaque carte pointe vers la page de tâches correspondante : le bloc
+         n'avait aucun lien sortant, ce qui en faisait un cul-de-sac. */
+      $_pCard = static function (string $titleKey, string $descKey, array $names, string $url = ''): void {
+          $tag = $url !== '' ? 'a' : 'div';
+          $href = $url !== '' ? ' href="' . e(wt_url($url)) . '"' : '';
+          echo '<' . $tag . ' class="wt-partners__card"' . $href . '>';
           echo '<h3>' . e(t($titleKey)) . '</h3>';
           echo '<p>' . e(t($descKey)) . '</p>';
           if ($names) {
@@ -1002,14 +1056,14 @@ include __DIR__ . '/header.php';
               }
               echo '</ul>';
           }
-          echo '</div>';
+          echo '</' . $tag . '>';
       };
     ?>
     <div class="wt-partners__grid">
       <?php
-        $_pCard('home.partners.offers.t', 'home.partners.offers.d', $_partners['offers']);
-        $_pCard('home.partners.links.t',  'home.partners.links.d',  $_partners['links']);
-        $_pCard('home.partners.pay.t',    'home.partners.pay.d',    $_partners['pay']);
+        $_pCard('home.partners.offers.t', 'home.partners.offers.d', $_partners['offers'], '/tasks/offerwalls/');
+        $_pCard('home.partners.links.t',  'home.partners.links.d',  $_partners['links'],  '/tasks/shortlinks/');
+        $_pCard('home.partners.pay.t',    'home.partners.pay.d',    $_partners['pay'],    '/about/');
       ?>
     </div>
   </section>
@@ -1021,6 +1075,9 @@ include __DIR__ . '/header.php';
    * "one-open-at-a-time" via le hook plus bas).
    ========================================================== -->
   <?php
+    /* Balisage FAQPage : ces 5 questions sont visibles sur la page (Google
+       l'exige pour les résultats enrichis). Le fil d'Ariane n'est pas
+       nécessaire ici, l'accueil étant la racine. */
     $faqItems = [
         ['q' => t('home.faq.q1'), 'a' => t('home.faq.a1'), 'open' => true],
         ['q' => t('home.faq.q2'), 'a' => t('home.faq.a2'), 'open' => false],
@@ -1101,7 +1158,12 @@ include __DIR__ . '/header.php';
               <?php if (!empty($post['excerpt'])): ?>
                 <p class="wt-home-blog__excerpt"><?= e($post['excerpt']) ?></p>
               <?php endif; ?>
-              <span class="wt-home-blog__meta">⏱️ <?= (int)$post['reading_minutes'] ?> <?= e(t('blog.min_read')) ?></span>
+              <span class="wt-home-blog__meta">
+                <?php /* La date montre que le blog est vivant : une liste de
+                         titres sans date ne prouve pas l'activité. */ ?>
+                📅 <?= e(wt_format_datetime($post['published_at'], 'd/m/Y')) ?>
+                &nbsp;·&nbsp; ⏱️ <?= (int)$post['reading_minutes'] ?> <?= e(t('blog.min_read')) ?>
+              </span>
             </div>
           </a>
         </article>

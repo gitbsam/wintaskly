@@ -1066,13 +1066,28 @@ function get_cached_rates(): array {
                 // Secours via USDC
                 $priceUsdc = getBinancePrice($cur . 'USDC');
                 $eurUsdc = getBinancePrice('EURUSDC');
-                $ratesToEur[$cur] = ($priceUsdc > 0 && $eurUsdc > 0) ? round($priceUsdc / $eurUsdc, 6) : 1.0;
+                /* Repli à 0 et non à 1.0.
+                 *
+                 * Un taux de 1.0 signifierait « 1 TRX = 1 EUR » (ou 1 BTC =
+                 * 1 EUR) : le montant du retrait serait calculé sur une base
+                 * fausse, et le contrôle `if ($rate <= 0)` de
+                 * api/withdraw_submit.php ne le détecterait pas puisque 1.0
+                 * est une valeur « valide ». Avec 0, la demande est rejetée
+                 * proprement plutôt que payée au mauvais taux. */
+                $ratesToEur[$cur] = ($priceUsdc > 0 && $eurUsdc > 0) ? round($priceUsdc / $eurUsdc, 6) : 0.0;
             }
         }
     }
 
-    // Sauvegarde dans le fichier cache
-    file_put_contents($cacheFile, json_encode($ratesToEur));
+    /* On ne met en cache que si TOUS les taux ont été obtenus : sinon un
+     * échec réseau ponctuel figerait des taux inutilisables pendant 10
+     * minutes. En cas d'échec partiel, la prochaine requête réessaiera. */
+    if (!in_array(0.0, $ratesToEur, true) && !in_array(0, $ratesToEur, true)) {
+        file_put_contents($cacheFile, json_encode($ratesToEur));
+    } else {
+        error_log('[Wintaskly rates] taux incomplets, cache non écrit : '
+                  . implode(',', array_keys($ratesToEur, 0.0)));
+    }
     return $ratesToEur;
 }
 

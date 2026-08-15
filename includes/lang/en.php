@@ -78,11 +78,11 @@ return [
     'home.feed.empty'   => 'No transactions yet.',
     'home.how.title'    => 'How it works',
     'home.how.step1.t'  => 'Create your account',
-    'home.how.step1.d'  => 'In seconds, no commitment.',
-    'home.how.step2.t'  => 'Claim & complete',
-    'home.how.step2.d'  => 'Faucet every 3h + shortlinks on demand.',
+    'home.how.step1.d'  => 'Free sign-up in under 30 seconds with just an email address. No deposit, no card, no commitment: you can start earning as soon as your email is verified.',
+    'home.how.step2.t'  => 'Claim and complete',
+    'home.how.step2.d'  => 'Claim the faucet every 3 hours, complete shortlinks in a few minutes, watch PTC ads or take on partner offers. Every task credits Coins and XP to your account, instantly or once the partner validates it.',
     'home.how.step3.t'  => 'Cash out',
-    'home.how.step3.d'  => 'Convert your Coins, or refer friends and earn 10% for life.',
+    'home.how.step3.d'  => 'Once the minimum threshold is reached, convert your Coins into real money or cryptocurrency through the method of your choice. You can also refer friends and earn 10% of their earnings, for life, without reducing theirs.',
     // Page d'accueil — sections "Pourquoi Wintaskly" et "Partenaires" (V8.26)
     'home.why.eyebrow' => 'Our commitment',
     'home.why.title' => 'Why Wintaskly?',
@@ -665,6 +665,10 @@ return [
 
     // Page « Notre ligne éditoriale » (signal de confiance / E-E-A-T)
     'editorial.eyebrow'          => 'Transparency',
+    'ref.banners_format'       => 'Choose your format',
+    'ref.banners_choose'         => '— Choose a format —',
+    'ref.banners_count'          => 'banner(s)',
+    'ref.banners_hint'           => 'Select a format above to display the matching banners and their embed code.',
 
     // Accueil — selecteur de tache par temps disponible
     'home.pick.eyebrow'          => 'By time available',

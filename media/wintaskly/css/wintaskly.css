@@ -2716,6 +2716,15 @@ html.dark .wt-lb__row.is-me::before { background: #facc15; }
  * ===================================================================== */
 
 /* ===== Sidebar dashboard ===== */
+/* Enfants directs de la grille : min-width auto par défaut sur un élément
+   de grid, ce qui les empêche de rétrécir sous la largeur de leur contenu.
+   Une bannière 728×90 placée en enfant direct (pages notifications,
+   messages, parrainage) débordait donc l'écran sur mobile, contrairement au
+   tableau de bord où la pub est imbriquée dans .wt-dash__content.
+   min-width:0 rétablit la contrainte, overflow-x cadre les cas restants. */
+.wt-dash__layout > * { min-width: 0; }
+.wt-dash__layout > .wt-ad-zone { overflow-x: hidden; }
+
 .wt-dash__layout {
   display: grid;
   grid-template-columns: 260px minmax(0, 1fr);  /* minmax(0,1fr) → content peut shrink */
@@ -11179,9 +11188,9 @@ html.dark .wt-lb__row.is-me::before { background: #facc15; }
   font-size: .95rem;
   font-weight: 600;
   transition:
-    color var(--wt-transition),
-    background var(--wt-transition),
-    transform var(--wt-transition);
+    color .18s ease,
+    background .18s ease,
+    transform .18s ease;
 }
 .wt-header-v2__nav .nav-link:hover {
   color: var(--wt-accent);
@@ -14459,6 +14468,10 @@ a.wt-dash-v2__kpi-cta:hover {
 }
 
 /* ===== Parrainage — grille de bannières promotionnelles ===== */
+.wt-ref-v2__format { max-width: 320px; margin: .9rem 0 .3rem; }
+.wt-ref-v2__hint { margin: 0 0 .5rem; }
+.wt-ref-v2__banner-card img { max-width: 100%; height: auto; }
+
 .wt-ref-v2__banners-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -14466,8 +14479,10 @@ a.wt-dash-v2__kpi-cta:hover {
   margin-top: .75rem;
 }
 .wt-ref-v2__banner-card {
-  background: var(--wt-card-bg, #fff);
-  border: 1px solid var(--wt-border, #e5e7eb);
+  /* --wt-card-bg n'existe pas : la variable du projet est --wt-bg-card.
+     Le repli #fff rendait ces cartes blanches sur le theme sombre. */
+  background: var(--wt-bg-card, var(--wt-bg-elev));
+  border: 1px solid var(--wt-border);
   border-radius: 10px;
   padding: .75rem;
   text-align: center;
@@ -14509,7 +14524,7 @@ a.wt-dash-v2__kpi-cta:hover {
   margin-bottom: 1rem;
 }
 .wt-why__card h3 { margin: 0 0 .4rem; font-size: 1.05rem; }
-.wt-why__card p  { margin: 0; color: var(--wt-text-mute, var(--wt-text-secondary, var(--wt-border-strong))); font-size: .92rem; line-height: 1.55; }
+.wt-why__card p  { margin: 0; color: var(--wt-text-mute); font-size: .92rem; line-height: 1.55; }
 
 /* ===== Accueil — "Partenaires / écosystème" (V8.26) ===== */
 .wt-partners {
@@ -14571,7 +14586,7 @@ a.wt-dash-v2__kpi-cta:hover {
 }
 
 .wt-partners__card h3 { margin: 0 0 .5rem; font-size: 1rem; }
-.wt-partners__card p  { margin: 0; color: var(--wt-text-mute, var(--wt-text-secondary, var(--wt-border-strong))); font-size: .9rem; line-height: 1.55; }
+.wt-partners__card p  { margin: 0; color: var(--wt-text-mute); font-size: .9rem; line-height: 1.55; }
 
 /* =======================================================================
   DISCOVER SECTION
@@ -14730,7 +14745,7 @@ a.wt-dash-v2__kpi-cta:hover {
   backdrop-filter: blur(12px);
   color: #fff;
   background: color-mix(in srgb, var(--wt-bg) 30%, transparent);
-  box-shadow: var(--wt-shadow-xl, 0 20px 25px -5px rgb(0 0 0 / 0.12)),
+  box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.12),
         0 0 0 1px color-mix(in srgb, var(--wt-accent2) 12%, transparent);
   transition: transform 0.3s ease;
   position: relative;

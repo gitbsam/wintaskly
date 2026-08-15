@@ -1,53 +1,36 @@
 -- ============================================================================
--- Wintaskly — Migration : passage du contenu en base au vouvoiement
+-- Wintaskly — Migration : contenu en base au vouvoiement
 -- ============================================================================
--- Le site est passé du tutoiement au vouvoiement (fichiers de langue et
--- templates traités dans le code). Mais une partie du texte affiché vit en
--- base et n'est donc pas couverte par la mise à jour du code :
---   - homepage_blocks : blocs éditoriaux de la page d'accueil
---   - blog_posts      : titres, extraits et corps des articles
---   - blog_categories : descriptions
+-- ⚠️ CETTE MIGRATION REMPLACE UNE VERSION ANTÉRIEURE DÉFECTUEUSE.
 --
--- Cette migration applique les mêmes remplacements à ces contenus.
+-- La version précédente utilisait des REPLACE() sur les pronoms. Or REPLACE()
+-- ne respecte pas les limites de mots : remplacer 'tes ' par 'vos ' a corrompu
+-- des mots contenant cette suite de lettres —  « toutes les 3 heures » est
+-- devenu « touvos les 3 heures », « faites » → « faivos », « différentes » →
+-- « différenvos ». Elle laissait aussi les verbes au singulier
+-- (« Transforme votre temps » au lieu de « Transformez »).
 --
--- ⚠️ IMPORTANT — À LIRE AVANT D'APPLIQUER
---   1. Ces REPLACE sont mécaniques : ils traitent les pronoms et possessifs,
---      pas la conjugaison de tous les verbes. Après application, relisez vos
---      articles : une tournure comme « tu gagnes » deviendra « vous gagnes »
---      s'il en reste une non couverte ci-dessous.
---   2. Faites une sauvegarde de la base avant. Un REPLACE ne se défait pas.
---   3. Importez avec --default-character-set=utf8mb4, sinon les accents
---      seront corrompus.
+-- Cette version écrit directement le texte correct, relu, plutôt que
+-- d'appliquer des substitutions aveugles. Si vous aviez appliqué l'ancienne,
+-- celle-ci répare les blocs concernés.
 --
--- Idempotent : relancer la migration ne change rien (les motifs ont déjà
--- disparu au premier passage).
+-- ⚠️ Importez avec --default-character-set=utf8mb4.
 -- ============================================================================
 
--- ---------- Blocs de la page d'accueil ----------
-UPDATE `homepage_blocks` SET
-  `title`   = REPLACE(REPLACE(REPLACE(REPLACE(`title`,   'ton ', 'votre '), 'ta ', 'votre '), 'tes ', 'vos '), 'Ton ', 'Votre '),
-  `content` = REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(`content`,
-                'fais grimper ton XP et invite tes amis', 'faites grimper votre XP et invitez vos amis'),
-                'complète des shortlinks', 'complétez des shortlinks'),
-                'ton ', 'votre '), 'Ton ', 'Votre '), 'tes ', 'vos '), 'Tes ', 'Vos ')
-WHERE `title` LIKE '%to%' OR `content` LIKE '%t%';
 
--- ---------- Articles de blog ----------
--- Verbes d'abord (sinon « tu gagnes » deviendrait « vous gagnes »)
-UPDATE `blog_posts` SET
-  `body` = REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(`body`,
-             'tu as ', 'vous avez '), 'tu es ', 'vous êtes '), 'tu peux ', 'vous pouvez '),
-             'tu veux ', 'vous voulez '), 'tu dois ', 'vous devez '), 'tu sais ', 'vous savez '),
-             'Tu as ', 'Vous avez '), 'Tu peux ', 'Vous pouvez ');
+UPDATE `homepage_blocks` SET `title` = 'Transformez votre temps en récompenses', `content` = 'Réclamez des Coins toutes les 3 heures, complétez des shortlinks, faites grimper votre XP et invitez vos amis pour gagner 10% sur tous leurs gains.' WHERE `k` = 'hero';
 
-UPDATE `blog_posts` SET
-  `title`            = REPLACE(REPLACE(REPLACE(`title`,   'ton ', 'votre '), 'tes ', 'vos '), 'ta ', 'votre '),
-  `excerpt`          = REPLACE(REPLACE(REPLACE(REPLACE(`excerpt`, 'ton ', 'votre '), 'tes ', 'vos '), 'ta ', 'votre '), 'Ton ', 'Votre '),
-  `meta_description` = REPLACE(REPLACE(REPLACE(`meta_description`, 'ton ', 'votre '), 'tes ', 'vos '), 'ta ', 'votre '),
-  `body`             = REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(`body`,
-                         'ton ', 'votre '), 'Ton ', 'Votre '), 'tes ', 'vos '), 'Tes ', 'Vos '),
-                         'toi', 'vous'), 'Toi', 'Vous');
+UPDATE `homepage_blocks` SET `title` = 'Une plateforme qui paye' WHERE `k` = 'stats';
 
--- ---------- Descriptions de catégories ----------
-UPDATE `blog_categories` SET
-  `description` = REPLACE(REPLACE(REPLACE(`description`, 'ton ', 'votre '), 'tes ', 'vos '), 'ta ', 'votre ');
+UPDATE `homepage_blocks` SET `title` = 'Comment ça marche ?', `content` = 'Trois étapes : 1) Créez votre compte. 2) Réclamez votre Faucet ou complétez un shortlink. 3) Échangez vos Coins.' WHERE `k` = 'how';
+
+UPDATE `homepage_blocks` SET `title` = 'Pourquoi Wintaskly ?', `content` = 'Wintaskly a été créé pour rendre la monétisation des micro-tâches simple, transparente et sécurisée : chaque gain est traçable, chaque retrait est vérifiable, et notre système anti-fraude protège aussi bien les utilisateurs honnêtes que la valeur des récompenses.' WHERE `k` = 'why';
+
+UPDATE `homepage_blocks` SET `title` = 'Un écosystème de partenaires vérifiés', `content` = 'Les récompenses distribuées sur Wintaskly sont financées par nos partenaires publicitaires et réseaux d''offres. Les retraits sont traités via des prestataires de paiement reconnus.' WHERE `k` = 'partners';
+
+
+-- ---------- Descriptions de catégories du blog ----------
+-- Sûr ici : ces valeurs ne contiennent pas de suite de lettres piégeuse.
+UPDATE `blog_categories` SET `description` = 'Épargne, budget, inflation : les bases de la finance personnelle'
+ WHERE `slug` = 'finance';
+

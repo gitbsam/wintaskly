@@ -83,11 +83,11 @@ return [
     'home.feed.empty'   => 'Aucune transaction pour le moment.',
     'home.how.title'    => 'Comment ça marche ?',
     'home.how.step1.t'  => 'Créez votre compte',
-    'home.how.step1.d'  => 'En quelques secondes, sans engagement.',
-    'home.how.step2.t'  => 'Réclamez & complète',
-    'home.how.step2.d'  => 'Faucet toutes les 3h + shortlinks à la demande.',
-    'home.how.step3.t'  => 'Encaisse',
-    'home.how.step3.d'  => 'Convertissez vos Coins, ou parrainez pour gagner 10% à vie.',
+    'home.how.step1.d'  => 'Inscription gratuite en moins de 30 secondes, avec une simple adresse e-mail. Aucun dépôt, aucune carte bancaire, aucun engagement : vous pouvez commencer à gagner immédiatement après la validation de votre e-mail.',
+    'home.how.step2.t'  => 'Réclamez et complétez',
+    'home.how.step2.d'  => 'Réclamez le faucet toutes les 3 heures, complétez des shortlinks en quelques minutes, regardez des annonces PTC ou accomplissez des offres partenaires. Chaque tâche crédite des Coins et de l\'XP sur votre compte, immédiatement ou après validation du partenaire.',
+    'home.how.step3.t'  => 'Encaissez',
+    'home.how.step3.d'  => 'Dès le seuil minimum atteint, convertissez vos Coins en argent réel ou en cryptomonnaie via la méthode de votre choix. Vous pouvez aussi parrainer des amis et toucher 10 % de leurs gains, à vie et sans que cela réduise les leurs.',
     // Page d'accueil — sections "Pourquoi Wintaskly" et "Partenaires" (V8.26)
     'home.why.eyebrow' => 'Notre engagement',
     'home.why.title' => 'Pourquoi Wintaskly ?',
@@ -682,6 +682,10 @@ return [
 
     // Page « Notre ligne éditoriale » (signal de confiance / E-E-A-T)
     'editorial.eyebrow'          => 'Transparence',
+    'ref.banners_format'       => 'Choisissez votre format',
+    'ref.banners_choose'         => '— Choisissez un format —',
+    'ref.banners_count'          => 'bannière(s)',
+    'ref.banners_hint'           => 'Sélectionnez un format ci-dessus pour afficher les bannières correspondantes et leur code d\'intégration.',
 
     // Accueil — selecteur de tache par temps disponible
     'home.pick.eyebrow'          => 'Par temps disponible',

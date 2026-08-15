@@ -780,7 +780,7 @@ INSERT IGNORE INTO `homepage_blocks` (`k`,`title`,`content`,`visible`,`sort_orde
  ('stats', 'Une plateforme qui paye', NULL, 1, 2),
  ('how',
   'Comment ça marche ?',
-  'Trois étapes : 1) Crée votre compte. 2) Réclamez votre Faucet ou complétez un shortlink. 3) Échange vos Coins.',
+  'Trois étapes : 1) Créez votre compte. 2) Réclamez votre Faucet ou complétez un shortlink. 3) Échangez vos Coins.',
   1, 3),
  ('why',
   'Pourquoi Wintaskly ?',
@@ -1202,7 +1202,7 @@ VALUES (
  '<p>Bienvenue sur Wintaskly ! Si vous venez de découvrir notre plateforme de micro-gains, vous vous demandes sûrement par où commencer. Ce guide complet va t''accompagner pas à pas, depuis la création de votre compte jusqu''à vos premiers retraits.</p>
 
 <h2>Qu''est-ce que Wintaskly exactement ?</h2>
-<p>Wintaskly est une plateforme de type GPT (Get-Paid-To, ou "payé pour faire"). Le principe est simple : vous réalises de petivos tâches en ligne et vous gagnez des <strong>coins</strong>, une monnaie virtuelle que vous pouvez ensuite convertir et retirer. Ces tâches ne demandent aucune compétence particulière : il suffit d''un peu de temps libre et d''une connexion internet.</p>
+<p>Wintaskly est une plateforme de type GPT (Get-Paid-To, ou "payé pour faire"). Le principe est simple : vous réalises de petites tâches en ligne et vous gagnez des <strong>coins</strong>, une monnaie virtuelle que vous pouvez ensuite convertir et retirer. Ces tâches ne demandent aucune compétence particulière : il suffit d''un peu de temps libre et d''une connexion internet.</p>
 <p>Contrairement à beaucoup d''idées reçues, ce type de plateforme ne vous rendra pas riche du jour au lendemain. En revanche, utilisée régulièrement et intelligemment, elle peut constituer un complément intéressant pour arrondir vos fins de mois.</p>
 
 <h2>Étape 1 : créer votre compte</h2>
@@ -1252,7 +1252,7 @@ VALUES (
 </ul>
 
 <h2>En résumé</h2>
-<p>Gagner vos premiers coins sur Wintaskly est à la portée de tous. Créez votre compte, explore les différenvos tâches, adopte une routine régulière, et soyez patient. Les micro-gains récompensent la constance bien plus que l''intensité. À vous de jouer !</p>'
+<p>Gagner vos premiers coins sur Wintaskly est à la portée de tous. Créez votre compte, explore les différentes tâches, adopte une routine régulière, et soyez patient. Les micro-gains récompensent la constance bien plus que l''intensité. À vous de jouer !</p>'
 );
 
 -- Article 2 — Crypto pour débutants (catégorie: crypto)

@@ -144,23 +144,48 @@ include __DIR__ . '/../header.php';
         // de l'utilisateur, pour qu'il puisse promouvoir Wintaskly avec
         // un visuel sur son propre site/forum/blog.
         $refBanners = [];
-        if ($res = $db->query("SELECT * FROM ad_banners WHERE active = 1 ORDER BY size_key ASC")) {
+        if ($res = $db->query("SELECT * FROM ad_banners WHERE active = 1 ORDER BY size_key ASC, id ASC")) {
             $refBanners = $res->fetch_all(MYSQLI_ASSOC);
         }
+        // Formats disponibles, pour le sélecteur : afficher toutes les
+        // bannières d'un coup rendait la section illisible dès qu'il y en
+        // avait plusieurs par format.
+        $refFormats = [];
+        foreach ($refBanners as $bn) {
+            $k = (string) $bn['size_key'];
+            $refFormats[$k] = ($refFormats[$k] ?? 0) + 1;
+        }
+        ksort($refFormats);
+        $refFirstFormat = $refFormats ? array_key_first($refFormats) : '';
       ?>
       <?php if ($refBanners): ?>
       <section class="wt-ref-v2__banners" data-reveal>
         <h2 class="wt-dash-v2__section-title">🖼️ <?= e(t('ref.banners_title')) ?></h2>
         <p class="wt-muted" style="font-size:.9rem"><?= e(t('ref.banners_lead')) ?></p>
 
-        <div class="wt-ref-v2__banners-grid">
+        <label class="wt-field wt-ref-v2__format">
+          <span class="wt-field__label"><?= e(t('ref.banners_format')) ?></span>
+          <select class="wt-input" data-banner-format>
+            <option value=""><?= e(t('ref.banners_choose')) ?></option>
+            <?php foreach ($refFormats as $fmt => $nb): ?>
+              <option value="<?= e($fmt) ?>"><?= e($fmt) ?> — <?= (int)$nb ?> <?= e(t('ref.banners_count')) ?></option>
+            <?php endforeach; ?>
+          </select>
+        </label>
+
+        <p class="wt-muted wt-ref-v2__hint" data-banner-hint style="font-size:.85rem">
+          <?= e(t('ref.banners_hint')) ?>
+        </p>
+
+        <div class="wt-ref-v2__banners-grid" data-banner-grid>
           <?php foreach ($refBanners as $i => $bn):
               $bnUrl  = wt_url('/media/wintaskly/img/banners/' . $bn['filename']);
               $embed  = '<a href="' . $refUrl . '" target="_blank" rel="noopener">'
                       . '<img src="' . $bnUrl . '" width="' . (int) $bn['width']
                       . '" height="' . (int) $bn['height'] . '" alt="Wintaskly"></a>';
           ?>
-            <div class="wt-ref-v2__banner-card">
+            <div class="wt-ref-v2__banner-card"
+                 data-format="<?= e((string)$bn['size_key']) ?>" hidden>
               <img src="<?= e($bnUrl) ?>" alt="" style="max-width:100%;height:auto;border-radius:6px">
               <div class="wt-muted" style="font-size:.8rem;margin:.4rem 0">
                 <?= (int) $bn['width'] ?>×<?= (int) $bn['height'] ?>
@@ -176,6 +201,27 @@ include __DIR__ . '/../header.php';
             </div>
           <?php endforeach; ?>
         </div>
+
+        <script>
+        /* Filtre des bannières par format. Toutes les bannières sont dans
+           le DOM ; on ne fait qu'afficher celles du format choisi. Aucun
+           rechargement, et le code d'intégration reste copiable. */
+        (function () {
+          var sel  = document.querySelector('[data-banner-format]');
+          var grid = document.querySelector('[data-banner-grid]');
+          if (!sel || !grid) return;
+          var hint = document.querySelector('[data-banner-hint]');
+          sel.addEventListener('change', function () {
+            var f = this.value;
+            grid.querySelectorAll('[data-format]').forEach(function (c) {
+              // f vide = aucun format choisi : on n'affiche rien, la page
+              // reste courte au lieu d'empiler toutes les bannières.
+              c.hidden = (f === '' || c.getAttribute('data-format') !== f);
+            });
+            if (hint) hint.hidden = (f !== '');
+          });
+        })();
+        </script>
       </section>
       <?php endif; ?>
 
@@ -220,13 +266,17 @@ include __DIR__ . '/../header.php';
         <?php endif; ?>
       </section>
 
+      <?php /* La pub doit rester DANS .wt-dash__content : placée en
+               enfant direct de la grille, elle ne pouvait pas rétrécir
+               (min-width auto) et débordait l'écran sur mobile. */ ?>
+      <?php $_ad = wt_ad_zone('dashboard_referrals_bottom'); if ($_ad !== ''): ?>
+        <div class="wt-ad-zone wt-ad-zone--bottom" style="margin-top:1.5rem;text-align:center">
+          <?= $_ad ?>
+        </div>
+      <?php endif; ?>
+
     </section>
 
-    <?php $_ad = wt_ad_zone('dashboard_referrals_bottom'); if ($_ad !== ''): ?>
-      <div class="wt-ad-zone wt-ad-zone--bottom" style="margin-top:1.5rem;text-align:center">
-        <?= $_ad ?>
-      </div>
-    <?php endif; ?>
   </div>
 </main>
 

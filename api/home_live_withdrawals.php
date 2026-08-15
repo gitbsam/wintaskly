@@ -45,15 +45,18 @@ $sql = "SELECT w.payout_amount, w.payout_currency,
 
 if ($res = $db->query($sql)) {
     while ($row = $res->fetch_assoc()) {
-        $name     = (string) $row['username'];
-        $parts    = preg_split('/[\s._-]+/', $name) ?: [$name];
-        $first    = $parts[0];
-        $lastInit = isset($parts[1]) ? mb_strtoupper(mb_substr($parts[1], 0, 1)) . '.' : '';
-        $masked   = mb_strlen($first) > 12
-                    ? mb_substr($first, 0, 10) . '…'
-                    : $first;
-        $masked   = trim($masked . ($lastInit ? ' ' . $lastInit : ''));
+        /* Masquage : on réutilise EXACTEMENT le helper du site
+         * (wt_mask_username), et non une logique locale.
+         *
+         * L'ancien code ne tronquait qu'au-delà de 12 caractères : le JS
+         * de rafraîchissement écrasait donc le rendu correctement masqué
+         * de PHP par un pseudonyme quasi complet. Un même utilisateur
+         * apparaissait « sa••••••67 » au chargement, puis « samlaimfau… »
+         * 30 secondes plus tard. */
+        $name   = (string) $row['username'];
+        $masked = wt_mask_username($name);
 
+        $parts = preg_split('/[\s._-]+/', $name) ?: [$name];
         $a = mb_strtoupper(mb_substr($parts[0] ?? '?', 0, 1));
         $b = mb_strtoupper(mb_substr($parts[1] ?? '', 0, 1));
 
@@ -61,7 +64,9 @@ if ($res = $db->query($sql)) {
             'name'     => $masked,
             'initials' => ($a . $b) ?: '?',
             'method'   => (string) $row['method_label'],
-            'amount'   => (string) rtrim(rtrim(number_format((float)$row['payout_amount'], 2, '.', ''), '0'), '.'),
+            // 8 décimales : un retrait crypto (~0.00002 BTC) s'affichait
+            // « 0 » avec un arrondi à 2 décimales.
+            'amount'   => wt_format_payout((float) $row['payout_amount']),
             'currency' => (string) ($row['payout_currency'] ?? ''),
             'at'       => (string) ($row['processed_at'] ?: $row['created_at']),
         ];
