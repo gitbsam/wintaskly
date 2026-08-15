@@ -375,7 +375,8 @@ include __DIR__ . '/../header.php';
           <h2 class="wt-dash-v2__section-title"><?= e(t('dash.referral')) ?></h2>
           <p class="wt-muted"><?= e(t('dash.referral.intro')) ?></p>
           <div class="wt-dash-v2__referral-link">
-            <input class="wt-input" type="text" readonly value="<?= e($refUrl) ?>" id="wt-ref-url">
+            <input class="wt-input" type="text" readonly value="<?= e($refUrl) ?>" id="wt-ref-url"
+                   aria-label="<?= e(t('a11y.field_ref_link')) ?>">
             <button class="wt-btn wt-btn--primary wt-btn--xs"
                     type="button"
                     data-copy-target="#wt-ref-url"

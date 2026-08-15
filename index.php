@@ -8,7 +8,8 @@
 
 require __DIR__ . '/includes/init.php';
 
-$pageTitle = t('site_name') . ' — ' . t('site_tagline');
+$pageTitle = t('site_tagline');
+$pageDescription = t('seo.desc.home');
 $u         = current_user();
 $db        = db();
 
@@ -65,6 +66,26 @@ $realToday = (int) ($_rt['c'] ?? 0);
 // boosté : il est affiché avec une affirmation explicite ("cette semaine"),
 // donc il doit rester vérifiable.
 $statsPaidWeek = wt_coins_distributed(7);
+
+/* Taux de retraits honorés — donnée RÉELLE, calculée sur les demandes déjà
+ * traitées (on exclut les 'pending', qui ne sont ni honorées ni refusées).
+ *
+ * Remplace un « 98 % de satisfaction » qui ne reposait sur aucune donnée :
+ * afficher un chiffre invérifiable sur un site qui manipule de l'argent
+ * décrédibilise tous les autres chiffres de la page, y compris les vrais.
+ *
+ * Garde-fou : en dessous de 20 demandes traitées, un pourcentage n'a aucune
+ * valeur statistique (une seule demande donnerait 0 % ou 100 %). Dans ce
+ * cas la statistique n'est simplement pas affichée. */
+$statsPayoutRate = null;
+$_wr = db_one("SELECT
+                 SUM(status = 'completed') AS ok,
+                 SUM(status IN ('completed','refused')) AS done
+               FROM withdrawals");
+$_wDone = (int) ($_wr['done'] ?? 0);
+if ($_wDone >= 20) {
+    $statsPayoutRate = (int) round(((int) $_wr['ok'] / $_wDone) * 100);
+}
 
 // Application du mode
 switch ($statsMode) {
@@ -299,93 +320,53 @@ include __DIR__ . '/header.php';
        SECTION DISCOVER
       =========================================================== -->
       <section class="wt-discover" data-discover>
-        <div class="wt-container-xl">
-          <div class="wt-discover__layout">
-
-            <!-- CONTENU -->
-            <div class="wt-discover__content">
-              <span class="wt-eyebrow font-bold px-3 py-1 rounded-full text-xs tracking-wider">
-                <?= e(t('home.discover.eyebrow')) ?>
-              </span>
-
-              <h2 class="wt-discover__title">
-                <?= e(t('home.discover.title')) ?>
-                <span>Wintaskly</span>
-              </h2>
-              <p class="wt-discover__lead">
-                <?= e(t('home.discover.lead')) ?>
-              </p>
-
-              <div class="wt-discover__actions">
-                <a href="/auth/signup.php" class="wt-btn wt-btn--primary wt-btn--lg">
-                  <?= e(t('home.discover.cta_primary')) ?>
-                </a>
-                <a href="/tasks" class="wt-btn wt-btn--ghost wt-btn--lg ">
-                  <?= e(t('home.discover.cta_secondary')) ?>
-                </a>
-              </div>
-
-              <div class="wt-discover__features text-xs font-medium">
-                <div class="wt-discover__feature">
-                  <i class="fa-solid fa-circle-check"></i>
-                  <?= e(t('home.discover.feature1')) ?>
-                </div>
-
-                <div class="wt-discover__feature">
-                  <i class="fa-solid fa-circle-check"></i>
-                  <?= e(t('home.discover.feature2')) ?>
-                </div>
-
-                <div class="wt-discover__feature">
-                  <i class="fa-solid fa-circle-check"></i>
-                  <?= e(t('home.discover.feature3')) ?>
-                </div>
-              </div>
-            </div>
-
-            <!-- VISUEL -->
-            <div class="wt-discover__visual">
-              <div class="wt-discover-card">
-
-                <div class="wt-discover-card__top">
-                  <div class="wt-discover-card__icon">
-                    <i class="fa-solid fa-wallet"></i>
-                  </div>
-                  <span class="wt-badge uppercase">
-                    <?= e(t('home.discover.card_badge')) ?>
-                  </span>
-                </div>
-
-                <div class="wt-discover-card__body pt-4">
-                  <h3>
-                    +<strong data-countup="<?= e((string)$statsPaidWeek) ?>">0</strong> <?= e(t('common.coins')) ?>
-                  </h3>
-                  <p>
-                    <?= e(t('home.discover.card_desc')) ?>
-                  </p>
-                </div>
-
-                <div class="wt-discover-card__stats">
-                  <div>
-                    <span><strong data-countup="<?= e((string)$statsUsers) ?>">0</strong>+</span>
-                    <span><?= e(t('home.stats.users')) ?></span>
-                  </div>
-
-                  <div>
-                    <strong>98%</strong>
-                    <span><?= e(t('home.discover.stat_satisfaction')) ?></span>
-                  </div>
-
-                  <div>
-                    <strong>24/7</strong>
-                    <span><?= e(t('home.discover.stat_available')) ?></span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-          </div>
+        <div class="wt-discover__head">
+          <span class="wt-eyebrow">⏱️ <?= e(t('home.pick.eyebrow')) ?></span>
+          <h2 class="wt-section__title"><?= e(t('home.pick.title')) ?></h2>
+          <p class="wt-section__lead"><?= e(t('home.pick.lead')) ?></p>
         </div>
+
+        <?php
+          /* Sélecteur de tâche par temps disponible.
+           *
+           * Cette section reprenait auparavant l'accroche, les deux CTA et
+           * les statistiques du hero situé juste au-dessus : le visiteur
+           * avait l'impression de relire la même page. Elle apporte
+           * désormais une information qu'aucune autre section ne donne —
+           * quelle tâche choisir selon le temps dont on dispose — et elle
+           * dirige vers la bonne page plutôt que vers une inscription de
+           * plus.
+           *
+           * Le Bingo n'est proposé que s'il est réellement jouable, pour
+           * ne jamais afficher un lien vers une page indisponible. */
+          $_pick = [
+            ['icon' => '⚡', 'k' => 'quick',   'url' => '/tasks/faucet/'],
+            ['icon' => '🎯', 'k' => 'medium',  'url' => '/tasks/ptc/'],
+            ['icon' => '💎', 'k' => 'session', 'url' => '/tasks/offerwalls/'],
+          ];
+          if (function_exists('wt_bingo_visible_for') && wt_bingo_visible_for($u ?? null)) {
+              $_pick[] = ['icon' => '🎲', 'k' => 'fun', 'url' => '/tasks/bingo/'];
+          }
+        ?>
+
+        <div class="wt-pick__grid">
+          <?php foreach ($_pick as $p): ?>
+            <a class="wt-pick__card" href="<?= e(wt_url($p['url'])) ?>">
+              <span class="wt-pick__icon" aria-hidden="true"><?= $p['icon'] ?></span>
+              <span class="wt-pick__time"><?= e(t('home.pick.' . $p['k'] . '_time')) ?></span>
+              <strong class="wt-pick__title"><?= e(t('home.pick.' . $p['k'] . '_title')) ?></strong>
+              <span class="wt-pick__desc"><?= e(t('home.pick.' . $p['k'] . '_desc')) ?></span>
+              <span class="wt-pick__cta"><?= e(t('home.pick.cta')) ?> →</span>
+            </a>
+          <?php endforeach; ?>
+        </div>
+
+        <p class="wt-pick__note">
+          <?= e(t('home.pick.note')) ?>
+          <a href="<?= e(wt_url('/blog/faucet-ptc-offerwalls-quelle-tache-choisir')) ?>">
+            <?= e(t('home.pick.note_link')) ?>
+          </a>
+        </p>
       </section>
 
   <!-- ===================== POURQUOI WINTASKLY (V8.26) ============
@@ -1004,19 +985,32 @@ include __DIR__ . '/header.php';
       <h2 class="wt-section__title"><?= e($blockField('partners', 'title', t('home.partners.title'))) ?></h2>
       <p class="wt-section__lead"><?= e($blockField('partners', 'content', t('home.partners.lead'))) ?></p>
     </div>
+    <?php
+      /* Noms réels lus dans la configuration (offerwalls, fournisseurs de
+         shortlinks, méthodes de retrait actives). Une catégorie sans
+         partenaire configuré n'affiche pas de liste vide : seul le texte
+         descriptif reste. */
+      $_partners = wt_partners_real();
+      $_pCard = static function (string $titleKey, string $descKey, array $names): void {
+          echo '<div class="wt-partners__card">';
+          echo '<h3>' . e(t($titleKey)) . '</h3>';
+          echo '<p>' . e(t($descKey)) . '</p>';
+          if ($names) {
+              echo '<ul class="wt-partners__names">';
+              foreach ($names as $n) {
+                  echo '<li>' . e($n) . '</li>';
+              }
+              echo '</ul>';
+          }
+          echo '</div>';
+      };
+    ?>
     <div class="wt-partners__grid">
-      <div class="wt-partners__card">
-        <h3><?= e(t('home.partners.ads.t')) ?></h3>
-        <p><?= e(t('home.partners.ads.d')) ?></p>
-      </div>
-      <div class="wt-partners__card">
-        <h3><?= e(t('home.partners.offers.t')) ?></h3>
-        <p><?= e(t('home.partners.offers.d')) ?></p>
-      </div>
-      <div class="wt-partners__card">
-        <h3><?= e(t('home.partners.pay.t')) ?></h3>
-        <p><?= e(t('home.partners.pay.d')) ?></p>
-      </div>
+      <?php
+        $_pCard('home.partners.offers.t', 'home.partners.offers.d', $_partners['offers']);
+        $_pCard('home.partners.links.t',  'home.partners.links.d',  $_partners['links']);
+        $_pCard('home.partners.pay.t',    'home.partners.pay.d',    $_partners['pay']);
+      ?>
     </div>
   </section>
   <?php endif; ?>

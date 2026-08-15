@@ -13,7 +13,8 @@
 declare(strict_types=1);
 require __DIR__ . '/../includes/init.php';
 
-$pageTitle = t('antifraud.title') . ' — ' . t('site_name');
+$pageTitle = t('antifraud.title');
+$pageDescription = t('seo.desc.antifraud');
 
 include __DIR__ . '/../header.php';
 ?>
@@ -72,7 +73,24 @@ include __DIR__ . '/../header.php';
       </section>
 
       <section class="wt-legal-v2__section">
-        <h2>6. <?= e(t('antifraud.h_transparency')) ?></h2>
+        <h2>6. <?= e(t('antifraud.h_protect')) ?></h2>
+        <p><?= e(t('antifraud.protect_p1')) ?></p>
+        <ul>
+          <li><?= e(t('antifraud.protect_li1')) ?></li>
+          <li><?= e(t('antifraud.protect_li2')) ?></li>
+          <li><?= e(t('antifraud.protect_li3')) ?></li>
+          <li><?= e(t('antifraud.protect_li4')) ?></li>
+        </ul>
+      </section>
+
+      <section class="wt-legal-v2__section">
+        <h2>7. <?= e(t('antifraud.h_legit')) ?></h2>
+        <p><?= e(t('antifraud.legit_p1')) ?></p>
+        <p><?= e(t('antifraud.legit_p2')) ?></p>
+      </section>
+
+      <section class="wt-legal-v2__section">
+        <h2>8. <?= e(t('antifraud.h_transparency')) ?></h2>
         <p><?= e(t('antifraud.transparency_p')) ?></p>
       </section>
 

@@ -28,6 +28,7 @@ require __DIR__ . '/../../includes/init.php';
 require_auth();
 
 $pageTitle = t('ptc.title');
+$pageDescription = t('seo.desc.ptc');
 $u  = current_user();
 $db = db();
 

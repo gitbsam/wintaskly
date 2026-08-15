@@ -14,6 +14,7 @@ declare(strict_types=1);
 require __DIR__ . '/../includes/init.php';
 
 $pageTitle = t('legal.cgu');
+$pageDescription = t('seo.desc.cgu');
 $updatedAt = '2026-05-23';
 $siteName  = (string) cfg('site_name', 'Wintaskly');
 

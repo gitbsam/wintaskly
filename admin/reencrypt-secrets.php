@@ -182,7 +182,7 @@ include __DIR__ . '/../header.php';
 
     <?php if (!$cryptoOk): ?>
       <div class="wt-alert wt-alert--error">
-        Le module de chiffrement (includes/crypto.php) n'est pas chargé. Vérifie ton installation.
+        Le module de chiffrement (includes/crypto.php) n'est pas chargé. Vérifiez votre installation.
       </div>
     <?php else: ?>
 

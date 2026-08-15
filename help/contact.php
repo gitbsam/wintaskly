@@ -21,6 +21,13 @@ declare(strict_types=1);
 require __DIR__ . '/../includes/init.php';
 
 $pageTitle = t('contact.title');
+$pageDescription = t('seo.desc.contact');
+
+/* Fil d'Ariane structuré (Schema.org) */
+wt_schema_add(wt_schema_breadcrumb([
+    ['name' => (string) t('site_name'), 'url' => wt_url('/')],
+    ['name' => (string) t('contact.title'),    'url' => wt_url('/help/contact.php')],
+]));
 $u  = current_user();
 
 /* Captcha math pour les invités */
@@ -77,7 +84,7 @@ include __DIR__ . '/../header.php';
               <label class="wt-field__label"><?= e(t('contact.your_track_link')) ?></label>
               <div class="wt-contact-v2__copy">
                 <input type="text" readonly data-track-input value=""
-                       class="wt-input">
+                       class="wt-input" aria-label="<?= e(t('contact.your_track_link')) ?>">
                 <button type="button" class="wt-btn wt-btn--primary wt-btn--xs"
                         data-copy-target="[data-track-input]"
                         data-copy-label="<?= e(t('admin.cron.copied')) ?>">

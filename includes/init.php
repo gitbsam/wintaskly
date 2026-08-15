@@ -47,7 +47,7 @@ if (!defined('WT_PERIOD_DASHBOARD_DAYS')) {
 // L'URL latest.json est configurable via la BDD (clé config 'update.feed_url')
 // pour permettre de changer de canal (stable/beta) sans redéployer.
 if (!defined('WT_VERSION')) {
-    define('WT_VERSION', '8.29.0');
+    define('WT_VERSION', '8.47.0');
     define('WT_VERSION_CHANNEL', 'stable');  // stable | beta | dev
     define('WT_UPDATE_FEED_DEFAULT', 'https://gitbsam.github.io/wintaskly/latest.json');
 }
@@ -190,7 +190,9 @@ if (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') {
 //     suffit pas, d'où les ajouts sur connect-src, img-src et frame-src.
 // Si tu veux durcir, retire 'unsafe-inline' et passe à des nonces.
 $_cspAds = "https://pagead2.googlesyndication.com https://*.googlesyndication.com "
-         . "https://partner.googleadservices.com https://tpc.googlesyndication.com "
+         . "https://partner.googleadservices.com https://*.googleadservices.com "
+         . "https://tpc.googlesyndication.com https://adservice.google.com "
+         . "https://fundingchoicesmessages.google.com https://*.fundingchoicesmessages.google.com "
          . "https://*.adsterranet.com https://*.adsterratools.com https://*.highperformanceformat.com";
 $_cspAnalytics = "https://www.googletagmanager.com https://www.google-analytics.com "
                . "https://*.google-analytics.com https://*.analytics.google.com";
@@ -260,6 +262,7 @@ require __DIR__ . '/update.php';
 require __DIR__ . '/daily_bonus.php';
 require __DIR__ . '/achievements.php';
 require __DIR__ . '/blog.php';
+require __DIR__ . '/schema.php';
 require __DIR__ . '/fraud.php';
 require __DIR__ . '/analytics.php';
 require __DIR__ . '/bingo.php';

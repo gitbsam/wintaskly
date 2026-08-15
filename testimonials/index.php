@@ -19,6 +19,13 @@ declare(strict_types=1);
 require __DIR__ . '/../includes/init.php';
 
 $pageTitle = t('testi.title');
+$pageDescription = t('seo.desc.testimonials');
+
+/* Fil d'Ariane structuré (Schema.org) */
+wt_schema_add(wt_schema_breadcrumb([
+    ['name' => (string) t('site_name'), 'url' => wt_url('/')],
+    ['name' => (string) t('testi.title'),      'url' => wt_url('/testimonials/')],
+]));
 $u  = current_user();
 $db = db();
 
@@ -53,6 +60,14 @@ if ($res = $db->query($sql)) {
 }
 // Les lignes chargées SONT déjà les lignes visibles (filtrage fait en SQL)
 $visibleRows = $rows;
+
+// Tant qu'aucun témoignage n'est publié, la page n'a quasiment aucun
+// contenu : on la retire de l'index pour ne pas exposer une page vide.
+// Dès le premier témoignage, elle redevient indexable automatiquement.
+// Seuil de 5 : avec un ou deux avis seulement, la page reste trop
+// pauvre pour être indexée sans nuire à l'évaluation qualité du site.
+// Elle redevient indexable automatiquement au 5e témoignage approuvé.
+$pageNoindex = count($rows) < 5;
 
 /*
  * Compteurs des pills de filtre : une SEULE requête d'agrégation légère

@@ -16,6 +16,7 @@ declare(strict_types=1);
 require __DIR__ . '/../includes/init.php';
 
 $pageTitle = t('legal.cookies_title');
+$pageDescription = t('seo.desc.cookies');
 $updatedAt = '2026-05-23';
 $siteName  = (string) cfg('site_name', 'Wintaskly');
 
@@ -131,6 +132,46 @@ include __DIR__ . '/../header.php';
 
           <h3 class="wt-legal-v2__sub">📢 <?= e(t('legal.cookies.ads_title')) ?></h3>
           <p><?= e(t('legal.cookies.ads_body')) ?></p>
+
+          <!-- Durées des cookies tiers : exigée par la CNIL au même titre
+               que celle des cookies internes. Les valeurs sont celles
+               publiées par les fournisseurs concernés. -->
+          <div class="wt-table-wrap">
+            <table class="wt-table">
+              <thead>
+                <tr>
+                  <th><?= e(t('legal.cookies.col_name')) ?></th>
+                  <th><?= e(t('legal.cookies.col_purpose')) ?></th>
+                  <th><?= e(t('legal.cookies.col_duration')) ?></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>_ga</code></td>
+                  <td><?= e(t('legal.cookies.third_ga')) ?></td>
+                  <td>13 <?= e(t('common.months')) ?></td>
+                </tr>
+                <tr>
+                  <td><code>_ga_*</code></td>
+                  <td><?= e(t('legal.cookies.third_ga4')) ?></td>
+                  <td>13 <?= e(t('common.months')) ?></td>
+                </tr>
+                <tr>
+                  <td><code>_gid</code></td>
+                  <td><?= e(t('legal.cookies.third_gid')) ?></td>
+                  <td>24 <?= e(t('common.hours')) ?></td>
+                </tr>
+                <tr>
+                  <td><code>IDE</code>, <code>test_cookie</code></td>
+                  <td><?= e(t('legal.cookies.third_ads')) ?></td>
+                  <td><?= e(t('legal.cookies.third_ads_dur')) ?></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="wt-muted" style="font-size:.85rem">
+            <?= e(t('legal.cookies.third_note')) ?>
+          </p>
         </section>
 
         <section id="manage">

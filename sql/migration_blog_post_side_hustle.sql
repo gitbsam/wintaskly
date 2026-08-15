@@ -59,11 +59,11 @@ VALUES (
 <ul>
 <li><strong>Définir un objectif chiffré et modeste.</strong> « Couvrir mon abonnement mensuel » est un objectif atteignable et motivant. « Devenir indépendant financièrement en six mois » ne l''est pas.</li>
 <li><strong>Choisir en fonction de son temps réel disponible</strong>, pas de son temps théorique.</li>
-<li><strong>Commencer petit et mesurer.</strong> Une activité testée un mois te donne des données concrètes sur le rapport temps/revenu, bien plus fiables que n''importe quelle estimation lue en ligne.</li>
+<li><strong>Commencer petit et mesurer.</strong> Une activité testée un mois vous donne des données concrètes sur le rapport temps/revenu, bien plus fiables que n''importe quelle estimation lue en ligne.</li>
 <li><strong>Séparer les flux.</strong> Diriger ces revenus vers un compte dédié rend l''effet cumulé visible, ce qui aide énormément à tenir dans la durée.</li>
 </ul>
 
 <h2>En résumé</h2>
 <p>Le side hustle s''est généralisé parce que la pression budgétaire a augmenté pendant que les barrières à l''entrée s''effondraient. Ses formes sont très diverses, avec des exigences et des rendements incomparables. Son vrai atout tient dans la régularité et l''effet cumulé, pas dans le montant unitaire. Et comme toute activité, il a un coût en temps et en énergie qu''il vaut mieux évaluer honnêtement avant de se lancer.</p>
-<p><em>Cet article propose une analyse générale à visée pédagogique. Les obligations fiscales et légales liées à une activité complémentaire varient selon les pays : renseigne-toi auprès des organismes compétents de ta juridiction.</em></p>'
+<p><em>Cet article propose une analyse générale à visée pédagogique. Les obligations fiscales et légales liées à une activité complémentaire varient selon les pays : renseigne-vous auprès des organismes compétents de votre juridiction.</em></p>'
 );

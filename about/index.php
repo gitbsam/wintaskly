@@ -11,7 +11,8 @@
 declare(strict_types=1);
 require __DIR__ . '/../includes/init.php';
 
-$pageTitle = t('about.title') . ' — ' . t('site_name');
+$pageTitle = t('about.title');
+$pageDescription = t('seo.desc.about');
 $db        = db();
 
 // Chiffre public simple et honnête (comptage réel, sans le boost marketing
@@ -75,7 +76,25 @@ include __DIR__ . '/../header.php';
       </section>
 
       <section class="wt-legal-v2__section">
-        <h2>6. <?= e(t('about.h_contact')) ?></h2>
+        <h2>6. <?= e(t('about.h_model')) ?></h2>
+        <p><?= e(t('about.model_p1')) ?></p>
+        <p><?= e(t('about.model_p2')) ?></p>
+        <p><?= e(t('about.model_p3')) ?></p>
+      </section>
+
+      <section class="wt-legal-v2__section">
+        <h2>7. <?= e(t('about.h_expect')) ?></h2>
+        <p><?= e(t('about.expect_p1')) ?></p>
+        <ul>
+          <li><?= e(t('about.expect_li1')) ?></li>
+          <li><?= e(t('about.expect_li2')) ?></li>
+          <li><?= e(t('about.expect_li3')) ?></li>
+        </ul>
+        <p><?= e(t('about.expect_p2')) ?></p>
+      </section>
+
+      <section class="wt-legal-v2__section">
+        <h2>8. <?= e(t('about.h_contact')) ?></h2>
         <p>
           <?= e(t('about.contact_p')) ?>
           <a href="<?= e(wt_url('/help/contact.php')) ?>"><?= e(t('about.contact_link')) ?></a>.

@@ -29,7 +29,8 @@ if (!function_exists('wt_bingo_visible_for') || !wt_bingo_visible_for($u)) {
 // Fait avancer le jeu (lazy) : ouvre/tire/règle si besoin
 $round = wt_bingo_tick();
 
-$pageTitle = 'Bingo — ' . t('site_name');
+$pageTitle = 'Bingo';
+$pageDescription = t('seo.desc.bingo');
 $dashActive = 'tasks';
 
 // Données de la partie

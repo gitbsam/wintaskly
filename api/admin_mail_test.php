@@ -95,7 +95,7 @@ $now = date('Y-m-d H:i:s');
 $html = '<!DOCTYPE html><html><head><meta charset="UTF-8"></head><body style="font-family:system-ui,sans-serif;background:#0a0e1a;color:#e8eaf0;padding:2rem">'
       . '<div style="max-width:520px;margin:0 auto;background:#131829;border:1px solid #2a3252;border-radius:12px;padding:2rem">'
       . '<h1 style="color:#ff9933">🎉 Test SMTP Wintaskly</h1>'
-      . '<p>Si tu lis ce message, la configuration mail de <strong>' . htmlspecialchars($siteName) . '</strong> fonctionne parfaitement.</p>'
+      . '<p>Si vous lisez ce message, la configuration mail de <strong>' . htmlspecialchars($siteName) . '</strong> fonctionne parfaitement.</p>'
       . '<table style="font-family:monospace;font-size:.85rem;margin-top:1rem">'
       . '<tr><td style="padding:.3rem .5rem;opacity:.7">Driver :</td><td>' . htmlspecialchars($driver) . '</td></tr>'
       . '<tr><td style="padding:.3rem .5rem;opacity:.7">Envoyé à :</td><td>' . htmlspecialchars($to) . '</td></tr>'
@@ -108,7 +108,7 @@ $text = "Test SMTP Wintaskly réussi !\n\n"
       . "Driver : {$driver}\n"
       . "Envoyé à : {$to}\n"
       . "Quand : {$now}\n\n"
-      . "Si tu lis ce message, la config mail fonctionne.";
+      . "Si vous lisez ce message, la config mail fonctionne.";
 
 // On capture le dernier log mailer pour avoir le détail en cas d'échec
 $sent = false;

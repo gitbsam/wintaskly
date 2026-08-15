@@ -16,6 +16,7 @@ require __DIR__ . '/../../includes/init.php';
 require_auth();
 
 $pageTitle = t('shortlinks.title');
+$pageDescription = t('seo.desc.shortlinks');
 $u  = current_user();
 $db = db();
 

@@ -186,6 +186,30 @@ $_adminMetaDesc = (string) cfg('seo.meta_description', '');
 $_pageDesc = $pageDescription
              ?? ($_adminMetaDesc !== '' ? $_adminMetaDesc : (string) t('site.tagline'));
 
+/* Titre complet de la page. Le suffixe « — Wintaskly » n'est ajouté que si
+   le titre de page ne contient pas déjà le nom du site, pour éviter les
+   doublons du type « À propos de Wintaskly — Wintaskly — Wintaskly ». */
+$_siteName  = (string) t('site_name');
+$_rawTitle  = (string) ($pageTitle ?? $_siteName);
+$_fullTitle = (stripos($_rawTitle, $_siteName) !== false)
+              ? $_rawTitle
+              : $_rawTitle . ' — ' . $_siteName;
+
+/* URL canonique : $canonicalUrl si la page en impose une, sinon l'URL
+   courante NETTOYÉE de ses paramètres de suivi et d'affichage (?ref=,
+   ?lang=, ?utm_*...). Sans canonical, chaque variante de paramètre est vue
+   comme une page dupliquée par les moteurs. La pagination (?p=) est
+   conservée : ce sont de vraies pages distinctes. */
+if (!isset($canonicalUrl)) {
+    $_cPath  = (string) parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
+    $_cQuery = [];
+    parse_str((string) parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_QUERY), $_cQuery);
+    // On ne garde que les paramètres qui définissent réellement le contenu
+    $_cKeep  = array_intersect_key($_cQuery, array_flip(['p', 'slug', 'id']));
+    ksort($_cKeep);
+    $canonicalUrl = $_base . $_cPath . ($_cKeep ? '?' . http_build_query($_cKeep) : '');
+}
+
 /* Récupération des paramètres SEO/tracking configurés en admin
  * Tout est centralisé ici pour minimiser les appels cfg() dans le HTML.
  */
@@ -208,13 +232,21 @@ $_matomoSiteId    = (string) cfg('tracking.matomo_site_id', '');
 <meta name="color-scheme" content="light dark">
 <meta name="theme-color" content="#0a0f1e" media="(prefers-color-scheme: dark)">
 <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
-<title><?= e($pageTitle ?? t('site_name')) ?> — <?= e(t('site_name')) ?></title>
+<title><?= e($_fullTitle) ?></title>
+<link rel="canonical" href="<?= e($canonicalUrl) ?>">
 <meta name="description" content="<?= e($_pageDesc) ?>">
 <?php if ($_seoKeywords !== ''): ?>
 <meta name="keywords" content="<?= e($_seoKeywords) ?>">
 <?php endif; ?>
-<?php if (!$_seoRobotsIndex): ?>
+<?php
+/* Robots : noindex global (réglage admin) OU noindex de page.
+   $pageNoindex sert aux pages sans valeur pour la recherche (formulaires
+   d'authentification, pages encore vides) : les laisser indexées dilue
+   l'évaluation qualité du site. */
+if (!$_seoRobotsIndex): ?>
 <meta name="robots" content="noindex, nofollow">
+<?php elseif (!empty($pageNoindex)): ?>
+<meta name="robots" content="noindex, follow">
 <?php endif; ?>
 
 <!-- Favicons : ICO multi-res pour vieux navigateurs, PNG modernes ensuite -->
@@ -230,17 +262,30 @@ $_matomoSiteId    = (string) cfg('tracking.matomo_site_id', '');
 $_ogImage = $_seoOgImage !== '' ? $_seoOgImage : $_base . '/media/wintaskly/img/og-image.png';
 ?>
 <!-- Open Graph + Twitter Card pour les partages -->
-<meta property="og:title"       content="<?= e($pageTitle ?? t('site_name')) ?> — <?= e(t('site_name')) ?>">
+<meta property="og:title"       content="<?= e($_fullTitle) ?>">
+<meta property="og:site_name"   content="<?= e($_siteName) ?>">
+<meta property="og:locale"      content="<?= e($_lang === 'en' ? 'en_US' : 'fr_FR') ?>">
 <meta property="og:description" content="<?= e($_pageDesc) ?>">
 <meta property="og:image"       content="<?= e($_ogImage) ?>">
 <meta property="og:type"        content="website">
-<meta property="og:url"         content="<?= $_base ?><?= e($_SERVER['REQUEST_URI'] ?? '/') ?>">
+<meta property="og:url"         content="<?= e($canonicalUrl) ?>">
 <meta name="twitter:card"       content="summary_large_image">
+<meta name="twitter:title"      content="<?= e($_fullTitle) ?>">
+<meta name="twitter:description" content="<?= e($_pageDesc) ?>">
 <meta name="twitter:image"      content="<?= e($_ogImage) ?>">
 <?php if ($_seoTwitter !== ''): ?>
 <meta name="twitter:site"       content="<?= e($_seoTwitter) ?>">
 <meta name="twitter:creator"    content="<?= e($_seoTwitter) ?>">
 <?php endif; ?>
+
+<?php
+/* Données structurées Schema.org (JSON-LD). Les pages empilent leurs
+   objets via wt_schema_add() avant d'inclure ce header ; on ajoute ici
+   l'identité du site, présente sur toutes les pages. */
+wt_schema_add(wt_schema_organization());
+wt_schema_add(wt_schema_website());
+echo wt_schema_render();
+?>
 
 <!-- FontAwesome pour les icônes -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -272,7 +317,8 @@ $_ogImage = $_seoOgImage !== '' ? $_seoOgImage : $_base . '/media/wintaskly/img/
 
 <?php /* ============ SCRIPTS DE TRACKING — injectés depuis admin/settings.php ============ */ ?>
 
-<?php if ($_gaId !== ''): ?>
+<?php /* Mesure d'audience : uniquement si le visiteur y a consenti. */
+if ($_gaId !== '' && wt_consent_allows('analytics')): ?>
 <!-- Google Analytics -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=<?= e($_gaId) ?>"></script>
 <script>
@@ -283,21 +329,29 @@ $_ogImage = $_seoOgImage !== '' ? $_seoOgImage : $_base . '/media/wintaskly/img/
 </script>
 <?php endif; ?>
 
-<?php if ($_adsenseClient !== ''): ?>
+<?php
+/* Google AdSense — la librairie adsbygoogle.js ne doit être chargée QU'UNE
+   FOIS par page. Deux configurations distinctes peuvent fournir un client
+   AdSense ('tracking.google_adsense_client' ici, et 'ads.adsense_client'
+   via wt_adsense_head() plus bas) : sans ce garde-fou, le script était
+   injecté deux fois.
+
+   Le push « enable_page_level_ads » a été retiré : c'est l'ancienne méthode
+   d'activation des Auto ads, dépréciée par Google. Les Auto ads se pilotent
+   désormais depuis le tableau de bord AdSense, et la simple présence du
+   script suffit. Cumuler les deux provoquait l'erreur :
+   « Only one 'enable_page_level_ads' allowed per page ». */
+if ($_adsenseClient !== '' && wt_adsense_allowed() && wt_consent_allows('ads')
+    && empty($GLOBALS['__wt_adsense_loaded'])):
+    $GLOBALS['__wt_adsense_loaded'] = true;
+?>
 <!-- Google AdSense -->
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=<?= e($_adsenseClient) ?>"
         crossorigin="anonymous"></script>
-<?php if ($_adsenseAutoAds): ?>
-<script>
-  (adsbygoogle = window.adsbygoogle || []).push({
-    google_ad_client: "<?= e($_adsenseClient) ?>",
-    enable_page_level_ads: true
-  });
-</script>
-<?php endif; ?>
 <?php endif; ?>
 
-<?php if ($_fbPixelId !== ''): ?>
+<?php /* Pixel publicitaire : soumis au consentement « Publicité ». */
+if ($_fbPixelId !== '' && wt_consent_allows('ads')): ?>
 <!-- Facebook Pixel -->
 <script>
   !function(f,b,e,v,n,t,s)
@@ -370,7 +424,7 @@ if (function_exists('wt_ads_head_scripts')) {
     object-fit:contain}
   #wt-preloader .wt-preloader__pct{position:absolute;bottom:-1.75rem;left:50%;
     transform:translateX(-50%);font-family:ui-monospace,'SF Mono',Menlo,monospace;
-    font-size:.72rem;color:#a4abc4;letter-spacing:.05em}
+    font-size:.75rem;color:#a4abc4;letter-spacing:.05em}
   .wt-app-wrapper{visibility:hidden}
   .wt-app-wrapper.is-ready{visibility:visible}
   /* Skip link caché par défaut (évite flash au chargement) */
@@ -636,12 +690,13 @@ if (function_exists('cfg')) {
                   
                 </a>
             </li>
+            <?php if (wt_has_testimonials()): ?>
             <li class="nav-tem">
                 <a class="nav-link <?= $_navActive('/testimonials') ?>" href="<?= $_base ?>/testimonials/">
                     <?= e(t('nav.testimonials')) ?>
-                
                 </a>
             </li>
+            <?php endif; ?>
             <li class="nav-tem">
                 <a class="nav-link <?= $_navActive('/help') ?>" href="<?= $_base ?>/help/">
                     <?= e(t('nav.help')) ?>
@@ -912,10 +967,12 @@ if ($_isAdminViewer
          style="--idx:2">
         <span aria-hidden="true">🏆</span> <?= e(t('nav.leaderboard')) ?>
       </a>
+      <?php if (wt_has_testimonials()): ?>
       <a class="<?= $_navActive('/testimonials') ?>" href="<?= $_base ?>/testimonials/"
          style="--idx:3">
         <span aria-hidden="true">💬</span> <?= e(t('nav.testimonials')) ?>
       </a>
+      <?php endif; ?>
       <a class="<?= $_navActive('/help') ?>" href="<?= $_base ?>/help/"
          style="--idx:4">
         <span aria-hidden="true">🛟</span> <?= e(t('nav.help')) ?>

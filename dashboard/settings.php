@@ -148,7 +148,8 @@ include __DIR__ . '/../header.php';
             <strong><?= e(t('settings.theme')) ?></strong>
             <span class="wt-muted"><?= e(t('settings.theme_desc')) ?></span>
           </div>
-          <select class="wt-input wt-input--sm" data-settings-toggle data-key="theme" style="max-width:140px">
+          <select class="wt-input wt-input--sm" data-settings-toggle data-key="theme" style="max-width:140px"
+                  aria-label="<?= e(t('settings.theme')) ?>">
             <option value="dark"  <?= ($u['theme'] ?? 'dark') === 'dark'  ? 'selected' : '' ?>><?= e(t('settings.theme_dark')) ?></option>
             <option value="light" <?= ($u['theme'] ?? 'dark') === 'light' ? 'selected' : '' ?>><?= e(t('settings.theme_light')) ?></option>
           </select>
@@ -159,7 +160,8 @@ include __DIR__ . '/../header.php';
             <strong><?= e(t('settings.language')) ?></strong>
             <span class="wt-muted"><?= e(t('settings.language_desc')) ?></span>
           </div>
-          <select class="wt-input wt-input--sm" data-settings-toggle data-key="lang" style="max-width:140px">
+          <select class="wt-input wt-input--sm" data-settings-toggle data-key="lang" style="max-width:140px"
+                  aria-label="<?= e(t('settings.language')) ?>">
             <option value="fr" <?= ($u['lang'] ?? 'fr') === 'fr' ? 'selected' : '' ?>>Français</option>
             <option value="en" <?= ($u['lang'] ?? 'fr') === 'en' ? 'selected' : '' ?>>English</option>
           </select>

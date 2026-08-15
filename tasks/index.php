@@ -13,6 +13,7 @@ declare(strict_types=1);
 require __DIR__ . '/../includes/init.php';
 
 $pageTitle = t('tasks.hub_title');
+$pageDescription = t('seo.desc.tasks');
 $u  = current_user();
 $db = db();
 
@@ -213,10 +214,10 @@ include __DIR__ . '/../header.php';
     <aside class="wt-tasks-v2__sidebar">
       <!-- Notice éducative : charte d'utilisation éthique -->
       <div class="wt-tasks-v2__charter">
-        <h4 class="wt-tasks-v2__charter-title">
+        <h2 class="wt-tasks-v2__charter-title">
           <i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i>
           <?= e(t('tasks.charter_title')) ?>
-        </h4>
+        </h2>
         <p class="wt-tasks-v2__charter-intro"><?= e(t('tasks.charter_intro')) ?></p>
         <ul class="wt-tasks-v2__charter-list">
           <li><?= e(t('tasks.charter_li1')) ?></li>
@@ -592,6 +593,6 @@ include __DIR__ . '/../header.php';
 
 </main>
 
-<script src="<?= e(wt_url('/media/wintaskly/js/bingo-countdown.js')) ?>?v=<?= e(WT_VERSION) ?>"></script>
+<script src="<?= e(wt_url('/media/wintaskly/js/bingo-countdown.js')) ?>?v=<?= e(WT_VERSION) ?>" defer></script>
 
 <?php include __DIR__ . '/../footer.php'; ?>

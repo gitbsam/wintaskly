@@ -33,7 +33,7 @@ VALUES (
 <h2>Payer d''abord son épargne</h2>
 <p>Le principe le plus efficace tient en une phrase : <strong>mettre de côté en premier, dépenser ensuite</strong>.</p>
 <p>La plupart des gens font l''inverse. Ils dépensent, puis épargnent ce qui reste à la fin. Le problème est qu''il ne reste presque jamais rien : les dépenses s''ajustent naturellement à l''argent disponible sur le compte.</p>
-<p>En inversant l''ordre — en retirant la somme dès la rentrée d''argent — tu changes ta contrainte de départ. Le budget s''ajuste alors autour de ce qui reste, ce qui fonctionne remarquablement bien en pratique.</p>
+<p>En inversant l''ordre — en retirant la somme dès la rentrée d''argent — vous changez votre contrainte de départ. Le budget s''ajuste alors autour de ce qui reste, ce qui fonctionne remarquablement bien en pratique.</p>
 
 <h2>Automatiser pour ne plus avoir à décider</h2>
 <p>Chaque décision consciente est une occasion d''y renoncer. « Je verserai demain » est le début de la fin d''un plan d''épargne.</p>
@@ -41,7 +41,7 @@ VALUES (
 <p>Si l''automatisation n''est pas possible, la règle de repli est de le faire <strong>immédiatement</strong> à la réception de l''argent, jamais « plus tard dans la semaine ».</p>
 
 <h2>Séparer physiquement les comptes</h2>
-<p>Un montant mis de côté sur ton compte courant n''est pas vraiment épargné. Il est simplement mélangé au reste, et sera dépensé sans même que tu t''en rendes compte.</p>
+<p>Un montant mis de côté sur votre compte courant n''est pas vraiment épargné. Il est simplement mélangé au reste, et sera dépensé sans même que vous t''en rendes compte.</p>
 <p>Un compte séparé crée une <strong>friction utile</strong> : pour dépenser cet argent, il faut faire un geste délibéré. Cette petite barrière suffit à protéger l''épargne dans la grande majorité des cas.</p>
 <p>Cette séparation a un second avantage, souvent sous-estimé : voir le solde de ce compte grandir est motivant. C''est un retour visuel concret sur un effort qui, autrement, resterait invisible.</p>
 
@@ -65,10 +65,10 @@ VALUES (
 </ul>
 
 <h2>Commencer petit, vraiment petit</h2>
-<p>Si le sujet te paraît décourageant, commence par un montant si faible qu''il te semble presque ridicule. Le but des premières semaines n''est pas d''accumuler : c''est d''<strong>installer l''habitude</strong>.</p>
-<p>Une fois le mécanisme en place et devenu invisible dans ton budget, augmenter le montant est facile. L''inverse — commencer fort puis réduire — se termine presque toujours par un abandon complet.</p>
+<p>Si le sujet vous paraît décourageant, commencez par un montant si faible qu''il vous semble presque ridicule. Le but des premières semaines n''est pas d''accumuler : c''est d''<strong>installer l''habitude</strong>.</p>
+<p>Une fois le mécanisme en place et devenu invisible dans votre budget, augmenter le montant est facile. L''inverse — commencer fort puis réduire — se termine presque toujours par un abandon complet.</p>
 
 <h2>En résumé</h2>
 <p>Épargner avec un petit budget est moins une question de moyens que de méthode : mettre de côté en premier, automatiser pour ne plus décider, séparer les comptes, donner un objectif clair, et démarrer avec un montant volontairement modeste. La régularité fait le reste — c''est elle qui transforme de petites sommes en résultat réel.</p>
-<p><em>Cet article propose des principes généraux à visée pédagogique et ne constitue pas un conseil financier personnalisé. Pour des décisions engageant ta situation, l''avis d''un professionnel qualifié reste recommandé.</em></p>'
+<p><em>Cet article propose des principes généraux à visée pédagogique et ne constitue pas un conseil financier personnalisé. Pour des décisions engageant votre situation, l''avis d''un professionnel qualifié reste recommandé.</em></p>'
 );

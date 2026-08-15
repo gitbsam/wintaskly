@@ -13,6 +13,7 @@ declare(strict_types=1);
 require __DIR__ . '/../includes/init.php';
 
 $pageTitle = t('legal.mentions_title');
+$pageDescription = t('seo.desc.mentions');
 $siteName  = (string) cfg('site_name', 'Wintaskly');
 
 // Récupération des informations légales (config legal.*)

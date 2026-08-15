@@ -22,11 +22,11 @@ VALUES (
  'Crypto vs virement bancaire : pourquoi les délais diffèrent (2026)',
  'Pourquoi un virement bancaire met des jours quand une transaction crypto met des minutes : différences d''architecture, de frais et de finalité expliquées simplement.',
  'published', 6, UTC_TIMESTAMP(),
- '<p>Si tu as déjà reçu un paiement en cryptomonnaie après avoir l''habitude des virements bancaires, le contraste saute aux yeux : quelques minutes d''un côté, parfois plusieurs jours ouvrés de l''autre. Et le week-end, le virement ne bouge tout simplement pas.</p>
+ '<p>Si vous avez déjà reçu un paiement en cryptomonnaie après avoir l''habitude des virements bancaires, le contraste saute aux yeux : quelques minutes d''un côté, parfois plusieurs jours ouvrés de l''autre. Et le week-end, le virement ne bouge tout simplement pas.</p>
 <p>Ce n''est pas que les banques soient techniquement incapables d''aller vite. La différence vient de la manière dont chaque système est construit. Comprendre cette mécanique aide à choisir le bon moyen de paiement selon la situation — et à ne pas s''inquiéter inutilement quand un transfert semble « bloqué ».</p>
 
 <h2>Deux architectures très différentes</h2>
-<p>Un virement bancaire classique ne consiste pas à « déplacer » de l''argent d''un point A à un point B. Ta banque et celle du destinataire tiennent chacune leurs propres registres. Le virement est en réalité une <strong>instruction</strong> : ta banque débite ton compte et informe l''autre banque de créditer le sien. Les deux établissements règlent ensuite leurs positions entre eux, souvent par lots, via des systèmes de compensation.</p>
+<p>Un virement bancaire classique ne consiste pas à « déplacer » de l''argent d''un point A à un point B. Votre banque et celle du destinataire tiennent chacune leurs propres registres. Le virement est en réalité une <strong>instruction</strong> : votre banque débite votre compte et informe l''autre banque de créditer le sien. Les deux établissements règlent ensuite leurs positions entre eux, souvent par lots, via des systèmes de compensation.</p>
 <p>Une transaction en cryptomonnaie fonctionne autrement : il n''y a qu''un seul registre, partagé et commun à tous les participants. Il n''y a donc personne à prévenir et rien à réconcilier entre deux comptabilités distinctes. Une fois la transaction inscrite dans ce registre commun, elle est faite.</p>
 
 <h2>Pourquoi les jours ouvrés existent (et pas dans la crypto)</h2>
@@ -64,6 +64,6 @@ VALUES (
 <p>Pour de petits montants réguliers vers l''international, la rapidité et la disponibilité continue de la crypto sont des atouts nets. Pour des sommes importantes avec un besoin de recours en cas d''erreur, la protection bancaire garde toute sa valeur.</p>
 
 <h2>En résumé</h2>
-<p>Un virement traverse plusieurs registres et des cycles de compensation calés sur les jours ouvrés ; une transaction crypto s''inscrit dans un registre unique, sur un réseau qui ne ferme jamais. D''où l''écart de délai. Cette rapidité s''accompagne d''une contrepartie sérieuse : l''irréversibilité. Vérifie toujours deux fois une adresse de destination — c''est la règle numéro un.</p>
+<p>Un virement traverse plusieurs registres et des cycles de compensation calés sur les jours ouvrés ; une transaction crypto s''inscrit dans un registre unique, sur un réseau qui ne ferme jamais. D''où l''écart de délai. Cette rapidité s''accompagne d''une contrepartie sérieuse : l''irréversibilité. Vérifiez toujours deux fois une adresse de destination — c''est la règle numéro un.</p>
 <p><em>Cet article est une explication générale à visée pédagogique et ne constitue pas un conseil en investissement. Les cryptomonnaies comportent des risques, notamment de forte variation de valeur.</em></p>'
 );

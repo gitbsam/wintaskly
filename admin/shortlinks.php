@@ -88,17 +88,17 @@ if (!empty($missingMigrations)) {
 
             <h3 style="margin-top:1.5rem">📋 Comment appliquer</h3>
             <ol style="line-height:1.8">
-              <li>Va dans <strong>phpMyAdmin</strong> (depuis ton cPanel LWS)</li>
-              <li>Sélectionne ta BDD <code>winta2810082</code></li>
+              <li>Allez dans <strong>phpMyAdmin</strong> (depuis votre cPanel LWS)</li>
+              <li>Sélectionnez votre BDD <code>winta2810082</code></li>
               <li>Onglet <strong>SQL</strong></li>
               <li>Copie-colle le contenu de chaque fichier <code>sql/migration_*.sql</code> manquant (présent dans le ZIP Wintaskly)</li>
               <li>Clique <strong>Exécuter</strong></li>
-              <li>Recharge cette page : tu devrais voir le formulaire normal</li>
+              <li>Rechargez cette page : vous devriez voir le formulaire normal</li>
             </ol>
 
             <p class="wt-muted" style="margin-top:1rem;font-size:.9rem">
               💡 Les migrations sont <strong>idempotentes</strong> — si une colonne existe déjà, MySQL renvoie une erreur que tu peux ignorer.
-              Le contenu des migrations se trouve dans <code>sql/</code> à la racine de ton install Wintaskly.
+              Le contenu des migrations se trouve dans <code>sql/</code> à la racine de votre install Wintaskly.
             </p>
           </div>
         </section>

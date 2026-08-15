@@ -136,7 +136,9 @@ $_yearDisplay = ($_launchYear === $_currentYear)
           <li><a href="<?= $_base ?>/tasks/faucet/"><?= e(t('nav.faucet')) ?></a></li>
           <li><a href="<?= $_base ?>/tasks/shortlinks/"><?= e(t('nav.shortlinks')) ?></a></li>
           <li><a href="<?= $_base ?>/leaderboard/"><?= e(t('nav.leaderboard')) ?></a></li>
-          <li><a href="<?= $_base ?>/testimonials/"><?= e(t('nav.testimonials')) ?></a></li>
+          <?php if (wt_has_testimonials()): /* masque si aucun temoignage publie */ ?>
+            <li><a href="<?= $_base ?>/testimonials/"><?= e(t('nav.testimonials')) ?></a></li>
+          <?php endif; ?>
         </ul>
       </nav>
 
@@ -162,6 +164,7 @@ $_yearDisplay = ($_launchYear === $_currentYear)
         <h3 class="wt-footer-v2__col-title"><?= e(t('footer.cat_legal')) ?></h3>
         <ul>
           <li><a href="<?= $_base ?>/about/"><?= e(t('about.title')) ?></a></li>
+          <li><a href="<?= $_base ?>/about/editorial.php"><?= e(t('editorial.title')) ?></a></li>
           <li><a href="<?= $_base ?>/legal/mentions.php"><?= e(t('legal.mentions_title')) ?></a></li>
           <li><a href="<?= $_base ?>/legal/cgu.php"><?= e(t('legal.cgu')) ?></a></li>
           <li><a href="<?= $_base ?>/legal/privacy.php"><?= e(t('legal.privacy')) ?></a></li>
@@ -356,7 +359,7 @@ window.WT_I18N = {
       '<div class="wt-pwa-banner__icon">⚡</div>' +
       '<div class="wt-pwa-banner__text">' +
         '<strong>Installer Wintaskly</strong>' +
-        '<small>Accède au faucet en un tap depuis ton écran d\'accueil</small>' +
+        '<small>Accédez au faucet en un tap depuis votre écran d\'accueil</small>' +
       '</div>' +
       '<button class="wt-pwa-banner__install" type="button">Installer</button>' +
       '<button class="wt-pwa-banner__close" type="button" aria-label="Fermer">✕</button>'
@@ -459,7 +462,7 @@ if (!empty($GLOBALS['__wt_ach_just_unlocked']) && is_array($GLOBALS['__wt_ach_ju
       toast.innerHTML =
         '<div style="font-size:2rem;line-height:1">' + a.icon + '</div>' +
         '<div style="flex:1;min-width:0">' +
-          '<div style="font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;color:' + color + ';font-weight:700">' +
+          '<div style="font-size:.75rem;text-transform:uppercase;letter-spacing:.05em;color:' + color + ';font-weight:700">' +
             <?= json_encode((string) t('ach.toast_unlocked'), JSON_UNESCAPED_UNICODE) ?> + '</div>' +
           '<div style="font-weight:700;font-size:.98rem;margin:.1rem 0">' + a.title + '</div>' +
           (reward ? '<div style="font-size:.82rem;opacity:.85">' + reward + '</div>' : '') +

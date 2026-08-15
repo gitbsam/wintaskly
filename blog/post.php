@@ -38,6 +38,26 @@ $related = wt_blog_related((int)$post['id'], $post['category_id'] !== null ? (in
 
 // SEO — meta personnalisées si définies, sinon fallback sur le contenu
 $pageTitle = $post['meta_title'] ?: $post['title'];
+// La colonne meta_description existe en base pour chaque article : on
+// l'utilise en priorité, avec repli sur l'extrait (tronqué proprement).
+$pageDescription = $post['meta_description']
+                   ?: wt_substr((string) $post['excerpt'], 0, 160);
+
+/* Données structurées : BlogPosting + fil d'Ariane (catégorie incluse
+   quand l'article en a une). */
+wt_schema_add(wt_schema_blogposting($post));
+$_crumbs = [
+    ['name' => (string) t('site_name'), 'url' => wt_url('/')],
+    ['name' => (string) cfg('blog.title', 'Blog'), 'url' => wt_url('/blog')],
+];
+if (!empty($post['category_name']) && !empty($post['category_slug'])) {
+    $_crumbs[] = [
+        'name' => (string) $post['category_name'],
+        'url'  => wt_url('/blog/categorie/' . $post['category_slug']),
+    ];
+}
+$_crumbs[] = ['name' => (string) $post['title'], 'url' => wt_url('/blog/' . $post['slug'])];
+wt_schema_add(wt_schema_breadcrumb($_crumbs));
 $metaDescription = $post['meta_description'] ?: ($post['excerpt'] ?: '');
 
 include __DIR__ . '/../header.php';
@@ -64,7 +84,14 @@ include __DIR__ . '/../header.php';
     <header class="wt-article__header" data-reveal>
       <h1 class="wt-article__title"><?= e($post['title']) ?></h1>
       <div class="wt-article__meta">
-        <span>✍️ <?= e($post['author_name'] ?: 'Wintaskly') ?></span>
+        <span>✍️
+          <?= e($post['author_name'] ?: 'Wintaskly') ?>
+          <?php /* Lien vers la ligne éditoriale : indique au lecteur (et aux
+                   moteurs) selon quelles règles ce contenu est produit. */ ?>
+          <a class="wt-article__editorial-link" href="<?= e(wt_url('/about/editorial.php')) ?>">
+            <?= e(t('editorial.link_short')) ?>
+          </a>
+        </span>
         <span>📅 <?= e(wt_format_datetime($post['published_at'], 'd/m/Y')) ?></span>
         <span>⏱️ <?= (int)$post['reading_minutes'] ?> <?= e(t('blog.min_read')) ?></span>
       </div>
@@ -165,6 +192,21 @@ include __DIR__ . '/../header.php';
     <!-- Zone pub bas d'article -->
     <?php $_ad = wt_ad_zone('blog_article_bottom'); if ($_ad !== ''): ?>
       <div class="wt-ad-zone wt-ad-zone--article" style="margin:2rem 0;text-align:center"><?= $_ad ?></div>
+    <?php endif; ?>
+
+    <!-- Tâches Wintaskly évoquées dans l'article : maillage interne
+         contextuel, détecté automatiquement par mots-clés. -->
+    <?php $_relTasks = wt_blog_related_tasks($post, current_user()); if ($_relTasks): ?>
+      <nav class="wt-article__tasks" aria-label="<?= e(t('blog.related_tasks')) ?>" data-reveal>
+        <span class="wt-article__tasks-label"><?= e(t('blog.related_tasks')) ?></span>
+        <div class="wt-article__tasks-links">
+          <?php foreach ($_relTasks as $_rt): ?>
+            <a class="wt-article__tasks-link" href="<?= e(wt_url($_rt['url'])) ?>">
+              <span aria-hidden="true"><?= $_rt['icon'] ?></span> <?= e($_rt['label']) ?>
+            </a>
+          <?php endforeach; ?>
+        </div>
+      </nav>
     <?php endif; ?>
 
     <!-- CTA vers l'inscription (conversion) -->
@@ -276,6 +318,6 @@ include __DIR__ . '/../header.php';
 })();
 </script>
 
-<script src="<?= e(wt_url('/media/wintaskly/js/bingo-countdown.js')) ?>?v=<?= e(WT_VERSION) ?>"></script>
+<script src="<?= e(wt_url('/media/wintaskly/js/bingo-countdown.js')) ?>?v=<?= e(WT_VERSION) ?>" defer></script>
 
 <?php include __DIR__ . '/../footer.php'; ?>

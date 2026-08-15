@@ -17,6 +17,7 @@ require __DIR__ . '/../../includes/init.php';
 require_auth();
 
 $pageTitle = t('ow.title');
+$pageDescription = t('seo.desc.offerwalls');
 $u  = current_user();
 $db = db();
 

@@ -85,6 +85,7 @@ $fmt = static function (float $n): string {
 };
 
 $pageTitle = t('faucet.title');
+$pageDescription = t('seo.desc.faucet');
 include __DIR__ . '/../../header.php';
 ?>
 

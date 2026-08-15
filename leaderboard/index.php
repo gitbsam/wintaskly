@@ -17,6 +17,13 @@ declare(strict_types=1);
 require __DIR__ . '/../includes/init.php';
 
 $pageTitle = t('lb.title');
+$pageDescription = t('seo.desc.leaderboard');
+
+/* Fil d'Ariane structuré (Schema.org) */
+wt_schema_add(wt_schema_breadcrumb([
+    ['name' => (string) t('site_name'), 'url' => wt_url('/')],
+    ['name' => (string) t('lb.title'),         'url' => wt_url('/leaderboard/')],
+]));
 $u         = current_user();
 $db        = db();
 
@@ -376,6 +383,36 @@ include __DIR__ . '/../header.php';
         </div>
       </section>
     <?php endif; ?>
+
+    <!-- ====== COMMENT FONCTIONNE LE CLASSEMENT ======
+         Contenu explicatif : évite les incompréhensions sur l'écart entre
+         le solde affiché au dashboard et le total du classement. -->
+    <section class="wt-lb-explain" data-reveal>
+      <h2 class="wt-lb-explain__title"><?= e(t('lb.explain_title')) ?></h2>
+      <p class="wt-lb-explain__lead"><?= e(t('lb.explain_lead')) ?></p>
+
+      <div class="wt-lb-explain__cols">
+        <div class="wt-lb-explain__col">
+          <h3>✅ <?= e(t('lb.explain_counted')) ?></h3>
+          <ul>
+            <li><?= e(t('lb.explain_counted_1')) ?></li>
+            <li><?= e(t('lb.explain_counted_2')) ?></li>
+            <li><?= e(t('lb.explain_counted_3')) ?></li>
+          </ul>
+        </div>
+        <div class="wt-lb-explain__col">
+          <h3>➖ <?= e(t('lb.explain_excluded')) ?></h3>
+          <ul>
+            <li><?= e(t('lb.explain_excluded_1')) ?></li>
+            <li><?= e(t('lb.explain_excluded_2')) ?></li>
+            <li><?= e(t('lb.explain_excluded_3')) ?></li>
+          </ul>
+        </div>
+      </div>
+
+      <p class="wt-lb-explain__note"><?= e(t('lb.explain_reset')) ?></p>
+      <p class="wt-lb-explain__note"><?= e(t('lb.explain_fair')) ?></p>
+    </section>
 
     <?php $_ad = wt_ad_zone('leaderboard_bottom'); if ($_ad !== ''): ?>
       <div class="wt-ad-zone wt-ad-zone--bottom" style="margin-top:1.5rem;text-align:center">

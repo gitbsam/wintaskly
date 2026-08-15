@@ -14,6 +14,7 @@ declare(strict_types=1);
 require __DIR__ . '/../includes/init.php';
 
 $pageTitle = t('faq.title');
+$pageDescription = t('seo.desc.faq');
 
 /* Récupération des Q/R depuis l'i18n */
 $lang = $GLOBALS['WT_LANG'] ?? [];
@@ -45,6 +46,15 @@ foreach ($qa as $slug => $item) {
     $sections[$section][$slug] = $item;
 }
 ksort($sections);
+
+/* Données structurées : FAQPage (éligible aux résultats enrichis Google)
+   + fil d'Ariane. On ne balise que les Q/R réellement affichées. */
+wt_schema_add(wt_schema_faq($qa));
+wt_schema_add(wt_schema_breadcrumb([
+    ['name' => (string) t('site_name'), 'url' => wt_url('/')],
+    ['name' => (string) t('help.title'), 'url' => wt_url('/help/')],
+    ['name' => (string) t('faq.title'),  'url' => wt_url('/help/faq.php')],
+]));
 
 /* Pré-remplissage du champ de recherche depuis le hub */
 $preq = trim((string)($_GET['q'] ?? ''));

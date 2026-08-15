@@ -119,14 +119,41 @@ include __DIR__ . '/../../header.php';
         <div class="wt-transition-v2__label"><?= e(t('faucet.seconds_remaining')) ?></div>
       </div>
 
-      <!-- Bannière pub basse -->
-      <div class="wt-ad-slot">
-        <?php if (!empty($ads['faucet_transition_bottom'])): ?>
-          <?= $ads['faucet_transition_bottom'] ?>
-        <?php else: ?>
-          <span class="wt-ad-slot__placeholder"><?= e(t('faucet.ad_placeholder')) ?></span>
-        <?php endif; ?>
-      </div>
+      <?php
+        /* Article de blog pendant l'attente.
+         *
+         * Cette page était auparavant une simple page d'attente portant
+         * DEUX bannières et aucun contenu propre — la définition même
+         * d'une page conçue pour la publicité. On remplace l'emplacement
+         * bas par un article à lire : le temps d'attente devient utile,
+         * la page a un contenu réel, et il ne reste qu'une seule bannière.
+         *
+         * L'article change à chaque passage (rotation aléatoire parmi les
+         * plus récents), pour ne pas lasser un utilisateur qui réclame le
+         * faucet plusieurs fois par jour. */
+        $_tPosts = function_exists('wt_blog_posts') ? wt_blog_posts(6) : [];
+        $_tPost  = $_tPosts ? $_tPosts[array_rand($_tPosts)] : null;
+      ?>
+      <?php if ($_tPost): ?>
+        <a class="wt-transition-read" href="<?= e(wt_url('/blog/' . $_tPost['slug'])) ?>">
+          <span class="wt-transition-read__eyebrow"><?= e(t('faucet.read_while_waiting')) ?></span>
+          <span class="wt-transition-read__body">
+            <span class="wt-transition-read__icon" aria-hidden="true"><?= e($_tPost['cover_emoji'] ?: '📄') ?></span>
+            <span>
+              <strong class="wt-transition-read__title"><?= e($_tPost['title']) ?></strong>
+              <?php if (!empty($_tPost['excerpt'])): ?>
+                <span class="wt-transition-read__excerpt"><?= e($_tPost['excerpt']) ?></span>
+              <?php endif; ?>
+              <span class="wt-transition-read__meta">
+                ⏱️ <?= (int)$_tPost['reading_minutes'] ?> <?= e(t('blog.min_read')) ?>
+              </span>
+            </span>
+          </span>
+        </a>
+      <?php elseif (!empty($ads['faucet_transition_bottom'])): ?>
+        <?php /* Aucun article publié : on retombe sur l'emplacement d'origine */ ?>
+        <div class="wt-ad-slot"><?= $ads['faucet_transition_bottom'] ?></div>
+      <?php endif; ?>
 
       <a href="<?= e(wt_url('/tasks/faucet/verify.php?t=' . urlencode($token))) ?>"
          class="wt-btn wt-btn--primary wt-btn--lg wt-faucet-v2__cta"

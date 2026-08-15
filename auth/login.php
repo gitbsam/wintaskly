@@ -40,6 +40,10 @@ if (!$stats || ($stats['t'] ?? 0) < time() - 60) {
 }
 
 $pageTitle = t('auth.login');
+// Page de formulaire : aucune valeur en recherche, on évite de diluer
+// l'évaluation qualité du site (les liens restent suivis).
+$pageNoindex = true;
+$pageDescription = t('seo.desc.login');
 include __DIR__ . '/../header.php';
 ?>
 

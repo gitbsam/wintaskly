@@ -424,12 +424,27 @@ if (!function_exists('wt_ad_zone')) {
         $stripped = trim(preg_replace('/<!--.*?-->/s', '', $code));
 
         if ($stripped !== '') {
-            // Priorité 1 : régie publicitaire configurée (code réel)
-            return '<div class="wt-ad-scale">'
-                 . '<div class="wt-ad-label">' . e(t('ad.title.pub')) . '</div>'
-                 . '<div class="wt-ad-scale__inner">'
-                 . $code
-                 . '</div></div>';
+            // Priorité 1 : régie publicitaire configurée (code réel).
+            // Exception : un code AdSense ne doit JAMAIS être servi sur une
+            // page où le membre est rémunéré (voir wt_adsense_allowed()).
+            // Dans ce cas on ignore ce code et on retombe sur la bannière
+            // maison / la rotation : l'emplacement reste monétisé, mais par
+            // une régie compatible avec le modèle.
+            /* Un code de régie (AdSense, Adsterra...) dépose des cookies
+             * tiers : il est soumis au consentement « Publicité ». Sans
+             * consentement, on n'affiche pas ce code — mais on ne perd pas
+             * l'emplacement pour autant : la suite de la fonction retombe
+             * sur la bannière maison ou la rotation, qui sont servies
+             * depuis notre propre domaine et ne déposent aucun cookie.
+             * L'emplacement reste donc monétisé, en toute conformité. */
+            $adsOk = wt_consent_allows('ads');
+            if ($adsOk && (!wt_code_has_adsense($code) || wt_adsense_allowed())) {
+                return '<div class="wt-ad-scale">'
+                     . '<div class="wt-ad-label">' . e(t('ad.title.pub')) . '</div>'
+                     . '<div class="wt-ad-scale__inner">'
+                     . $code
+                     . '</div></div>';
+            }
         }
 
         // Priorité 2 : pas de régie → bannière maison uploadée, si liée et active
@@ -551,6 +566,185 @@ if (!function_exists('wt_ad_zone')) {
     }
 }
 
+if (!function_exists('wt_partners_real')) {
+    /**
+     * Partenaires RÉELS de la plateforme, groupés par catégorie.
+     *
+     * La section « Partenaires » de l'accueil décrivait auparavant des
+     * catégories abstraites sans jamais nommer personne — une section
+     * intitulée « partenaires vérifiés » qui ne cite aucun partenaire
+     * produit l'effet inverse de celui recherché.
+     *
+     * On lit donc les noms directement dans les tables : offerwalls et
+     * shortlinks actifs, méthodes de retrait actives. Aucun nom n'est
+     * écrit en dur, la liste suit la configuration réelle et reste juste
+     * automatiquement quand un partenaire est ajouté ou désactivé.
+     *
+     * @return array{offers:string[], links:string[], pay:string[]}
+     */
+    function wt_partners_real(): array
+    {
+        if (isset($GLOBALS['__wt_partners'])) {
+            return $GLOBALS['__wt_partners'];
+        }
+        $out = ['offers' => [], 'links' => [], 'pay' => []];
+        $queries = [
+            'offers' => "SELECT DISTINCT name FROM offerwalls WHERE active = 1 ORDER BY name LIMIT 12",
+            // Les shortlinks sont des liens individuels : on regroupe par
+            // fournisseur, sinon on afficherait 40 fois le même partenaire.
+            'links'  => "SELECT DISTINCT provider AS name FROM shortlinks
+                          WHERE active = 1 AND provider <> '' AND provider <> 'manual'
+                          ORDER BY provider LIMIT 12",
+            'pay'    => "SELECT DISTINCT label AS name FROM withdrawal_methods WHERE active = 1 ORDER BY sort_order LIMIT 12",
+        ];
+        foreach ($queries as $key => $sql) {
+            try {
+                $res = db()->query($sql);
+                if ($res instanceof mysqli_result) {
+                    while ($r = $res->fetch_assoc()) {
+                        $n = trim((string) $r['name']);
+                        if ($n !== '') $out[$key][] = $n;
+                    }
+                    $res->free();
+                }
+            } catch (Throwable $e) {
+                error_log('[Wintaskly partners] ' . $key . ': ' . $e->getMessage());
+            }
+        }
+        $GLOBALS['__wt_partners'] = $out;
+        return $out;
+    }
+}
+
+if (!function_exists('wt_has_testimonials')) {
+    /**
+     * Y a-t-il au moins un témoignage publié ?
+     *
+     * Sert à masquer entièrement le lien vers /testimonials/ tant que la
+     * page est vide : une page « Ce que disent nos membres » sans aucun
+     * membre qui s'exprime dessert la crédibilité, surtout liée depuis le
+     * pied de page de toutes les pages du site.
+     *
+     * Résultat mis en cache pour la durée de la requête : le lien apparaît
+     * dans le header ET le footer, on ne veut pas deux requêtes SQL.
+     */
+    function wt_has_testimonials(): bool
+    {
+        if (!isset($GLOBALS['__wt_has_testi'])) {
+            $n = 0;
+            try {
+                $res = db()->query("SELECT COUNT(*) c FROM testimonials WHERE status = 'approved'");
+                if ($res instanceof mysqli_result) {
+                    $n = (int) ($res->fetch_assoc()['c'] ?? 0);
+                    $res->free();
+                }
+            } catch (Throwable $e) {
+                error_log('[Wintaskly testimonials] ' . $e->getMessage());
+            }
+            $GLOBALS['__wt_has_testi'] = $n > 0;
+        }
+        return (bool) $GLOBALS['__wt_has_testi'];
+    }
+}
+
+if (!function_exists('wt_consent_allows')) {
+    /**
+     * L'utilisateur a-t-il consenti à cette catégorie de cookies ?
+     *
+     * POURQUOI CE CONTRÔLE EXISTE
+     * ---------------------------
+     * La bannière de consentement enregistrait bien le choix du visiteur
+     * dans le cookie `wt_consent`, mais aucun code serveur ne le lisait :
+     * Google Analytics et AdSense étaient injectés à l'identique, que le
+     * visiteur ait accepté, refusé, ou n'ait pas encore répondu.
+     *
+     * Le RGPD exige un consentement PRÉALABLE et EFFECTIF : déposer un
+     * cookie publicitaire malgré un refus est précisément ce que sanctionne
+     * la CNIL. Cette fonction rend le choix du visiteur réellement
+     * opérant côté serveur.
+     *
+     * Valeurs écrites par la bannière (media/wintaskly/js/wintaskly.js) :
+     *   'all'                       → tout accepté
+     *   'essential'                 → refus (strictement nécessaire)
+     *   'custom:ads' / 'custom:analytics' / 'custom:ads,analytics'
+     *
+     * Par défaut (aucun cookie = pas encore de réponse), on refuse : c'est
+     * l'exigence du consentement préalable. Un visiteur qui n'a pas répondu
+     * ne doit pas être pisté.
+     *
+     * @param string $category 'ads' ou 'analytics'
+     */
+    function wt_consent_allows(string $category): bool
+    {
+        $raw = (string) ($_COOKIE['wt_consent'] ?? '');
+        if ($raw === '') {
+            return false;               // pas encore de réponse → refus
+        }
+        if ($raw === 'all') {
+            return true;
+        }
+        if ($raw === 'essential') {
+            return false;
+        }
+        if (str_starts_with($raw, 'custom:')) {
+            $flags = array_map('trim', explode(',', substr($raw, 7)));
+            return in_array($category, $flags, true);
+        }
+        return false;                   // valeur inconnue → refus par prudence
+    }
+}
+
+if (!function_exists('wt_adsense_allowed')) {
+    /**
+     * AdSense est-il autorisé sur la page courante ?
+     *
+     * POURQUOI CE GARDE-FOU
+     * ---------------------
+     * Les règles du programme AdSense interdisent de rémunérer les
+     * utilisateurs pour le visionnage d'annonces, et classent les modèles
+     * paid-to-click / paid-to-surf en trafic invalide (motif de fermeture
+     * de compte). Servir AdSense sur une page où le membre est payé pour
+     * son activité expose donc le compte à une fermeture définitive.
+     *
+     * On bloque AdSense sur :
+     *   - /tasks/*      : toutes les activités rémunérées (faucet, PTC,
+     *                     shortlinks, offerwalls, bingo)
+     *   - /dashboard/*  : espace membre lié aux gains et aux retraits
+     *   - /achievements : récompenses
+     *
+     * AdSense reste servi sur les pages éditoriales publiques (accueil,
+     * blog, à propos, aide, FAQ, légal) : ce sont des visiteurs non
+     * rémunérés, venus notamment de la recherche.
+     *
+     * Les autres régies (Adsterra) et les bannières maison ne sont pas
+     * concernées : elles acceptent ce modèle et continuent de servir
+     * partout.
+     */
+    function wt_adsense_allowed(): bool
+    {
+        $path = (string) parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
+        foreach (['/tasks/', '/dashboard/', '/achievements'] as $blocked) {
+            if (stripos($path, $blocked) !== false) {
+                return false;
+            }
+        }
+        return true;
+    }
+}
+
+if (!function_exists('wt_code_has_adsense')) {
+    /**
+     * Le code d'une zone contient-il de l'AdSense ? Sert à ne pas le rendre
+     * sur une page rémunérée, même si l'admin l'y a collé par erreur.
+     */
+    function wt_code_has_adsense(string $code): bool
+    {
+        return stripos($code, 'adsbygoogle') !== false
+            || stripos($code, 'googlesyndication') !== false
+            || stripos($code, 'ca-pub-') !== false;
+    }
+}
+
 if (!function_exists('wt_adsense_head')) {
     /**
      * Retourne le script AdSense "Auto Ads" à placer dans le <head>, si
@@ -578,6 +772,17 @@ if (!function_exists('wt_adsense_head')) {
         if (!$enabled) {
             return '';
         }
+        // Pages rémunérées : pas d'AdSense du tout (voir wt_adsense_allowed())
+        if (!wt_adsense_allowed()) {
+            return '';
+        }
+        // adsbygoogle.js ne doit être chargé qu'une seule fois par page :
+        // header.php peut déjà l'avoir injecté via 'tracking.google_adsense_client'.
+        // Un double chargement déclenche des TagError côté AdSense.
+        if (!empty($GLOBALS['__wt_adsense_loaded'])) {
+            return '';
+        }
+        $GLOBALS['__wt_adsense_loaded'] = true;
         $c = htmlspecialchars($client, ENT_QUOTES, 'UTF-8');
         return "\n<!-- Google AdSense Auto Ads -->\n"
              . "<script async src=\"https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client={$c}\""

@@ -43,6 +43,23 @@ $categories = wt_blog_categories();
 // SEO
 $blogTitle = (string) cfg('blog.title', 'Blog');
 $pageTitle = $activeCat ? ($activeCat['name'] . ' — ' . $blogTitle) : $blogTitle;
+// Description : celle de la catégorie active si elle en a une, sinon la
+// description du blog configurée en admin, sinon le texte SEO générique.
+$pageDescription = ($activeCat && !empty($activeCat['description']))
+                   ? (string) $activeCat['description']
+                   : ((string) cfg('blog.description', '') ?: (string) t('seo.desc.blog'));
+
+/* Fil d'Ariane structuré : aide Google à afficher le chemin sous le lien
+   dans les résultats, et renforce le maillage sémantique. */
+$_crumbs = [
+    ['name' => (string) t('site_name'),            'url' => wt_url('/')],
+    ['name' => (string) cfg('blog.title', 'Blog'), 'url' => wt_url('/blog')],
+];
+if ($activeCat) {
+    $_crumbs[] = ['name' => (string) $activeCat['name'],
+                  'url'  => wt_url('/blog/categorie/' . $activeCat['slug'])];
+}
+wt_schema_add(wt_schema_breadcrumb($_crumbs));
 $metaDescription = $activeCat
     ? (string)($activeCat['description'] ?? '')
     : (string) cfg('blog.description', '');

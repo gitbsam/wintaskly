@@ -264,3 +264,58 @@ if (!function_exists('wt_blog_banner_svg')) {
 SVG;
     }
 }
+
+if (!function_exists('wt_blog_related_tasks')) {
+    /**
+     * Tâches Wintaskly en rapport avec un article, détectées par mots-clés
+     * dans son titre, son extrait et son corps.
+     *
+     * Choix d'implémentation : la détection est faite à l'affichage plutôt
+     * qu'en écrivant des liens en dur dans le HTML des articles. Avantages :
+     *   - fonctionne aussi pour les futurs articles, sans intervention ;
+     *   - si une URL de tâche change, un seul endroit à corriger ;
+     *   - le Bingo n'est proposé que s'il est réellement jouable.
+     *
+     * @param array<string, mixed> $post Ligne blog_posts
+     * @param mixed $user Utilisateur courant (pour la visibilité du Bingo)
+     * @return array<int, array{url:string, icon:string, label:string}>
+     */
+    function wt_blog_related_tasks(array $post, $user = null): array
+    {
+        // Corps inclus : un article peut mentionner une tâche sans l'avoir
+        // dans son titre (ex. le guide des retraits parle des offerwalls).
+        $hay = strtolower(
+            (string) ($post['title'] ?? '') . ' ' .
+            (string) ($post['excerpt'] ?? '') . ' ' .
+            strip_tags((string) ($post['body'] ?? ''))
+        );
+
+        $map = [
+            'faucet'     => ['kw' => ['faucet'],                    'url' => '/tasks/faucet/',     'icon' => '💧', 'label' => 'nav.faucet'],
+            'shortlinks' => ['kw' => ['shortlink', 'raccourcisseur'],'url' => '/tasks/shortlinks/', 'icon' => '🔗', 'label' => 'nav.shortlinks'],
+            'ptc'        => ['kw' => ['ptc', 'paid-to-click'],      'url' => '/tasks/ptc/',        'icon' => '📺', 'label' => 'nav.ptc'],
+            'offerwalls' => ['kw' => ['offerwall', 'mur d\'offres'], 'url' => '/tasks/offerwalls/', 'icon' => '🎁', 'label' => 'nav.offerwalls'],
+            'bingo'      => ['kw' => ['bingo'],                     'url' => '/tasks/bingo/',      'icon' => '🎲', 'label' => 'nav.bingo'],
+        ];
+
+        $out = [];
+        foreach ($map as $key => $conf) {
+            foreach ($conf['kw'] as $kw) {
+                if (strpos($hay, $kw) !== false) {
+                    if ($key === 'bingo'
+                        && function_exists('wt_bingo_visible_for')
+                        && !wt_bingo_visible_for($user)) {
+                        break; // Bingo désactivé : ne pas proposer un lien mort
+                    }
+                    $out[] = [
+                        'url'   => $conf['url'],
+                        'icon'  => $conf['icon'],
+                        'label' => (string) t($conf['label']),
+                    ];
+                    break;
+                }
+            }
+        }
+        return $out;
+    }
+}

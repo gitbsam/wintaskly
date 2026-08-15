@@ -16,6 +16,7 @@ declare(strict_types=1);
 require __DIR__ . '/../includes/init.php';
 
 $pageTitle = t('help.title');
+$pageDescription = t('seo.desc.help');
 $u  = current_user();
 $db = db();
 
@@ -166,6 +167,69 @@ include __DIR__ . '/../header.php';
         </ul>
       </section>
     <?php endif; ?>
+
+    <!-- ====== BIEN UTILISER LE SUPPORT ======
+         Contenu utile : réduit les allers-retours en expliquant quoi
+         vérifier avant d'ouvrir un ticket, et quoi y mettre. -->
+    <section class="wt-help-explain" data-reveal>
+      <h2 class="wt-help-explain__title"><?= e(t('help.guide_title')) ?></h2>
+      <p class="wt-help-explain__lead"><?= e(t('help.guide_lead')) ?></p>
+
+      <div class="wt-help-explain__steps">
+        <div class="wt-help-explain__step">
+          <span class="wt-help-explain__num">1</span>
+          <div>
+            <strong><?= e(t('help.guide_s1_t')) ?></strong>
+            <p><?= e(t('help.guide_s1_d')) ?></p>
+          </div>
+        </div>
+        <div class="wt-help-explain__step">
+          <span class="wt-help-explain__num">2</span>
+          <div>
+            <strong><?= e(t('help.guide_s2_t')) ?></strong>
+            <p><?= e(t('help.guide_s2_d')) ?></p>
+          </div>
+        </div>
+        <div class="wt-help-explain__step">
+          <span class="wt-help-explain__num">3</span>
+          <div>
+            <strong><?= e(t('help.guide_s3_t')) ?></strong>
+            <p><?= e(t('help.guide_s3_d')) ?></p>
+          </div>
+        </div>
+      </div>
+
+      <p class="wt-help-explain__note"><?= e(t('help.guide_delay')) ?></p>
+      <p class="wt-help-explain__note"><?= e(t('help.guide_scam')) ?></p>
+    </section>
+
+    <!-- Délais et périmètre du support : cadre les attentes et réduit
+         les relances inutiles. -->
+    <section class="wt-help-explain" data-reveal>
+      <h2 class="wt-help-explain__title"><?= e(t('help.scope_title')) ?></h2>
+      <p class="wt-help-explain__lead"><?= e(t('help.scope_lead')) ?></p>
+
+      <div class="wt-lb-explain__cols">
+        <div class="wt-lb-explain__col">
+          <h3>✅ <?= e(t('help.scope_we')) ?></h3>
+          <ul>
+            <li><?= e(t('help.scope_we_1')) ?></li>
+            <li><?= e(t('help.scope_we_2')) ?></li>
+            <li><?= e(t('help.scope_we_3')) ?></li>
+          </ul>
+        </div>
+        <div class="wt-lb-explain__col">
+          <h3>➖ <?= e(t('help.scope_not')) ?></h3>
+          <ul>
+            <li><?= e(t('help.scope_not_1')) ?></li>
+            <li><?= e(t('help.scope_not_2')) ?></li>
+            <li><?= e(t('help.scope_not_3')) ?></li>
+          </ul>
+        </div>
+      </div>
+
+      <p class="wt-help-explain__note"><?= e(t('help.scope_delay')) ?></p>
+    </section>
 
   </div>
 </main>

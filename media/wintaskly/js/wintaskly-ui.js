@@ -661,3 +661,72 @@ document.addEventListener('click', async (e) => {
   window.addEventListener('scroll', onScroll, { passive: true });
   update(); // état initial
 })();
+
+/* =====================================================================
+ *  SUSPENSION DES ANIMATIONS HORS ÉCRAN
+ * =====================================================================
+ *  Le CSS compte une trentaine d'animations en boucle infinie (pulsations,
+ *  lueurs, particules). Une boucle infinie ne s'arrête jamais d'elle-même :
+ *  elle continue de consommer du CPU/GPU même quand l'élément est sorti de
+ *  l'écran, ce qui pèse inutilement sur la batterie en mobile.
+ *
+ *  Plutôt que de supprimer ces animations une à une — certaines portent une
+ *  information, comme la pulsation d'un compte à rebours actif — on les met
+ *  simplement en pause quand elles ne sont pas visibles, et on les relance
+ *  à l'entrée dans le viewport.
+ *
+ *  Détection automatique : on lit l'animation-iteration-count calculée, donc
+ *  aucune liste de classes à maintenir. Toute future animation infinie sera
+ *  prise en charge sans modification de ce fichier.
+ * ===================================================================== */
+(function () {
+  'use strict';
+  if (!('IntersectionObserver' in window) || !window.requestAnimationFrame) return;
+
+  // Respecte le choix système : si l'utilisateur a demandé moins d'animations,
+  // le CSS les a déjà neutralisées, rien à observer.
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)');
+  if (reduce && reduce.matches) return;
+
+  function collect() {
+    var infinite = [];
+    var all = document.querySelectorAll('*');
+    // Garde-fou : sur une page très dense, on ne parcourt pas indéfiniment.
+    var max = Math.min(all.length, 4000);
+    for (var i = 0; i < max; i++) {
+      var el = all[i];
+      var cs = window.getComputedStyle(el);
+      if (cs && cs.animationName && cs.animationName !== 'none'
+          && cs.animationIterationCount === 'infinite') {
+        infinite.push(el);
+      }
+    }
+    if (!infinite.length) return;
+
+    var io = new IntersectionObserver(function (entries) {
+      for (var j = 0; j < entries.length; j++) {
+        var e = entries[j];
+        e.target.style.animationPlayState = e.isIntersecting ? '' : 'paused';
+      }
+    }, { rootMargin: '120px' });   // marge : relance avant l'entrée réelle
+
+    for (var k = 0; k < infinite.length; k++) io.observe(infinite[k]);
+
+    // Onglet en arrière-plan : le navigateur ralentit déjà, mais on coupe
+    // franchement pour éviter toute consommation résiduelle.
+    document.addEventListener('visibilitychange', function () {
+      var paused = document.hidden;
+      for (var m = 0; m < infinite.length; m++) {
+        if (paused) infinite[m].style.animationPlayState = 'paused';
+        else infinite[m].style.animationPlayState = '';
+      }
+    });
+  }
+
+  // Après le premier rendu, pendant un temps mort du navigateur.
+  if (window.requestIdleCallback) {
+    requestIdleCallback(collect, { timeout: 2500 });
+  } else {
+    window.addEventListener('load', function () { setTimeout(collect, 400); });
+  }
+})();

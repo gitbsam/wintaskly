@@ -93,7 +93,8 @@ include __DIR__ . '/../header.php';
         <p class="wt-muted"><?= e(t('ref.share_lead')) ?></p>
 
         <div class="wt-ref-v2__link">
-          <input class="wt-input" type="text" readonly value="<?= e($refUrl) ?>" id="wt-ref-url">
+          <input class="wt-input" type="text" readonly value="<?= e($refUrl) ?>" id="wt-ref-url"
+                 aria-label="<?= e(t('a11y.field_ref_link')) ?>">
           <button class="wt-btn wt-btn--primary" type="button" data-copy-target="#wt-ref-url"
                   data-copy-label="<?= e(t('admin.cron.copied')) ?>">
             📋 <?= e(t('dash.copy')) ?>
@@ -165,7 +166,8 @@ include __DIR__ . '/../header.php';
                 <?= (int) $bn['width'] ?>×<?= (int) $bn['height'] ?>
               </div>
               <textarea class="wt-input" id="wt-banner-embed-<?= (int) $i ?>" readonly
-                        style="font-size:.7rem;height:60px" rows="3"><?= e($embed) ?></textarea>
+                        aria-label="<?= e(t('a11y.field_banner_code')) ?>"
+                        style="font-size:.75rem;height:60px" rows="3"><?= e($embed) ?></textarea>
               <button class="wt-btn wt-btn--ghost wt-btn--xs" type="button"
                       data-copy-target="#wt-banner-embed-<?= (int) $i ?>"
                       data-copy-label="<?= e(t('admin.cron.copied')) ?>" style="margin-top:.4rem">

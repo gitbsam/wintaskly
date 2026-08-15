@@ -96,6 +96,7 @@ include __DIR__ . '/../header.php';
           <input type="hidden" name="secret" value="<?= e($pendingSecret) ?>">
           <input class="wt-input wt-2fa-code-input"
                  type="text" name="code" inputmode="numeric" autocomplete="one-time-code"
+                 aria-label="<?= e(t('a11y.field_2fa_code')) ?>"
                  pattern="\d{6}" maxlength="6" placeholder="000000" required
                  style="text-align:center;font-size:1.4rem;letter-spacing:6px;max-width:200px">
           <div style="margin-top:1rem">

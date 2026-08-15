@@ -46,6 +46,9 @@ ErrorDocument 503 /error-500.html
   #   /blog                          → liste
   #   /blog/categorie/<slug>         → liste filtrée par catégorie
   #   /blog/<slug>                   → article
+  # Sitemap dynamique (declare dans robots.txt)
+  RewriteRule ^sitemap\.xml$ sitemap.php [L]
+
   RewriteRule ^blog/?$ blog/index.php [QSA,L]
   RewriteRule ^blog/categorie/([a-z0-9-]+)/?$ blog/index.php?cat=$1 [QSA,L]
   RewriteRule ^blog/([a-z0-9-]+)/?$ blog/post.php?slug=$1 [QSA,L]
@@ -79,4 +82,74 @@ ErrorDocument 503 /error-500.html
     Header set Cache-Control "no-cache, no-store, must-revalidate"
     Header set Service-Worker-Allowed "/"
   </Files>
+</IfModule>
+
+# =====================================================================
+# PERFORMANCE & SÉCURITÉ — ajouté en 8.38.0
+# =====================================================================
+# ⚠️ LWS MUTUALISÉ : ces blocs sont volontairement SÉPARÉS et encadrés
+# par <IfModule>. Si le site renvoie une erreur 500 après ajout, retire
+# UN SEUL bloc à la fois pour identifier celui qui n'est pas autorisé
+# (AllowOverride restreint) — les autres continueront de fonctionner.
+# Ordre de dépannage conseillé : COMPRESSION, puis CACHE, puis HSTS.
+# =====================================================================
+
+# --------------------------------------------------------------------
+# 1) COMPRESSION — gain mesuré : 560 Ko -> 104 Ko (-81 %)
+# --------------------------------------------------------------------
+# N'inclut PAS les images : PNG/JPG/WebP sont déjà compressés, les
+# recompresser consomme du CPU sans réduire la taille.
+<IfModule mod_deflate.c>
+  <IfModule mod_filter.c>
+    AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css
+    AddOutputFilterByType DEFLATE text/javascript application/javascript
+    AddOutputFilterByType DEFLATE application/x-javascript application/json
+    AddOutputFilterByType DEFLATE application/xml application/rss+xml
+    AddOutputFilterByType DEFLATE application/manifest+json
+    AddOutputFilterByType DEFLATE image/svg+xml
+  </IfModule>
+</IfModule>
+
+# --------------------------------------------------------------------
+# 2) CACHE NAVIGATEUR sur les fichiers statiques
+# --------------------------------------------------------------------
+# Sans risque de servir une version périmée : les CSS/JS sont appelés
+# avec ?v=<WT_VERSION>, donc chaque mise à jour change l'URL et force
+# le rechargement. Les pages PHP restent en no-store (défini dans
+# includes/init.php) — seules les ressources statiques sont mises en cache.
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresByType text/css                  "access plus 1 year"
+  ExpiresByType text/javascript           "access plus 1 year"
+  ExpiresByType application/javascript    "access plus 1 year"
+  ExpiresByType image/png                 "access plus 6 months"
+  ExpiresByType image/jpeg                "access plus 6 months"
+  ExpiresByType image/gif                 "access plus 6 months"
+  ExpiresByType image/webp                "access plus 6 months"
+  ExpiresByType image/svg+xml             "access plus 6 months"
+  ExpiresByType image/x-icon              "access plus 1 year"
+  ExpiresByType font/woff2                "access plus 1 year"
+  ExpiresByType application/font-woff2    "access plus 1 year"
+</IfModule>
+
+# immutable : indique au navigateur de ne même pas revalider tant que
+# l'URL (donc la version) ne change pas.
+<IfModule mod_headers.c>
+  <FilesMatch "\.(css|js|woff2?|png|jpe?g|gif|webp|svg|ico)$">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+  </FilesMatch>
+</IfModule>
+
+# --------------------------------------------------------------------
+# 3) EN-TÊTES DE SÉCURITÉ COMPLÉMENTAIRES
+# --------------------------------------------------------------------
+<IfModule mod_headers.c>
+  # HSTS — uniquement servi en HTTPS (env=HTTPS), sinon sans effet.
+  # ⚠️ Engagement fort : une fois cette en-tête reçue, le navigateur
+  # REFUSERA le HTTP sur le domaine pendant 1 an. À n'activer que si le
+  # certificat HTTPS est en place et le restera.
+  Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains" env=HTTPS
+
+  # Masque la version exacte de PHP (indice précieux pour un attaquant)
+  Header unset X-Powered-By
 </IfModule>
