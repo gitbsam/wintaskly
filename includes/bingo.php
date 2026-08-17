@@ -719,7 +719,33 @@ if (!function_exists('wt_bingo_mark_number')) {
             $cardNums = array_map('intval', explode(',', $card['numbers']));
             if (!in_array($number, $cardNums, true)) { $out['error']='not_on_card'; return $out; }
 
-            $drawn = wt_bingo_all_drawn((int) $card['rid']);
+            /* Périmètre des numéros cochables.
+             *
+             * Sans carton payant supplémentaire, seul le tirage DU JOUR est
+             * cochable : c'est la règle annoncée aux joueurs, et c'est ce
+             * qui donne sa valeur au carton payant.
+             *
+             * Ce contrôle DOIT vivre ici et pas seulement à l'affichage :
+             * la validation portait sur wt_bingo_all_drawn(), donc un appel
+             * direct à l'API permettait de cocher n'importe quel numéro tiré
+             * depuis le début de la partie — l'avantage du carton payant
+             * était contournable en une requête.
+             *
+             * On compte les cartons actifs du joueur pour cette partie :
+             * au-delà d'un seul, l'historique complet est ouvert. */
+            $stmt = $db->prepare(
+                "SELECT COUNT(*) c FROM bingo_cards
+                  WHERE user_id = ? AND round_id = ? AND status IN ('active','claimed')"
+            );
+            $rid = (int) $card['rid'];
+            $stmt->bind_param('ii', $userId, $rid);
+            $stmt->execute();
+            $activeCards = (int) ($stmt->get_result()->fetch_assoc()['c'] ?? 0);
+            $stmt->close();
+
+            $drawn = $activeCards > 1
+                     ? wt_bingo_all_drawn($rid)
+                     : wt_bingo_today_drawn($rid);
             if (!in_array($number, $drawn, true)) { $out['error']='not_drawn'; return $out; }
 
             $stmt = $db->prepare("INSERT IGNORE INTO bingo_card_marks (card_id, number) VALUES (?, ?)");

@@ -36,7 +36,10 @@ if ($blocked) {
 // 2) Recherche utilisateur (email OU username)
 $db = db();
 $stmt = $db->prepare(
-    "SELECT id, username, email, password_hash, status, totp_enabled, role
+    "SELECT id, username, email, password_hash, status, role,
+            totp_enabled, totp_secret,
+            twofa_email_enabled, twofa_sms_enabled,
+            twofa_phone, twofa_phone_verified_at, twofa_preferred
        FROM users
       WHERE email = ? OR username = ?
       LIMIT 1"
@@ -69,13 +72,23 @@ if ($row['status'] === 'pending') {
 }
 
 // 5) Branche 2FA
-if ((int) $row['totp_enabled'] === 1) {
+/* On ne teste plus seulement le TOTP : le compte peut utiliser l'e-mail, le
+   SMS, ou plusieurs méthodes. wt_2fa_user_methods() ne retourne que celles
+   qui sont activées par l'admin ET par l'utilisateur ET techniquement
+   délivrables — un canal non configuré ne peut donc pas bloquer l'accès. */
+$twofaMethods = wt_2fa_user_methods($row);
+if ($twofaMethods !== []) {
     auth_attempt_record($identifier, $ipBin, true);
     $_SESSION['pending_2fa_uid']      = (int) $row['id'];
     $_SESSION['pending_2fa_remember'] = $remember ? 1 : 0;
+    $_SESSION['pending_2fa_methods']  = $twofaMethods;
+    // Méthode proposée en premier = la plus prioritaire (choix utilisateur,
+    // sinon recommandation admin). L'utilisateur pourra en changer.
+    $_SESSION['pending_2fa_method']   = $twofaMethods[0];
     wt_json([
         'ok' => true,
         'two_factor_required' => true,
+        'method'   => $twofaMethods[0],
         'redirect' => wt_url('/auth/verify-2fa.php'),
     ]);
 }
@@ -87,6 +100,13 @@ $_SESSION['uid'] = (int) $row['id'];
 // On stocke aussi le rôle pour permettre au middleware maintenance (init.php)
 // de savoir rapidement si c'est un admin sans avoir à requêter la BDD.
 $_SESSION['role'] = (string) ($row['role'] ?? 'user');
+
+// Alerte de connexion : même sans 2FA, l'utilisateur doit pouvoir détecter
+// un accès qu'il n'a pas initié. C'est la seule chose qu'un attaquant
+// disposant du mot de passe ne peut pas empêcher.
+if (function_exists('wt_2fa_alert_new_login')) {
+    wt_2fa_alert_new_login($row);
+}
 
 $upd = $db->prepare(
     "UPDATE users

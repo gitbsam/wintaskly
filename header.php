@@ -101,6 +101,10 @@ $_navSections = [
     '/tasks',
     '/leaderboard',
     '/testimonials',
+    /* /blog et /about manquaient : leur lien de navigation ne passait
+       jamais en « is-active », contrairement aux autres sections. */
+    '/blog',
+    '/about',
     '/help',
     '/legal',
     '/auth',
@@ -318,7 +322,7 @@ echo wt_schema_render();
 <?php /* ============ SCRIPTS DE TRACKING — injectés depuis admin/settings.php ============ */ ?>
 
 <?php /* Mesure d'audience : uniquement si le visiteur y a consenti. */
-if ($_gaId !== '' && wt_consent_allows('analytics')): ?>
+if ($_gaId !== '' && wt_consent_allows('analytics') && wt_analytics_allowed()): ?>
 <!-- Google Analytics -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=<?= e($_gaId) ?>"></script>
 <script>
@@ -351,7 +355,7 @@ if ($_adsenseClient !== '' && wt_adsense_allowed() && wt_consent_allows('ads')
 <?php endif; ?>
 
 <?php /* Pixel publicitaire : soumis au consentement « Publicité ». */
-if ($_fbPixelId !== '' && wt_consent_allows('ads')): ?>
+if ($_fbPixelId !== '' && wt_consent_allows('ads') && wt_analytics_allowed()): ?>
 <!-- Facebook Pixel -->
 <script>
   !function(f,b,e,v,n,t,s)
@@ -678,6 +682,12 @@ if (function_exists('cfg')) {
             <li class="nav-tem">
                 <a class="nav-link <?= $_navActive('/tasks') ?>" href="<?= $_base ?>/tasks/"><?= e(t('nav.tasks')) ?></a>
             </li>
+            <?php /* Le blog est l'atout éditorial du site : le laisser
+                     uniquement en pied de page le signale comme secondaire,
+                     aux visiteurs comme aux moteurs. */ ?>
+            <li class="nav-tem">
+                <a class="nav-link <?= $_navActive('/blog') ?>" href="<?= $_base ?>/blog"><?= e(t('nav.blog')) ?></a>
+            </li>
             <?php if ($_u): ?><li class="nav-tem">
                 <a class="nav-link <?= $_navActive('/dashboard') ?>" href="<?= $_base ?>/dashboard/">
                     <?= e(t('nav.dashboard')) ?>
@@ -700,7 +710,13 @@ if (function_exists('cfg')) {
             <li class="nav-tem">
                 <a class="nav-link <?= $_navActive('/help') ?>" href="<?= $_base ?>/help/">
                     <?= e(t('nav.help')) ?>
-                  
+                </a>
+            </li>
+            <?php /* Page de confiance : sur un site qui manipule de l'argent,
+                     « qui sommes-nous » ne devrait pas être à deux clics. */ ?>
+            <li class="nav-tem">
+                <a class="nav-link <?= $_navActive('/about') ?>" href="<?= $_base ?>/about/">
+                    <?= e(t('about.nav')) ?>
                 </a>
             </li>
         </ul>
@@ -963,6 +979,10 @@ if ($_isAdminViewer
          style="--idx:1">
         <span aria-hidden="true">🎯</span> <?= e(t('nav.tasks')) ?>
       </a>
+      <a class="<?= $_navActive('/blog') ?>" href="<?= $_base ?>/blog"
+         style="--idx:2">
+        <span aria-hidden="true">📰</span> <?= e(t('nav.blog')) ?>
+      </a>
       <a class="<?= $_navActive('/leaderboard') ?>" href="<?= $_base ?>/leaderboard/"
          style="--idx:2">
         <span aria-hidden="true">🏆</span> <?= e(t('nav.leaderboard')) ?>
@@ -976,6 +996,10 @@ if ($_isAdminViewer
       <a class="<?= $_navActive('/help') ?>" href="<?= $_base ?>/help/"
          style="--idx:4">
         <span aria-hidden="true">🛟</span> <?= e(t('nav.help')) ?>
+      </a>
+      <a class="<?= $_navActive('/about') ?>" href="<?= $_base ?>/about/"
+         style="--idx:5">
+        <span aria-hidden="true">🏢</span> <?= e(t('about.nav')) ?>
       </a>
     </div>
 

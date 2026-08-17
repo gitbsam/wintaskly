@@ -233,6 +233,39 @@ include __DIR__ . '/../header.php';
       </aside>
 
     </div>
+
+    <!-- Contenu d'accompagnement : la page se limitait au formulaire
+         (156 mots). Ces informations réduisent les allers-retours et
+         donnent à la page la substance qu'un simple champ de saisie
+         n'apporte pas. -->
+    <section class="wt-contact-help" data-reveal>
+      <h2 class="wt-contact-help__title"><?= e(t('contact.help_title')) ?></h2>
+
+      <div class="wt-contact-help__cols">
+        <div class="wt-contact-help__col">
+          <h3>📝 <?= e(t('contact.help_what')) ?></h3>
+          <ul>
+            <li><?= e(t('contact.help_what_1')) ?></li>
+            <li><?= e(t('contact.help_what_2')) ?></li>
+            <li><?= e(t('contact.help_what_3')) ?></li>
+          </ul>
+        </div>
+        <div class="wt-contact-help__col">
+          <h3>⚡ <?= e(t('contact.help_faster')) ?></h3>
+          <ul>
+            <li><?= e(t('contact.help_faster_1')) ?></li>
+            <li><?= e(t('contact.help_faster_2')) ?></li>
+            <li><?= e(t('contact.help_faster_3')) ?></li>
+          </ul>
+        </div>
+      </div>
+
+      <p class="wt-contact-help__note"><?= e(t('contact.help_security')) ?></p>
+      <p class="wt-contact-help__note">
+        <?= e(t('contact.help_faq_first')) ?>
+        <a href="<?= e(wt_url('/help/faq.php')) ?>"><?= e(t('contact.help_faq_link')) ?></a>
+      </p>
+    </section>
   </div>
 </main>
 

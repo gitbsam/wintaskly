@@ -16,6 +16,14 @@ require __DIR__ . '/../includes/init.php';
 $pageTitle = t('antifraud.title');
 $pageDescription = t('seo.desc.antifraud');
 
+/* Fil d'Ariane structuré : Google l'affiche sous le lien dans les résultats
+   et il clarifie la place de la page dans le site. */
+wt_schema_add(wt_schema_breadcrumb([
+    ['name' => (string) t('site_name'), 'url' => wt_url('/')],
+    ['name' => (string) t('help.title'), 'url' => wt_url('/help/')],
+    ['name' => (string) t('antifraud.title'), 'url' => wt_url('/help/antifraud.php')],
+]));
+
 include __DIR__ . '/../header.php';
 ?>
 

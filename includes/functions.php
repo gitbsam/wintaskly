@@ -45,7 +45,23 @@ function award_user(int $userId, float $coins, int $xp, string $type, ?string $m
         $stmt->close();
 
         $referrerId = $row['referrer_id'] ?? null;
-        if ($referrerId && in_array($type, ['faucet', 'shortlink'], true)) {
+        /* Types ouvrant droit à la commission de parrainage.
+         *
+         * Couvre les quatre TÂCHES rémunérées : le filleul a fourni un
+         * effort, son parrain en touche 10 %.
+         *
+         * Volontairement exclus :
+         *   - bingo_win  : relève du hasard, pas d'un effort du filleul ;
+         *   - daily_bonus / achievement : récompenses de fidélité liées au
+         *     compte lui-même, pas à une tâche accomplie ;
+         *   - referral   : évite qu'une commission génère une commission ;
+         *   - withdraw / bingo_buy / admin : sorties ou ajustements.
+         *
+         * Ces exclusions sont annoncées explicitement dans la FAQ et sur la
+         * page de parrainage : la promesse affichée doit correspondre au
+         * code, au centime près. */
+        $refEligible = ['faucet', 'shortlink', 'ptc', 'offerwall'];
+        if ($referrerId && in_array($type, $refEligible, true)) {
             $rate  = (float)(cfg('referral_rate', '0.10'));
             $bonus = round($coins * $rate, 4);
 
@@ -691,6 +707,58 @@ if (!function_exists('wt_consent_allows')) {
             return in_array($category, $flags, true);
         }
         return false;                   // valeur inconnue → refus par prudence
+    }
+}
+
+if (!function_exists('wt_analytics_allowed')) {
+    /**
+     * La mesure d'audience est-elle autorisée sur la page courante ?
+     *
+     * DEUX RAISONS DE L'EXCLURE
+     * -------------------------
+     * 1. FUITE DE JETONS. Google Analytics enregistre l'URL COMPLÈTE de
+     *    chaque page vue. Or plusieurs pages portent un jeton dans l'URL :
+     *      - /auth/reset-password.php?token=…   → réinitialisation de mot de passe
+     *      - /auth/verify-email.php?token=…     → validation de compte
+     *      - /help/contact-track/<token>        → accès au ticket d'un membre
+     *      - /tasks/faucet/transition.php?t=…   → session de réclamation
+     *    Ces jetons se retrouveraient dans les rapports Analytics, lisibles
+     *    par toute personne ayant accès au compte. Un jeton de
+     *    réinitialisation suffit à prendre la main sur un compte.
+     *
+     * 2. PERTINENCE. L'administration n'est pas du trafic : mesurer ses
+     *    propres allers-retours dans le back-office fausse les statistiques
+     *    d'audience et expose la structure interne du site.
+     *
+     * Le reste de l'espace membre (/dashboard/, /tasks/) reste mesuré :
+     * comprendre le parcours des membres a une vraie valeur, et ces pages
+     * ne portent pas de jeton — hors celles listées ci-dessus.
+     */
+    function wt_analytics_allowed(): bool
+    {
+        $uri  = (string) ($_SERVER['REQUEST_URI'] ?? '/');
+        $path = (string) parse_url($uri, PHP_URL_PATH);
+
+        // Back-office : jamais mesuré
+        if (stripos($path, '/admin') !== false) {
+            return false;
+        }
+        // Pages dont l'URL contient un jeton
+        foreach (['/auth/reset-password', '/auth/verify-email',
+                  '/help/contact-track', '/tasks/faucet/transition',
+                  '/tasks/faucet/verify'] as $sensitive) {
+            if (stripos($path, $sensitive) !== false) {
+                return false;
+            }
+        }
+        // Garde-fou générique : tout paramètre ressemblant à un jeton
+        parse_str((string) parse_url($uri, PHP_URL_QUERY), $q);
+        foreach (['token', 't', 'code', 'key', 'hash'] as $k) {
+            if (!empty($q[$k])) {
+                return false;
+            }
+        }
+        return true;
     }
 }
 

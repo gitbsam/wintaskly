@@ -14,6 +14,13 @@ require __DIR__ . '/../includes/init.php';
 
 $pageTitle = t('legal.mentions_title');
 $pageDescription = t('seo.desc.mentions');
+
+/* Fil d'Ariane structuré : Google l'affiche sous le lien dans les résultats
+   et il clarifie la place de la page dans le site. */
+wt_schema_add(wt_schema_breadcrumb([
+    ['name' => (string) t('site_name'), 'url' => wt_url('/')],
+    ['name' => (string) t('legal.mentions_title'), 'url' => wt_url('/legal/mentions.php')],
+]));
 $siteName  = (string) cfg('site_name', 'Wintaskly');
 
 // Récupération des informations légales (config legal.*)

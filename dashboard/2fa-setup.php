@@ -20,7 +20,72 @@ $pageTitle = t('tfa_setup.title');
 $u   = current_user();
 $uid = (int) $u['id'];
 
+/* ---------------------------------------------------------------------
+ * Traitement des formulaires (avant tout rendu, pour pouvoir rediriger)
+ * ------------------------------------------------------------------- */
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && csrf_check($_POST['_csrf'] ?? null)) {
+    $action = (string) ($_POST['action'] ?? '');
+    $db = db();
+
+    if ($action === 'save_methods') {
+        $wanted = (array) ($_POST['methods'] ?? []);
+        $admin  = wt_2fa_admin_methods();
+        /* On n'active que ce que l'admin autorise ET dont le canal est
+           opérationnel : une case cochée ne suffit pas à contourner le
+           garde-fou côté plateforme. */
+        $email = in_array('email', $wanted, true) && in_array('email', $admin, true) ? 1 : 0;
+        $sms   = in_array('sms',   $wanted, true) && in_array('sms',   $admin, true) ? 1 : 0;
+
+        // Le SMS exige un numéro vérifié : sans lui, on refuse silencieusement
+        if ($sms === 1 && empty($u['twofa_phone_verified_at'])) {
+            $sms = 0;
+        }
+
+        $pref = (string) ($_POST['preferred'] ?? '');
+        if (!in_array($pref, ['totp', 'email', 'sms'], true)) { $pref = ''; }
+
+        $stmt = $db->prepare(
+            "UPDATE users SET twofa_email_enabled = ?, twofa_sms_enabled = ?,
+                    twofa_preferred = NULLIF(?, '') WHERE id = ?"
+        );
+        $stmt->bind_param('iisi', $email, $sms, $pref, $uid);
+        $stmt->execute();
+        $stmt->close();
+
+        /* Première activation d'une méthode 2FA sans code de secours :
+           on en génère immédiatement. Laisser un compte protégé mais sans
+           recours, c'est fabriquer un futur ticket « je ne peux plus me
+           connecter ». */
+        if (($email || $sms) && (string) cfg('2fa.backup_enabled', '1') === '1'
+            && wt_2fa_backup_remaining($uid) === 0) {
+            $_SESSION['fresh_backup_codes'] = wt_2fa_generate_backup_codes($uid);
+        }
+        header('Location: ' . wt_url('/dashboard/2fa-setup.php'));
+        exit;
+    }
+
+    if ($action === 'gen_backup' && (string) cfg('2fa.backup_enabled', '1') === '1') {
+        $_SESSION['fresh_backup_codes'] = wt_2fa_generate_backup_codes($uid);
+        header('Location: ' . wt_url('/dashboard/2fa-setup.php'));
+        exit;
+    }
+}
+
+// Rechargé après un éventuel enregistrement
+$u = current_user();
+
 $totpEnabled = (int) ($u['totp_enabled'] ?? 0) === 1;
+
+/* Méthodes disponibles, codes de secours et risque d'enfermement.
+   Le tout est calculé une fois ici pour éviter de requêter dans le rendu. */
+$adminMethods   = wt_2fa_admin_methods();
+$activeMethods  = wt_2fa_user_methods($u);
+$backupEnabled  = (string) cfg('2fa.backup_enabled', '1') === '1';
+$backupLeft     = $backupEnabled ? wt_2fa_backup_remaining((int) $u['id']) : 0;
+$lockRisk       = wt_2fa_lockout_risk($u);
+/* Codes fraîchement générés : affichés une seule fois, jamais reconsultables. */
+$freshCodes     = $_SESSION['fresh_backup_codes'] ?? null;
+unset($_SESSION['fresh_backup_codes']);
 $wantDisable = !empty($_GET['disable']);
 
 // Identifiant affiché dans l'app d'authentification (email de préférence)
@@ -104,6 +169,87 @@ include __DIR__ . '/../header.php';
           </div>
           <p class="wt-form__msg" data-2fa-msg hidden></p>
         </form>
+      </section>
+    <?php endif; ?>
+
+    <?php if ($lockRisk['risk']): ?>
+      <?php /* Avertissement AVANT que l'utilisateur ne se retrouve enfermé
+               dehors : c'est le moment utile, pas après. */ ?>
+      <div class="wt-alert wt-alert--warning wt-mt-3" role="alert">
+        ⚠️ <?= e(t('auth.2fa.risk_' . ($lockRisk['reason'] === 'no_backup_codes' ? 'no_backup' : 'single'))) ?>
+      </div>
+    <?php endif; ?>
+
+    <?php if ($freshCodes): ?>
+      <section class="wt-card wt-card--padded wt-mt-3" data-reveal>
+        <h2 class="wt-h3">🗝️ <?= e(t('auth.2fa.backup_title')) ?></h2>
+        <p class="wt-muted"><?= e(t('auth.2fa.backup_lead')) ?></p>
+        <ul class="wt-backup-codes">
+          <?php foreach ($freshCodes as $c): ?>
+            <li><code><?= e($c) ?></code></li>
+          <?php endforeach; ?>
+        </ul>
+        <button type="button" class="wt-btn wt-btn--ghost" data-copy-backup>
+          📋 <?= e(t('dash.copy')) ?>
+        </button>
+      </section>
+    <?php endif; ?>
+
+    <?php if (count($adminMethods) > 1 || $backupEnabled): ?>
+      <section class="wt-card wt-card--padded wt-mt-3" data-reveal>
+        <h2 class="wt-h3"><?= e(t('auth.2fa.methods_title')) ?></h2>
+        <p class="wt-muted"><?= e(t('auth.2fa.methods_lead')) ?></p>
+
+        <form method="post" action="<?= e(wt_url('/dashboard/2fa-setup.php')) ?>" class="wt-2fa-methods">
+          <input type="hidden" name="_csrf" value="<?= e(csrf_token()) ?>">
+          <input type="hidden" name="action" value="save_methods">
+
+          <?php foreach ($adminMethods as $m):
+            // Le TOTP se gère par le QR code ci-dessus, pas par une case
+            if ($m === 'totp') { continue; }
+            $on = in_array($m, $activeMethods, true);
+          ?>
+            <label class="wt-2fa-method">
+              <input type="checkbox" name="methods[]" value="<?= e($m) ?>" <?= $on ? 'checked' : '' ?>>
+              <span>
+                <strong><?= e(t('auth.2fa.method_' . $m)) ?></strong>
+                <?php if ($m === 'sms'): ?>
+                  <small><?= e(t('auth.2fa.sms_needs_phone')) ?></small>
+                <?php endif; ?>
+              </span>
+            </label>
+          <?php endforeach; ?>
+
+          <?php if (count($activeMethods) > 1): ?>
+            <label class="wt-field wt-mt-2">
+              <span class="wt-field__label"><?= e(t('auth.2fa.preferred_label')) ?></span>
+              <select class="wt-input" name="preferred">
+                <?php foreach ($activeMethods as $m): ?>
+                  <option value="<?= e($m) ?>" <?= ($u['twofa_preferred'] ?? '') === $m ? 'selected' : '' ?>>
+                    <?= e(t('auth.2fa.method_' . $m)) ?>
+                  </option>
+                <?php endforeach; ?>
+              </select>
+            </label>
+          <?php endif; ?>
+
+          <button type="submit" class="wt-btn wt-btn--primary wt-mt-2"><?= e(t('common.save')) ?></button>
+        </form>
+
+        <?php if ($backupEnabled): ?>
+          <hr class="wt-sep">
+          <p><?= e(sprintf((string) t('auth.2fa.backup_remaining'), $backupLeft)) ?></p>
+          <form method="post" action="<?= e(wt_url('/dashboard/2fa-setup.php')) ?>">
+            <input type="hidden" name="_csrf" value="<?= e(csrf_token()) ?>">
+            <input type="hidden" name="action" value="gen_backup">
+            <button type="submit" class="wt-btn wt-btn--ghost">
+              🗝️ <?= e(t('auth.2fa.backup_regenerate')) ?>
+            </button>
+          </form>
+          <p class="wt-muted" style="font-size:.82rem;margin-top:.5rem">
+            <?= e(t('auth.2fa.backup_regen_notice')) ?>
+          </p>
+        <?php endif; ?>
       </section>
     <?php endif; ?>
   </section>

@@ -67,6 +67,30 @@ $schema = [
         ['key' => 'xp_per_level',             'label' => 'admin.set.eco.xp_per_level',     'type' => 'number', 'hint' => 'admin.set.eco.xp_per_level_hint',  'min' => 1],
         ['key' => 'withdrawal_min_default',   'label' => 'admin.set.eco.wd_min_default',   'type' => 'number', 'hint' => 'admin.set.eco.wd_min_default_hint','min' => 0],
     ],
+    /* --------------------------------------------------------------
+     * Double authentification
+     * --------------------------------------------------------------
+     * Une méthode cochée ici n'est proposée aux utilisateurs QUE si son
+     * canal est réellement opérationnel (voir wt_2fa_method_ready) : le
+     * SMS exige un fournisseur configuré, l'e-mail un envoi fonctionnel.
+     * Le TOTP ne dépend de rien — le code est calculé localement par
+     * l'application de l'utilisateur, sans appel réseau ni coût.
+     * ------------------------------------------------------------ */
+    'twofa' => [
+        ['key' => '2fa.totp_enabled',     'label' => 'admin.set.2fa.totp',      'type' => 'checkbox', 'hint' => 'admin.set.2fa.totp_hint'],
+        ['key' => '2fa.email_enabled',    'label' => 'admin.set.2fa.email',     'type' => 'checkbox', 'hint' => 'admin.set.2fa.email_hint'],
+        ['key' => '2fa.sms_enabled',      'label' => 'admin.set.2fa.sms',       'type' => 'checkbox', 'hint' => 'admin.set.2fa.sms_hint'],
+        ['key' => '2fa.backup_enabled',   'label' => 'admin.set.2fa.backup',    'type' => 'checkbox', 'hint' => 'admin.set.2fa.backup_hint'],
+        ['key' => '2fa.alert_new_login',  'label' => 'admin.set.2fa.alert',     'type' => 'checkbox', 'hint' => 'admin.set.2fa.alert_hint'],
+        ['key' => '2fa.preferred',        'label' => 'admin.set.2fa.preferred', 'type' => 'text',     'hint' => 'admin.set.2fa.preferred_hint', 'maxlen' => 8,
+         'validate' => fn($v) => in_array($v, ['totp','email','sms'], true) ? null : 'Valeurs acceptees : totp, email ou sms'],
+        ['key' => '2fa.code_ttl_minutes', 'label' => 'admin.set.2fa.ttl',       'type' => 'number',   'hint' => 'admin.set.2fa.ttl_hint',     'min' => 1, 'max' => 60],
+        ['key' => '2fa.max_attempts',     'label' => 'admin.set.2fa.attempts',  'type' => 'number',   'hint' => 'admin.set.2fa.attempts_hint','min' => 3, 'max' => 10],
+        ['key' => '2fa.backup_count',     'label' => 'admin.set.2fa.count',     'type' => 'number',   'hint' => 'admin.set.2fa.count_hint',   'min' => 4, 'max' => 20],
+        ['key' => 'sms.provider',         'label' => 'admin.set.2fa.provider',  'type' => 'text',     'hint' => 'admin.set.2fa.provider_hint','maxlen' => 40],
+        ['key' => 'sms.api_key',          'label' => 'admin.set.2fa.api_key',   'type' => 'password', 'hint' => 'admin.set.2fa.api_key_hint', 'sensitive' => true, 'maxlen' => 190],
+        ['key' => 'sms.sender',           'label' => 'admin.set.2fa.sender',    'type' => 'text',     'hint' => 'admin.set.2fa.sender_hint',  'maxlen' => 16],
+    ],
     'leaderboard' => [
         ['key' => 'leaderboard.rewards_enabled','label'=>'admin.set.lb.rewards_enabled','type'=>'checkbox','hint'=>'admin.set.lb.rewards_enabled_hint'],
         ['key' => 'leaderboard.mask_usernames', 'label'=>'admin.set.lb.mask_usernames', 'type'=>'checkbox','hint'=>'admin.set.lb.mask_usernames_hint'],
@@ -264,6 +288,7 @@ include __DIR__ . '/../header.php';
               'seo'         => ['🔍', 'admin.set.tab.seo'],
               'tracking'    => ['📊', 'admin.set.tab.tracking'],
               'economy'     => ['💰', 'admin.set.tab.economy'],
+              'twofa'       => ['🔐', 'admin.set.tab.twofa'],
               'leaderboard' => ['🏆', 'admin.set.tab.leaderboard'],
               'email'       => ['📧', 'admin.set.tab.email'],
               'social'      => ['🌐', 'admin.set.tab.social'],
@@ -286,6 +311,33 @@ include __DIR__ . '/../header.php';
         <?php foreach ($schema as $tab => $fields): ?>
           <section class="wt-tabs__panel <?= $tab === $activeTab ? 'is-active' : '' ?>"
                    data-panel="<?= e($tab) ?>" role="tabpanel">
+
+            <?php if ($tab === 'twofa'): ?>
+              <?php /* État RÉEL de chaque canal : cocher une case ne suffit
+                       pas, encore faut-il que le canal puisse délivrer. Ce
+                       bandeau évite de croire qu'une méthode est active
+                       alors qu'elle est masquée aux utilisateurs. */ ?>
+              <div class="wt-admin-2fa-status">
+                <?php foreach (['totp', 'email', 'sms'] as $m):
+                  $on    = (string) ($values['2fa.' . $m . '_enabled'] ?? '0') === '1';
+                  $ready = wt_2fa_method_ready($m);
+                  $live  = $on && $ready;
+                ?>
+                  <div class="wt-admin-2fa-status__item <?= $live ? 'is-live' : ($on ? 'is-blocked' : '') ?>">
+                    <strong><?= e(t('auth.2fa.method_' . $m)) ?></strong>
+                    <span>
+                      <?php if ($live): ?>
+                        ✅ <?= e(t('admin.set.2fa.state_live')) ?>
+                      <?php elseif ($on): ?>
+                        ⚠️ <?= e(t('admin.set.2fa.state_blocked')) ?>
+                      <?php else: ?>
+                        — <?= e(t('admin.set.2fa.state_off')) ?>
+                      <?php endif; ?>
+                    </span>
+                  </div>
+                <?php endforeach; ?>
+              </div>
+            <?php endif; ?>
 
             <form method="post" class="wt-admin-v2__form-body">
               <input type="hidden" name="_csrf" value="<?= e(csrf_token()) ?>">

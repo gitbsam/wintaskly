@@ -17,6 +17,13 @@ require __DIR__ . '/../includes/init.php';
 
 $pageTitle = t('legal.cookies_title');
 $pageDescription = t('seo.desc.cookies');
+
+/* Fil d'Ariane structuré : Google l'affiche sous le lien dans les résultats
+   et il clarifie la place de la page dans le site. */
+wt_schema_add(wt_schema_breadcrumb([
+    ['name' => (string) t('site_name'), 'url' => wt_url('/')],
+    ['name' => (string) t('legal.cookies_title'), 'url' => wt_url('/legal/cookies.php')],
+]));
 $updatedAt = '2026-05-23';
 $siteName  = (string) cfg('site_name', 'Wintaskly');
 

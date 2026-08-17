@@ -36,6 +36,43 @@ function auth_attempt_record(string $identifier, ?string $ipBin, bool $success):
 }
 
 /**
+ * Trop d'inscriptions depuis cette IP sur la dernière heure ?
+ *
+ * L'inscription ne s'appuyait que sur les honeypots et le contrôle
+ * anti-fraude. Sur une plateforme de micro-gains, la création massive de
+ * comptes est le vecteur de fraude principal : les honeypots arrêtent les
+ * robots naïfs, pas un script dédié. Cette limite simple ferme la porte au
+ * volume, sans gêner un foyer ou un cybercafé partageant une IP (le seuil
+ * par défaut laisse passer 3 comptes par heure).
+ *
+ * S'appuie sur users.ip_registered, déjà renseigné à l'inscription :
+ * aucune table supplémentaire n'est nécessaire.
+ *
+ * @return bool true si la limite est atteinte
+ */
+function wt_signup_rate_exceeded(?string $ipBin, int $max = 3, int $minutes = 60): bool
+{
+    if ($ipBin === null || $ipBin === '') {
+        return false;   // IP indéterminable : on ne bloque pas à l'aveugle
+    }
+    try {
+        $stmt = db()->prepare(
+            "SELECT COUNT(*) c FROM users
+              WHERE ip_registered = ?
+                AND created_at >= UTC_TIMESTAMP() - INTERVAL ? MINUTE"
+        );
+        $stmt->bind_param('si', $ipBin, $minutes);
+        $stmt->execute();
+        $n = (int) ($stmt->get_result()->fetch_assoc()['c'] ?? 0);
+        $stmt->close();
+        return $n >= $max;
+    } catch (Throwable $e) {
+        error_log('[Wintaskly signup rate] ' . $e->getMessage());
+        return false;   // en cas d'erreur, ne pas bloquer une inscription légitime
+    }
+}
+
+/**
  * Indique si l'identifiant OU l'IP sont bloqués.
  * Renvoie [bool blocked, int seconds_left].
  */

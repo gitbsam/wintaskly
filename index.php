@@ -187,7 +187,15 @@ include __DIR__ . '/header.php';
       <span class="wt-orb wt-orb--c"></span>
     </div>
 
-    <div class="wt-hero__layout">
+    <?php
+      /* La colonne de droite (derniers retraits) n'apparaît qu'à partir de
+         5 retraits validés. Sans ce modificateur, la grille conservait deux
+         colonnes et laissait un large vide à droite : on bascule sur une
+         seule colonne centrée tant que la carte est absente, et la mise en
+         page à deux colonnes revient d'elle-même dès son retour. */
+      $heroSolo = count($topWithdrawals) < 5;
+    ?>
+    <div class="wt-hero__layout<?= $heroSolo ? ' wt-hero__layout--solo' : '' ?>">
 
       <!-- ============ COLONNE GAUCHE : pitch + CTA ============ -->
       <div class="wt-hero__inner">
@@ -346,6 +354,47 @@ include __DIR__ . '/header.php';
   </div>
 
   <!-- ==========================================================
+       PRÉSENTATION
+       ----------------------------------------------------------
+       Le hero ne fait qu'une cinquantaine de mots : un slogan et
+       deux boutons. Un visiteur qui arrive ne sait donc pas ce
+       qu'est Wintaskly, ni d'où vient l'argent distribué, avant
+       d'avoir descendu quatre blocs.
+       Ce bloc répond à ces questions d'emblée, sans bouton
+       d'inscription : c'est de l'information, pas de la
+       conversion. Il dit aussi ce que la plateforme N'EST PAS —
+       la partie qu'un visiteur méfiant cherche en premier.
+      =========================================================== -->
+  <section class="wt-intro" data-reveal>
+    <div class="wt-intro__inner">
+      <h2 class="wt-intro__title"><?= e(t('home.intro.title')) ?></h2>
+
+      <div class="wt-intro__cols">
+        <div class="wt-intro__col">
+          <h3><?= e(t('home.intro.what_t')) ?></h3>
+          <p><?= e(t('home.intro.what_d')) ?></p>
+        </div>
+        <div class="wt-intro__col">
+          <h3><?= e(t('home.intro.money_t')) ?></h3>
+          <p><?= e(t('home.intro.money_d')) ?></p>
+        </div>
+        <div class="wt-intro__col">
+          <h3><?= e(t('home.intro.not_t')) ?></h3>
+          <p><?= e(t('home.intro.not_d')) ?></p>
+        </div>
+      </div>
+
+      <p class="wt-intro__more">
+        <a href="<?= e(wt_url('/about/')) ?>"><?= e(t('home.intro.link_about')) ?></a>
+        <span aria-hidden="true">·</span>
+        <a href="<?= e(wt_url('/about/editorial.php')) ?>"><?= e(t('home.intro.link_editorial')) ?></a>
+        <span aria-hidden="true">·</span>
+        <a href="<?= e(wt_url('/help/antifraud.php')) ?>"><?= e(t('home.intro.link_antifraud')) ?></a>
+      </p>
+    </div>
+  </section>
+
+  <!-- ==========================================================
        SECTION DISCOVER
       =========================================================== -->
       <section class="wt-discover" data-discover>
@@ -420,6 +469,88 @@ include __DIR__ . '/header.php';
          'url' => '/help/faq.php'],
     ];
   ?>
+  <?php
+  /* ===================== DERNIERS ARTICLES DU BLOG =====================
+   * Affiche les 3 derniers articles publiés. Section masquée s'il n'y a
+   * aucun article, ou si le blog est désactivé. Apporte du contenu frais
+   * et des liens internes (bon pour le SEO et la découverte). */
+  /* 6 articles au lieu de 3, et section remontée en 3e position.
+   *
+   * Sur une plateforme de micro-gains, l'enjeu est de montrer que le site
+   * apporte de la valeur au-delà de la récompense. Reléguer le contenu
+   * éditorial en avant-dernière position, après dix blocs orientés gains,
+   * envoyait le signal inverse — aux visiteurs comme aux évaluateurs. */
+  $homeBlogPosts = (function_exists('wt_blog_enabled') && wt_blog_enabled())
+      ? wt_blog_posts(6, 0)
+      : [];
+  // Catégories alimentées, pour offrir une entrée par thème
+  $homeBlogCats = [];
+  if (function_exists('wt_blog_categories')) {
+      foreach (wt_blog_categories() as $c) {
+          if ((int) ($c['post_count'] ?? 0) > 0) { $homeBlogCats[] = $c; }
+      }
+  }
+  if (!empty($homeBlogPosts)):
+  ?>
+  <section class="wt-home-blog" data-reveal>
+    <div class="wt-home-blog__head">
+      <span class="wt-eyebrow">📰 <?= e(t('home.blog.eyebrow')) ?></span>
+      <h2 class="wt-section__title"><?= e(t('home.blog.title')) ?></h2>
+      <p class="wt-section__lead"><?= e(t('home.blog.lead')) ?></p>
+    </div>
+
+    <div class="wt-home-blog__grid">
+      <?php foreach ($homeBlogPosts as $post): ?>
+        <article class="wt-home-blog__card">
+          <a href="<?= e(wt_url('/blog/' . $post['slug'])) ?>" class="wt-home-blog__link">
+            <div class="wt-home-blog__cover">
+              <?php if (!empty($post['cover_image'])): ?>
+                <img src="<?= e(wt_url('/media/wintaskly/img/blog/' . $post['cover_image'])) ?>"
+                     alt="" loading="lazy" class="wt-home-blog__cover-img">
+              <?php else: ?>
+                <span class="wt-home-blog__emoji"><?= e($post['cover_emoji'] ?: '📄') ?></span>
+              <?php endif; ?>
+            </div>
+            <div class="wt-home-blog__body">
+              <?php if (!empty($post['category_name'])): ?>
+                <span class="wt-home-blog__cat"><?= e($post['category_name']) ?></span>
+              <?php endif; ?>
+              <h3 class="wt-home-blog__title"><?= e($post['title']) ?></h3>
+              <?php if (!empty($post['excerpt'])): ?>
+                <p class="wt-home-blog__excerpt"><?= e($post['excerpt']) ?></p>
+              <?php endif; ?>
+              <span class="wt-home-blog__meta">
+                <?php /* La date montre que le blog est vivant : une liste de
+                         titres sans date ne prouve pas l'activité. */ ?>
+                📅 <?= e(wt_format_datetime($post['published_at'], 'd/m/Y')) ?>
+                &nbsp;·&nbsp; ⏱️ <?= (int)$post['reading_minutes'] ?> <?= e(t('blog.min_read')) ?>
+              </span>
+            </div>
+          </a>
+        </article>
+      <?php endforeach; ?>
+    </div>
+
+    <?php if ($homeBlogCats): ?>
+      <nav class="wt-home-blog__cats" aria-label="<?= e(t('home.blog.browse')) ?>">
+        <span class="wt-home-blog__cats-label"><?= e(t('home.blog.browse')) ?></span>
+        <?php foreach ($homeBlogCats as $c): ?>
+          <a class="wt-home-blog__cat-link"
+             href="<?= e(wt_url('/blog/categorie/' . $c['slug'])) ?>">
+            <?= e($c['name']) ?> <span><?= (int) $c['post_count'] ?></span>
+          </a>
+        <?php endforeach; ?>
+      </nav>
+    <?php endif; ?>
+
+    <p class="wt-home-blog__foot">
+      <a class="wt-btn wt-btn--primary" href="<?= e(wt_url('/blog')) ?>">
+        <?= e(t('home.blog.see_all')) ?> →
+      </a>
+    </p>
+  </section>
+  <?php endif; ?>
+
   <section class="wt-why" data-reveal>
     <div class="wt-why__head">
       <span class="wt-eyebrow">🧭 <?= e(t('home.why.eyebrow')) ?></span>
@@ -592,7 +723,21 @@ include __DIR__ . '/header.php';
    * du hero. Si tu veux la réactiver (autre style, autres KPI…), enlève
    * le `false &&` ci-dessous et le bloc s'affichera selon homepage_blocks.
    * --------------------------------------------------------------- -->
-  <?php if (false && $blockVisible('stats')): ?>
+  <?php
+    /* Bloc statistiques — réactivé, mais sous condition stricte.
+     *
+     * Il n'apparaît QUE si stats_mode vaut 'real'. Dans les modes 'boosted'
+     * et 'max', les compteurs affichés sont gonflés par des valeurs saisies
+     * en admin : les publier reviendrait à afficher des chiffres invérifiables
+     * sur un site qui manipule de l'argent, ce qui décrédibilise aussi les
+     * chiffres exacts de la page.
+     *
+     * Ce garde-fou vit ici plutôt que dans un réglage à ne pas oublier :
+     * basculer stats_mode sur 'real' fait apparaître le bloc, tout autre
+     * mode le masque, sans intervention supplémentaire. */
+    $statsHonest = ((string) $statsMode === 'real');
+  ?>
+  <?php if ($statsHonest && $blockVisible('stats')): ?>
   <section class="wt-stats" data-reveal>
     <h2 class="wt-section__title"><?= e($blockField('stats', 'title', 'Une plateforme qui paye')) ?></h2>
     <div class="wt-stats__grid">
@@ -1120,63 +1265,6 @@ include __DIR__ . '/header.php';
       <a href="<?= e(wt_url('/help/contact.php')) ?>"><?= e(t('home.faq.contact_link')) ?></a>.
     </p>
   </section>
-
-  <?php
-  /* ===================== DERNIERS ARTICLES DU BLOG =====================
-   * Affiche les 3 derniers articles publiés. Section masquée s'il n'y a
-   * aucun article, ou si le blog est désactivé. Apporte du contenu frais
-   * et des liens internes (bon pour le SEO et la découverte). */
-  $homeBlogPosts = (function_exists('wt_blog_enabled') && wt_blog_enabled())
-      ? wt_blog_posts(3, 0)
-      : [];
-  if (!empty($homeBlogPosts)):
-  ?>
-  <section class="wt-home-blog" data-reveal>
-    <div class="wt-home-blog__head">
-      <span class="wt-eyebrow">📰 <?= e(t('home.blog.eyebrow')) ?></span>
-      <h2 class="wt-section__title"><?= e(t('home.blog.title')) ?></h2>
-      <p class="wt-section__lead"><?= e(t('home.blog.lead')) ?></p>
-    </div>
-
-    <div class="wt-home-blog__grid">
-      <?php foreach ($homeBlogPosts as $post): ?>
-        <article class="wt-home-blog__card">
-          <a href="<?= e(wt_url('/blog/' . $post['slug'])) ?>" class="wt-home-blog__link">
-            <div class="wt-home-blog__cover">
-              <?php if (!empty($post['cover_image'])): ?>
-                <img src="<?= e(wt_url('/media/wintaskly/img/blog/' . $post['cover_image'])) ?>"
-                     alt="" loading="lazy" class="wt-home-blog__cover-img">
-              <?php else: ?>
-                <span class="wt-home-blog__emoji"><?= e($post['cover_emoji'] ?: '📄') ?></span>
-              <?php endif; ?>
-            </div>
-            <div class="wt-home-blog__body">
-              <?php if (!empty($post['category_name'])): ?>
-                <span class="wt-home-blog__cat"><?= e($post['category_name']) ?></span>
-              <?php endif; ?>
-              <h3 class="wt-home-blog__title"><?= e($post['title']) ?></h3>
-              <?php if (!empty($post['excerpt'])): ?>
-                <p class="wt-home-blog__excerpt"><?= e($post['excerpt']) ?></p>
-              <?php endif; ?>
-              <span class="wt-home-blog__meta">
-                <?php /* La date montre que le blog est vivant : une liste de
-                         titres sans date ne prouve pas l'activité. */ ?>
-                📅 <?= e(wt_format_datetime($post['published_at'], 'd/m/Y')) ?>
-                &nbsp;·&nbsp; ⏱️ <?= (int)$post['reading_minutes'] ?> <?= e(t('blog.min_read')) ?>
-              </span>
-            </div>
-          </a>
-        </article>
-      <?php endforeach; ?>
-    </div>
-
-    <p class="wt-home-blog__foot">
-      <a class="wt-btn wt-btn--ghost" href="<?= e(wt_url('/blog')) ?>">
-        <?= e(t('home.blog.see_all')) ?> →
-      </a>
-    </p>
-  </section>
-  <?php endif; ?>
 
   <!-- ===================== FINAL CTA (V8) =========================
    * Masqué si l'utilisateur est déjà connecté (rien à pousser).

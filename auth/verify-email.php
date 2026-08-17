@@ -19,6 +19,13 @@ require __DIR__ . '/../includes/init.php';
 
 $db        = db();
 $pageTitle = t('auth.verify_email.title');
+/* Page de formulaire d'authentification : aucune valeur en recherche.
+   Sans noindex, ce sont des pages de ~55 mots que Google peut indexer et
+   comptabiliser comme contenu pauvre du site — forgot-password.php est
+   même explicitement autorisée au crawl dans robots.txt. Connexion et
+   inscription étaient déjà traitées : on harmonise. Les liens restent
+   suivis (follow). */
+$pageNoindex = true;
 
 /* ----------------- Branche 1 : token présent → validation ----------------- */
 $flash = null;

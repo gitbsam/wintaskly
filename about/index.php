@@ -13,6 +13,13 @@ require __DIR__ . '/../includes/init.php';
 
 $pageTitle = t('about.title');
 $pageDescription = t('seo.desc.about');
+
+/* Fil d'Ariane structuré : Google l'affiche sous le lien dans les résultats
+   et il clarifie la place de la page dans le site. */
+wt_schema_add(wt_schema_breadcrumb([
+    ['name' => (string) t('site_name'), 'url' => wt_url('/')],
+    ['name' => (string) t('about.title'), 'url' => wt_url('/about/')],
+]));
 $db        = db();
 
 // Chiffre public simple et honnête (comptage réel, sans le boost marketing

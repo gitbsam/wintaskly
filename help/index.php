@@ -17,6 +17,13 @@ require __DIR__ . '/../includes/init.php';
 
 $pageTitle = t('help.title');
 $pageDescription = t('seo.desc.help');
+
+/* Fil d'Ariane structuré : Google l'affiche sous le lien dans les résultats
+   et il clarifie la place de la page dans le site. */
+wt_schema_add(wt_schema_breadcrumb([
+    ['name' => (string) t('site_name'), 'url' => wt_url('/')],
+    ['name' => (string) t('help.title'), 'url' => wt_url('/help/')],
+]));
 $u  = current_user();
 $db = db();
 
@@ -24,6 +31,24 @@ $db = db();
  * On prend les 5 premières clés faq.q_* (l'ordre d'apparition dans
  * le fichier i18n est l'ordre de pertinence éditoriale). */
 $lang = $GLOBALS['WT_LANG'] ?? [];
+/* Guides et tutoriels du blog, groupés par thème.
+ *
+ * Le centre d'aide se limitait à trois cartes de redirection (FAQ, contact,
+ * suivi) : une page de navigation, pas de contenu. Or c'est la page que les
+ * visiteurs — et les évaluateurs — consultent pour juger si le site aide
+ * réellement ses utilisateurs. On y expose donc les guides existants, ce
+ * qui donne à la fois du contenu et du maillage interne vers le blog. */
+$helpGuides = [];
+if (function_exists('wt_blog_categories') && function_exists('wt_blog_posts')) {
+    foreach (wt_blog_categories() as $cat) {
+        if ((int) ($cat['post_count'] ?? 0) < 1) { continue; }
+        $posts = wt_blog_posts(4, 0, (int) $cat['id']);
+        if ($posts) {
+            $helpGuides[] = ['cat' => $cat, 'posts' => $posts];
+        }
+    }
+}
+
 $popular = [];
 foreach ($lang as $k => $v) {
     if (preg_match('/^faq\.q_(.+)$/', $k, $m)) {
@@ -165,6 +190,46 @@ include __DIR__ . '/../header.php';
             </li>
           <?php endforeach; ?>
         </ul>
+      </section>
+    <?php endif; ?>
+
+    <?php if ($helpGuides): ?>
+      <section class="wt-help-guides" data-reveal>
+        <header class="wt-help-guides__head">
+          <h2 class="wt-help-guides__title"><?= e(t('help.guides_title')) ?></h2>
+          <p class="wt-help-guides__lead"><?= e(t('help.guides_lead')) ?></p>
+        </header>
+
+        <?php foreach ($helpGuides as $g): ?>
+          <div class="wt-help-guides__group">
+            <h3 class="wt-help-guides__cat">
+              <a href="<?= e(wt_url('/blog/categorie/' . $g['cat']['slug'])) ?>">
+                <?= e($g['cat']['name']) ?>
+              </a>
+              <span><?= (int) $g['cat']['post_count'] ?></span>
+            </h3>
+            <?php if (!empty($g['cat']['description'])): ?>
+              <p class="wt-help-guides__cat-desc"><?= e($g['cat']['description']) ?></p>
+            <?php endif; ?>
+            <ul class="wt-help-guides__list">
+              <?php foreach ($g['posts'] as $post): ?>
+                <li>
+                  <a href="<?= e(wt_url('/blog/' . $post['slug'])) ?>">
+                    <span class="wt-help-guides__emoji" aria-hidden="true"><?= e($post['cover_emoji'] ?: '📄') ?></span>
+                    <span class="wt-help-guides__post-title"><?= e($post['title']) ?></span>
+                    <span class="wt-help-guides__min">⏱️ <?= (int) $post['reading_minutes'] ?> <?= e(t('blog.min_read')) ?></span>
+                  </a>
+                </li>
+              <?php endforeach; ?>
+            </ul>
+          </div>
+        <?php endforeach; ?>
+
+        <p class="wt-help-guides__foot">
+          <a class="wt-btn wt-btn--primary" href="<?= e(wt_url('/blog')) ?>">
+            <?= e(t('help.guides_all')) ?> →
+          </a>
+        </p>
       </section>
     <?php endif; ?>
 

@@ -18,6 +18,21 @@ if (empty($_SESSION['pending_2fa_uid'])) {
 }
 
 $pageTitle = t('auth.2fa.title');
+
+/* Méthodes disponibles pour ce compte et méthode courante.
+   Calculées à la connexion (api/auth_login.php) et conservées en session :
+   on ne réinterroge pas la base à chaque affichage, et surtout on ne laisse
+   pas le client choisir une méthode qui ne lui est pas ouverte. */
+$twofaMethods = (array) ($_SESSION['pending_2fa_methods'] ?? ['totp']);
+$twofaCurrent = (string) ($_SESSION['pending_2fa_method'] ?? ($twofaMethods[0] ?? 'totp'));
+$backupOn     = (string) cfg('2fa.backup_enabled', '1') === '1';
+/* Page de formulaire d'authentification : aucune valeur en recherche.
+   Sans noindex, ce sont des pages de ~55 mots que Google peut indexer et
+   comptabiliser comme contenu pauvre du site — forgot-password.php est
+   même explicitement autorisée au crawl dans robots.txt. Connexion et
+   inscription étaient déjà traitées : on harmonise. Les liens restent
+   suivis (follow). */
+$pageNoindex = true;
 include __DIR__ . '/../header.php';
 ?>
 
@@ -55,9 +70,13 @@ include __DIR__ . '/../header.php';
             data-endpoint="<?= e(wt_url('/api/auth_verify_2fa.php')) ?>"
             novalidate>
         <input type="hidden" name="_csrf" value="<?= e(csrf_token()) ?>">
-        <input type="hidden" name="code"  data-otp-hidden value="">
+        <input type="hidden" name="code"   data-otp-hidden value="">
+        <input type="hidden" name="method" data-2fa-method value="<?= e($twofaCurrent) ?>">
 
-        <div class="wt-otp wt-auth-v2__otp" data-otp-root>
+        <?php /* Saisie TOTP : 6 cases numériques, format imposé par le
+                 standard des applications d'authentification. */ ?>
+        <div class="wt-otp wt-auth-v2__otp" data-otp-root
+             <?= $twofaCurrent === 'totp' ? '' : 'hidden' ?>>
           <?php for ($i = 0; $i < 6; $i++): ?>
             <input class="wt-otp__cell"
                    type="text"
@@ -66,15 +85,55 @@ include __DIR__ . '/../header.php';
                    maxlength="1"
                    autocomplete="one-time-code"
                    aria-label="<?= e(sprintf((string) t('auth.2fa.digit_aria'), $i + 1)) ?>"
-                   <?= $i === 0 ? 'autofocus' : '' ?>>
+                   <?= $i === 0 && $twofaCurrent === 'totp' ? 'autofocus' : '' ?>>
           <?php endfor; ?>
         </div>
+
+        <?php /* Saisie libre : e-mail (7 alphanumériques), SMS (8 chiffres)
+                 et codes de secours (10 caractères) n'ont pas le même
+                 format — un champ unique évite d'imposer une grille qui ne
+                 correspondrait à aucun d'eux. */ ?>
+        <label class="wt-field" data-2fa-textfield <?= $twofaCurrent === 'totp' ? 'hidden' : '' ?>>
+          <span class="wt-field__label" data-2fa-textlabel><?= e(t('auth.2fa.enter_code')) ?></span>
+          <input class="wt-input wt-input--code" type="text"
+                 data-2fa-textinput
+                 inputmode="text" autocomplete="one-time-code"
+                 spellcheck="false" autocapitalize="characters">
+        </label>
+
+        <p class="wt-auth-v2__sent is-hidden" data-2fa-sent></p>
+
+        <?php if (in_array($twofaCurrent, ['email', 'sms'], true)): ?>
+          <button type="button" class="wt-btn wt-btn--ghost wt-btn--block wt-mt-2"
+                  data-2fa-send="<?= e($twofaCurrent) ?>">
+            📨 <?= e(t('auth.2fa.send_code')) ?>
+          </button>
+        <?php endif; ?>
 
         <button type="submit" class="wt-btn wt-btn--primary wt-btn--lg wt-btn--block" data-submit-btn>
           <span class="wt-btn__label">→ <?= e(t('auth.2fa.submit')) ?></span>
           <span class="wt-btn__spinner is-hidden" aria-hidden="true"></span>
         </button>
       </form>
+
+      <?php
+        // Autres méthodes proposables : celles du compte + les codes de secours
+        $others = array_values(array_diff($twofaMethods, [$twofaCurrent]));
+        if ($backupOn && $twofaCurrent !== 'backup') { $others[] = 'backup'; }
+      ?>
+      <?php if ($others): ?>
+        <div class="wt-2fa-switch">
+          <span class="wt-2fa-switch__label"><?= e(t('auth.2fa.use_another')) ?></span>
+          <?php foreach ($others as $m): ?>
+            <button type="button" class="wt-2fa-switch__btn" data-2fa-switch="<?= e($m) ?>">
+              <?= e(t('auth.2fa.method_' . $m)) ?>
+              <?php if ($m === 'backup'): ?>
+                <small><?= e(t('auth.2fa.backup_hint_login')) ?></small>
+              <?php endif; ?>
+            </button>
+          <?php endforeach; ?>
+        </div>
+      <?php endif; ?>
 
       <p class="wt-auth-v2__alt">
         <a href="<?= e(wt_url('/auth/login.php')) ?>">← <?= e(t('common.back')) ?></a>
@@ -112,5 +171,17 @@ include __DIR__ . '/../header.php';
 
   </div>
 </main>
+
+<?php /* Libellés passés au script : ils doivent suivre la langue active,
+         pas être figés dans le JavaScript. */ ?>
+<script>
+  window.WT_2FA_LABELS = <?= json_encode([
+      'totp'   => t('auth.2fa.label_totp'),
+      'email'  => t('auth.2fa.label_email'),
+      'sms'    => t('auth.2fa.label_sms'),
+      'backup' => t('auth.2fa.label_backup'),
+  ], JSON_UNESCAPED_UNICODE | JSON_HEX_TAG) ?>;
+</script>
+<script src="<?= e(wt_url('/media/wintaskly/js/wt-2fa-login.js')) ?>?v=<?= e(WT_VERSION) ?>" defer></script>
 
 <?php include __DIR__ . '/../footer.php'; ?>

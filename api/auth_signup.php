@@ -22,6 +22,13 @@ if (!empty($_POST['website']) || !empty($_POST['phone_number'])) {
     wt_json(['ok' => false, 'error' => t('common.error')]);
 }
 
+// 1bis) Limite d'inscriptions par IP : barrière simple contre la création
+//       massive de comptes, principal vecteur de fraude sur ce type de
+//       plateforme. Le seuil laisse passer un usage familial normal.
+if (function_exists('wt_signup_rate_exceeded') && wt_signup_rate_exceeded(wt_ip_bin())) {
+    wt_json(['ok' => false, 'error' => t('auth.signup_rate_limited')]);
+}
+
 $username = trim((string)($_POST['username'] ?? ''));
 $email    = trim((string)($_POST['email']    ?? ''));
 $pass     = (string)      ($_POST['password'] ?? '');

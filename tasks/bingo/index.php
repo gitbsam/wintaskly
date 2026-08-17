@@ -193,7 +193,20 @@ include __DIR__ . '/../../header.php';
               <?php for ($i = 0; $i < 25; $i++):
                 $num = $cardNums[$i] ?? 0;
                 $isMarked = isset($marks[$num]);
-                $isDrawn = isset($drawnSet[$num]);
+                /* Numéros cochables : même règle que le tableau au-dessus.
+                 *
+                 * Sans carton payant supplémentaire, seul le tirage DU JOUR
+                 * est visible — l'historique des jours précédents reste
+                 * verrouillé. Le carton utilisait ici $drawnSet (tous les
+                 * numéros depuis le début de la partie), ce qui révélait
+                 * l'historique complet en bleu et permettait de cocher des
+                 * numéros anciens : cela contournait entièrement l'intérêt
+                 * du carton payant.
+                 *
+                 * Les cases déjà cochées ($isMarked) restent vertes quoi
+                 * qu'il arrive : elles ont été validées par le joueur. */
+                $visibleSet = $showFullBoard ? $drawnSet : $todaySet;
+                $isDrawn = isset($visibleSet[$num]);
                 // Carton non activé : cases argentées vides
                 if ($isLocked):
               ?>

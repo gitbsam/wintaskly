@@ -463,6 +463,28 @@ final class WtMailer
                 $accent  = '#f59e0b'; // or premium
                 break;
 
+            case 'twofa_code':
+                /* Code de connexion à usage unique. Le code est affiché en
+                   gros dans le corps du message : c'est l'information que
+                   l'utilisateur cherche, il ne doit pas avoir à la chercher. */
+                $subject = function_exists('t') ? t('mail.twofa.subject') : 'Votre code de connexion';
+                $title   = function_exists('t') ? t('mail.twofa.title')   : 'Code de connexion';
+                $code    = (string) ($vars['code'] ?? '');
+                $mins    = (int) ($vars['minutes'] ?? 10);
+                $body    = '<p style="margin:0 0 12px">'
+                         . (function_exists('t') ? e(t('mail.twofa.intro')) : 'Voici votre code de connexion :')
+                         . '</p><p style="font-size:30px;font-weight:800;letter-spacing:6px;'
+                         . 'text-align:center;margin:18px 0;font-family:monospace">'
+                         . htmlspecialchars($code, ENT_QUOTES, 'UTF-8') . '</p>'
+                         . '<p style="margin:12px 0 0;font-size:14px">'
+                         . sprintf(function_exists('t') ? e(t('mail.twofa.ttl')) : 'Ce code expire dans %d minutes.', $mins)
+                         . '</p>';
+                $cta     = '';
+                $notice  = function_exists('t') ? t('mail.twofa.notice')
+                           : "Si vous n'êtes pas à l'origine de cette connexion, changez votre mot de passe immédiatement.";
+                $accent  = '#2563eb';
+                break;
+
             case 'security_alert':
             default:
                 $subject = function_exists('t') ? t('mail.alert.subject') : 'Alerte de sécurité Wintaskly';
