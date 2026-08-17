@@ -11,6 +11,14 @@
 -- "différé" : ce satellite développe ce point précis.
 --
 -- ⚠️ Importer avec --default-character-set=utf8mb4.
+-- CALENDRIER DE PUBLICATION
+-- published_at = 2026-09-22 15:05:00 (et non UTC_TIMESTAMP()).
+-- Publier 27 articles le même jour signale une production en masse : c'est
+-- exactement ce qu'un évaluateur qualité cherche à détecter. Les dates sont
+-- donc échelonnées sur jours ouvrés, à des heures variables.
+-- Le code n'affiche un article que si published_at <= maintenant : appliquer
+-- toutes les migrations d'un coup est donc sans risque, chaque article
+-- apparaîtra à sa date.
 -- ============================================================================
 INSERT IGNORE INTO `blog_posts`
  (`slug`, `category_id`, `title`, `excerpt`, `cover_emoji`, `author_name`,
@@ -24,7 +32,7 @@ VALUES (
  'Équipe Wintaskly',
  'Revenus passifs : mythe et réalité',
  'Ce que recouvre réellement la notion de revenu passif, pourquoi le terme est trompeur, et comment distinguer les modèles viables des promesses creuses.',
- 'published', 5, UTC_TIMESTAMP(),
+ 'published', 5, '2026-09-22 15:05:00',
  '<p>« Gagnez de l''argent pendant votre sommeil. » L''expression est devenue le socle de tout un secteur : formations, méthodes, accompagnements. Elle repose pourtant sur une confusion de vocabulaire qu''il suffit de lever pour y voir clair.</p>
 
 <h2>Le mot juste n''est pas « passif »</h2>

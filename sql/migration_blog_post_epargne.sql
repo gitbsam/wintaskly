@@ -41,7 +41,7 @@ VALUES (
 <p>Si l''automatisation n''est pas possible, la règle de repli est de le faire <strong>immédiatement</strong> à la réception de l''argent, jamais « plus tard dans la semaine ».</p>
 
 <h2>Séparer physiquement les comptes</h2>
-<p>Un montant mis de côté sur votre compte courant n''est pas vraiment épargné. Il est simplement mélangé au reste, et sera dépensé sans même que vous t''en rendes compte.</p>
+<p>Un montant mis de côté sur votre compte courant n''est pas vraiment épargné. Il est simplement mélangé au reste, et sera dépensé sans même que vous vous en rendiez compte.</p>
 <p>Un compte séparé crée une <strong>friction utile</strong> : pour dépenser cet argent, il faut faire un geste délibéré. Cette petite barrière suffit à protéger l''épargne dans la grande majorité des cas.</p>
 <p>Cette séparation a un second avantage, souvent sous-estimé : voir le solde de ce compte grandir est motivant. C''est un retour visuel concret sur un effort qui, autrement, resterait invisible.</p>
 

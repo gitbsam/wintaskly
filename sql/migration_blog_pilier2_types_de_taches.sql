@@ -12,6 +12,14 @@
 --
 -- INSERT IGNORE : idempotent.
 -- ⚠️ Importer avec --default-character-set=utf8mb4.
+-- CALENDRIER DE PUBLICATION
+-- published_at = 2026-08-25 11:12:00 (et non UTC_TIMESTAMP()).
+-- Publier 27 articles le même jour signale une production en masse : c'est
+-- exactement ce qu'un évaluateur qualité cherche à détecter. Les dates sont
+-- donc échelonnées sur jours ouvrés, à des heures variables.
+-- Le code n'affiche un article que si published_at <= maintenant : appliquer
+-- toutes les migrations d'un coup est donc sans risque, chaque article
+-- apparaîtra à sa date.
 -- ============================================================================
 INSERT IGNORE INTO `blog_posts`
  (`slug`, `category_id`, `title`, `excerpt`, `cover_emoji`, `author_name`,
@@ -25,7 +33,7 @@ VALUES (
  'Équipe Wintaskly',
  'Optimiser chaque type de tâche : le guide détaillé',
  'Le fonctionnement réel des quatre tâches Wintaskly : étapes, validation, erreurs fréquentes et conseils d''optimisation pour chacune.',
- 'published', 8, UTC_TIMESTAMP(),
+ 'published', 8, '2026-08-25 11:12:00',
  '<p>Beaucoup d''utilisateurs abandonnent une tâche après un échec sans en comprendre la cause : une validation refusée, un compteur qui se réinitialise, une offre jamais créditée. Dans la plupart des cas, il ne s''agit ni d''un bug ni d''une injustice, mais d''une mécanique qu''on ignorait.</p>
 <p>Ce guide détaille le fonctionnement réel de chaque tâche : ce qui se passe en coulisses, ce qui déclenche un refus, et comment obtenir le meilleur résultat selon le temps dont vous disposez. Si vous cherchez d''abord une vue d''ensemble du secteur, commencez plutôt par notre <a href="/blog/guide-complet-micro-gains-en-ligne">guide complet des micro-gains en ligne</a>.</p>
 

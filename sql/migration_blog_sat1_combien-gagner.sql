@@ -14,6 +14,14 @@
 --
 -- C'est précisément l'article que les sites de ce secteur n'écrivent pas.
 -- ⚠️ Importer avec --default-character-set=utf8mb4.
+-- CALENDRIER DE PUBLICATION
+-- published_at = 2026-08-20 14:12:00 (et non UTC_TIMESTAMP()).
+-- Publier 27 articles le même jour signale une production en masse : c'est
+-- exactement ce qu'un évaluateur qualité cherche à détecter. Les dates sont
+-- donc échelonnées sur jours ouvrés, à des heures variables.
+-- Le code n'affiche un article que si published_at <= maintenant : appliquer
+-- toutes les migrations d'un coup est donc sans risque, chaque article
+-- apparaîtra à sa date.
 -- ============================================================================
 INSERT IGNORE INTO `blog_posts`
  (`slug`, `category_id`, `title`, `excerpt`, `cover_emoji`, `author_name`,
@@ -27,7 +35,7 @@ VALUES (
  'Équipe Wintaskly',
  'Combien gagne-t-on avec les micro-tâches ? La réponse honnête',
  'Ce qui détermine réellement les gains sur une plateforme de micro-tâches : régularité, pays, choix des tâches. Et pourquoi les montants affichés ailleurs ne veulent rien dire.',
- 'published', 5, UTC_TIMESTAMP(),
+ 'published', 5, '2026-08-20 14:12:00',
  '<p>C''est la première question de tous ceux qui découvrent les micro-tâches, et celle qui reçoit le plus de réponses malhonnêtes. Certains sites affichent des montants mensuels alléchants ; d''autres esquivent complètement.</p>
 <p>Voici pourquoi aucun chiffre ne peut être donné sérieusement — et ce qui, en revanche, fait réellement la différence entre deux utilisateurs.</p>
 

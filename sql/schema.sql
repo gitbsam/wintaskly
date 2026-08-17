@@ -1193,22 +1193,22 @@ VALUES (
  'guide-debutant-gagner-coins-wintaskly',
  (SELECT id FROM blog_categories WHERE slug='guides'),
  'Guide du débutant : comment gagner vos premiers coins sur Wintaskly',
- 'Vous débutes sur Wintaskly ? Ce guide complet t''explique pas à pas comment créer votre compte, réaliser vos premières tâches et accumuler vos premiers coins efficacement.',
+ 'Vous débutez sur Wintaskly ? Ce guide complet vous explique pas à pas comment créer votre compte, réaliser vos premières tâches et accumuler vos premiers coins efficacement.',
  '🚀',
  'Équipe Wintaskly',
  'Guide débutant Wintaskly : gagner ses premiers coins (2026)',
  'Apprenez à gagner vos premiers coins sur Wintaskly : inscription, faucet, raccourcisseurs de liens, PTC et offres. Guide pas à pas pour bien démarrer.',
  'published', 6, UTC_TIMESTAMP(),
- '<p>Bienvenue sur Wintaskly ! Si vous venez de découvrir notre plateforme de micro-gains, vous vous demandes sûrement par où commencer. Ce guide complet va t''accompagner pas à pas, depuis la création de votre compte jusqu''à vos premiers retraits.</p>
+ '<p>Bienvenue sur Wintaskly ! Si vous venez de découvrir notre plateforme de micro-gains, vous vous demandez sûrement par où commencer. Ce guide complet va vous accompagner pas à pas, depuis la création de votre compte jusqu''à vos premiers retraits.</p>
 
 <h2>Qu''est-ce que Wintaskly exactement ?</h2>
-<p>Wintaskly est une plateforme de type GPT (Get-Paid-To, ou "payé pour faire"). Le principe est simple : vous réalises de petites tâches en ligne et vous gagnez des <strong>coins</strong>, une monnaie virtuelle que vous pouvez ensuite convertir et retirer. Ces tâches ne demandent aucune compétence particulière : il suffit d''un peu de temps libre et d''une connexion internet.</p>
+<p>Wintaskly est une plateforme de type GPT (Get-Paid-To, ou "payé pour faire"). Le principe est simple : vous réalisez de petites tâches en ligne et vous gagnez des <strong>coins</strong>, une monnaie virtuelle que vous pouvez ensuite convertir et retirer. Ces tâches ne demandent aucune compétence particulière : il suffit d''un peu de temps libre et d''une connexion internet.</p>
 <p>Contrairement à beaucoup d''idées reçues, ce type de plateforme ne vous rendra pas riche du jour au lendemain. En revanche, utilisée régulièrement et intelligemment, elle peut constituer un complément intéressant pour arrondir vos fins de mois.</p>
 
 <h2>Étape 1 : créer votre compte</h2>
-<p>La première étape est évidemment de t''inscrire. Le processus prend moins de deux minutes :</p>
+<p>La première étape est évidemment de vous inscrire. Le processus prend moins de deux minutes :</p>
 <ul>
-<li>Clique sur le bouton d''inscription en haut de la page.</li>
+<li>Cliquez sur le bouton d''inscription en haut de la page.</li>
 <li>Renseigne votre adresse e-mail et choisissez un mot de passe solide.</li>
 <li>Valide votre adresse e-mail en cliquant sur le lien que vous recevrez.</li>
 </ul>
@@ -1252,7 +1252,7 @@ VALUES (
 </ul>
 
 <h2>En résumé</h2>
-<p>Gagner vos premiers coins sur Wintaskly est à la portée de tous. Créez votre compte, explore les différentes tâches, adopte une routine régulière, et soyez patient. Les micro-gains récompensent la constance bien plus que l''intensité. À vous de jouer !</p>'
+<p>Gagner vos premiers coins sur Wintaskly est à la portée de tous. Créez votre compte, explorez les différentes tâches, adoptez une routine régulière, et soyez patient. Les micro-gains récompensent la constance bien plus que l''intensité. À vous de jouer !</p>'
 );
 
 -- Article 2 — Crypto pour débutants (catégorie: crypto)
@@ -1269,7 +1269,7 @@ VALUES (
  'Cryptomonnaie pour débutants : guide des bases (2026)',
  'Comprendre la cryptomonnaie facilement : blockchain, wallet, Bitcoin, frais de réseau. Guide pédagogique pour débutants qui veulent se lancer sereinement.',
  'published', 7, UTC_TIMESTAMP(),
- '<p>La cryptomonnaie est partout : dans les médias, les conversations, et de plus en plus dans les paiements en ligne. Pourtant, pour beaucoup, ce domaine reste flou et intimidant. Si vous recevez des paiements en crypto ou que vous envisages de t''y intéresser, ce guide va t''éclairer sur les notions fondamentales, sans jargon inutile.</p>
+ '<p>La cryptomonnaie est partout : dans les médias, les conversations, et de plus en plus dans les paiements en ligne. Pourtant, pour beaucoup, ce domaine reste flou et intimidant. Si vous recevez des paiements en crypto ou que vous envisagez de vous y intéresser, ce guide va vous éclairer sur les notions fondamentales, sans jargon inutile.</p>
 
 <h2>Qu''est-ce qu''une cryptomonnaie ?</h2>
 <p>Une cryptomonnaie est une monnaie numérique qui fonctionne sans banque centrale ni autorité unique. Au lieu d''être gérée par une institution, elle repose sur un réseau d''ordinateurs répartis dans le monde entier. Cette absence d''intermédiaire central est l''une des caractéristiques les plus importantes de la crypto.</p>
@@ -1286,7 +1286,7 @@ VALUES (
 <li><strong>La clé publique</strong> : c''est votre adresse, que vous pouvez partager pour recevoir des paiements. C''est l''équivalent de votre numéro de compte bancaire.</li>
 <li><strong>La clé privée</strong> : c''est votre mot de passe secret, qui vous donne le contrôle de vos fonds. Ne la partage JAMAIS avec qui que ce soit. Quiconque possède votre clé privée possède vos cryptos.</li>
 </ul>
-<p>Cette distinction est cruciale. La règle d''or de la crypto est : "Not your keys, not your coins" (si vous ne contrôles pas vos clés, vous ne contrôles pas vos cryptos).</p>
+<p>Cette distinction est cruciale. La règle d''or de la crypto est : "Not your keys, not your coins" (si vous ne contrôlez pas vos clés, vous ne contrôlez pas vos cryptos).</p>
 
 <h2>Les frais de réseau</h2>
 <p>Chaque transaction sur une blockchain implique des frais, appelés "frais de réseau" ou "frais de gas". Ces frais rémunèrent les ordinateurs qui valident et sécurisent les transactions. Ils varient selon l''affluence sur le réseau : plus il y a de transactions en attente, plus les frais augmentent.</p>
@@ -1304,7 +1304,7 @@ VALUES (
 <p>La crypto offre une grande liberté, mais cette liberté s''accompagne de responsabilités. Voici les principes à respecter absolument :</p>
 <ul>
 <li>Ne partage jamais votre clé privée ou votre phrase de récupération.</li>
-<li>Méfie-vous des offres trop belles pour être vraies : les arnaques sont nombreuses dans cet univers.</li>
+<li>Méfiez-vous des offres trop belles pour être vraies : les arnaques sont nombreuses dans cet univers.</li>
 <li>Vérifie toujours deux fois l''adresse de destination avant d''envoyer des fonds : une transaction crypto est irréversible.</li>
 <li>Active l''authentification à deux facteurs partout où c''est possible.</li>
 </ul>
@@ -1333,12 +1333,12 @@ VALUES (
 <p>C''est le conseil numéro un, et pour cause. Les plateformes GPT récompensent la fidélité. Une visite quotidienne de dix minutes rapporte généralement bien plus qu''une session de deux heures une fois par semaine. Pourquoi ? Parce que de nombreux mécanismes (bonus quotidien, faucet, séries de connexion) se basent sur votre présence régulière.</p>
 
 <h2>2. Ne rate jamais votre bonus quotidien</h2>
-<p>Le bonus quotidien est de l''argent gratuit, littéralement. La plupart des plateformes augmentent même la récompense à mesure que vous enchaînes les jours consécutifs : c''est ce qu''on appelle une "série" ou "streak". Rater un jour peut réinitialiser votre série et vous faire perdre des bonus importants. Créez-vous un rappel si nécessaire.</p>
+<p>Le bonus quotidien est de l''argent gratuit, littéralement. La plupart des plateformes augmentent même la récompense à mesure que vous enchaînez les jours consécutifs : c''est ce qu''on appelle une "série" ou "streak". Rater un jour peut réinitialiser votre série et vous faire perdre des bonus importants. Créez-vous un rappel si nécessaire.</p>
 
 <h2>3. Choisissez les tâches les plus rentables au temps investi</h2>
-<p>Toutes les tâches ne se valent pas. Pour optimiser, calcule mentalement le rapport entre la récompense et le temps nécessaire. Les raccourcisseurs de liens, par exemple, offrent souvent un excellent rendement : quelques secondes pour une récompense correcte. Les offres partenaires rapportent gros mais demandent plus d''engagement. Adapte votre choix au temps dont vous ditesposes.</p>
+<p>Toutes les tâches ne se valent pas. Pour optimiser, calcule mentalement le rapport entre la récompense et le temps nécessaire. Les raccourcisseurs de liens, par exemple, offrent souvent un excellent rendement : quelques secondes pour une récompense correcte. Les offres partenaires rapportent gros mais demandent plus d''engagement. Adaptez votre choix au temps dont vous disposez.</p>
 
-<h2>4. Exploite le parrainage</h2>
+<h2>4. Exploitez le parrainage</h2>
 <p>Le parrainage est sans doute le levier le plus puissant pour augmenter vos gains sur le long terme. En invitant des amis, vous touchez généralement une commission sur leurs gains, sans que cela ne réduise les leurs. Partagez votre lien de parrainage sur vos réseaux, dans des communautés intéressées, ou auprès de proches. Quelques filleuls actifs peuvent transformer vos revenus.</p>
 
 <h2>5. Débloque les succès et récompenses</h2>
@@ -1348,7 +1348,7 @@ VALUES (
 <p>Les plateformes organisent régulièrement des événements spéciaux, des concours ou des périodes de gains boostés. Ces moments sont l''occasion de gagner davantage. Activez les notifications et consultez régulièrement les annonces pour ne rien manquer.</p>
 
 <h2>7. Reste patient et gardez une vision réaliste</h2>
-<p>La dernière astuce est peut-être la plus importante : gardez des attentes réalistes. Les micro-tâches ne remplacent pas un emploi. Elles constituent un complément. En adoptant cet état d''esprit, vous éviteras la frustration et vous resteras motivé sur la durée, ce qui est précisément ce qui paie le plus.</p>
+<p>La dernière astuce est peut-être la plus importante : gardez des attentes réalistes. Les micro-tâches ne remplacent pas un emploi. Elles constituent un complément. En adoptant cet état d''esprit, vous éviterez la frustration et vous resterez motivé sur la durée, ce qui est précisément ce qui paie le plus.</p>
 
 <h2>En conclusion</h2>
 <p>Maximiser ses gains sur une plateforme de micro-tâches ne relève pas de la chance, mais de la méthode. Régularité, bonus quotidien, choix intelligent des tâches, parrainage et patience : applique ces principes et vous verrez une réelle différence dans votre progression. Le succès appartient à ceux qui jouent sur la durée.</p>'
@@ -1384,7 +1384,7 @@ VALUES (
 <p>Active la 2FA partout où elle est disponible. C''est l''une des mesures les plus efficaces pour empêcher les accès non autorisés, et elle ne prend que quelques secondes à utiliser au quotidien.</p>
 
 <h2>Reconnaître les tentatives de phishing</h2>
-<p>Le phishing (hameçonnage) est une technique d''arnaque très répandue. Le principe : vous faire croire que vous communiques avec un service légitime pour vous soutirer vos identifiants ou vos informations. Voici les signes qui doivent t''alerter :</p>
+<p>Le phishing (hameçonnage) est une technique d''arnaque très répandue. Le principe : vous faire croire que vous communiquez avec un service légitime pour vous soutirer vos identifiants ou vos informations. Voici les signes qui doivent vous alerter :</p>
 <ul>
 <li>Un e-mail ou un message qui crée un sentiment d''urgence ("votre compte va être suspendu !").</li>
 <li>Des fautes d''orthographe ou une formulation maladroite.</li>
@@ -1401,13 +1401,13 @@ VALUES (
 <p>Vos données personnelles ont de la valeur. Quelques précautions simples :</p>
 <ul>
 <li>Ne partage que les informations strictement nécessaires.</li>
-<li>Méfie-vous des formulaires qui demandent trop de détails personnels.</li>
+<li>Méfiez-vous des formulaires qui demandent trop de détails personnels.</li>
 <li>Utilise une adresse e-mail dédiée pour vos inscriptions à des plateformes.</li>
 <li>Lis les politiques de confidentialité pour comprendre comment vos données sont utilisées.</li>
 </ul>
 
 <h2>Que faire en cas de problème ?</h2>
-<p>Si vous suspectes que votre compte a été compromis, agissez vite :</p>
+<p>Si vous suspectez que votre compte a été compromis, agissez vite :</p>
 <ul>
 <li>Change immédiatement votre mot de passe.</li>
 <li>Active la 2FA si ce n''était pas déjà fait.</li>
@@ -1416,7 +1416,7 @@ VALUES (
 </ul>
 
 <h2>Conclusion</h2>
-<p>La sécurité en ligne n''est pas une affaire de chance, mais d''habitudes. Un mot de passe solide et unique, l''authentification à deux facteurs, une vigilance face au phishing et un bon sens face aux promesses irréalistes : avec ces réflexes, vous réduis drastiquement les risques. Prenez quelques minutes aujourd''hui pour renforcer la sécurité de vos comptes, vous vous remercieras plus tard.</p>'
+<p>La sécurité en ligne n''est pas une affaire de chance, mais d''habitudes. Un mot de passe solide et unique, l''authentification à deux facteurs, une vigilance face au phishing et un bon sens face aux promesses irréalistes : avec ces réflexes, vous réduisez drastiquement les risques. Prenez quelques minutes aujourd''hui pour renforcer la sécurité de vos comptes, vous vous remercierez plus tard.</p>'
 );
 
 -- Article 5 — Le parrainage (catégorie: astuces)
@@ -1427,7 +1427,7 @@ VALUES (
  'parrainage-revenus-passifs-comment-ca-marche',
  (SELECT id FROM blog_categories WHERE slug='astuces'),
  'Le parrainage : la clé pour générer des revenus passifs en ligne',
- 'Le parrainage est l''un des moyens les plus efficaces d''augmenter ses gains sur le long terme. On t''explique comment ça fonctionne et comment bâtir un réseau actif.',
+ 'Le parrainage est l''un des moyens les plus efficaces d''augmenter ses gains sur le long terme. On vous explique comment ça fonctionne et comment bâtir un réseau actif.',
  '👥',
  'Équipe Wintaskly',
  'Le parrainage en ligne : générer des revenus passifs (guide 2026)',
@@ -1440,7 +1440,7 @@ VALUES (
 <p>Le point essentiel à comprendre : cette commission ne réduit pas les gains de votre filleul. Elle est versée en plus, par la plateforme, comme une récompense pour avoir fait grandir la communauté. C''est un système gagnant-gagnant.</p>
 
 <h2>Pourquoi parle-t-on de revenus "passifs" ?</h2>
-<p>Une fois qu''un filleul est actif, vous continues de percevoir des commissions sur son activité sans avoir à intervenir. Votre travail initial (l''inviter et l''encourager à démarrer) continue de porter ses fruits dans le temps. C''est ce qui distingue le revenu passif du revenu actif : vous n''échanges plus votre temps contre de l''argent à chaque fois.</p>
+<p>Une fois qu''un filleul est actif, vous continuez de percevoir des commissions sur son activité sans avoir à intervenir. Votre travail initial (l''inviter et l''encourager à démarrer) continue de porter ses fruits dans le temps. C''est ce qui distingue le revenu passif du revenu actif : vous n''échanges plus votre temps contre de l''argent à chaque fois.</p>
 <p>Attention toutefois : "passif" ne veut pas dire "sans aucun effort". Construire un réseau de filleuls actifs demande un investissement de départ. Mais cet effort est rentabilisé sur la durée.</p>
 
 <h2>Comment recruter des filleuls ?</h2>
@@ -1466,7 +1466,7 @@ VALUES (
 <p>Évite les pratiques douteuses comme le spam ou les promesses mensongères : elles peuvent vous nuire à long terme et ternir votre réputation. La transparence et l''authenticité sont vos meilleurs atouts.</p>
 
 <h2>Conclusion</h2>
-<p>Le parrainage est une opportunité réelle de générer des revenus complémentaires durables, à condition de l''aborder avec sérieux. Recrute intelligemment, privilégie l''engagement à la quantité, accompagne vos filleuls et inscrivez votre action dans la durée. Bien mené, un réseau de parrainage peut devenir l''une de vos sources de gains les plus précieuses, travaillant pour vous même quand vous vous reposes.</p>'
+<p>Le parrainage est une opportunité réelle de générer des revenus complémentaires durables, à condition de l''aborder avec sérieux. Recrute intelligemment, privilégie l''engagement à la quantité, accompagne vos filleuls et inscrivez votre action dans la durée. Bien mené, un réseau de parrainage peut devenir l''une de vos sources de gains les plus précieuses, travaillant pour vous même quand vous vous reposez.</p>'
 );
 
 -- ============================================================================

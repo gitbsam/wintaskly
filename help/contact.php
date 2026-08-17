@@ -227,7 +227,7 @@ include __DIR__ . '/../header.php';
 
         <!-- Info anti-abus / SLA -->
         <div class="wt-contact-v2__panel wt-contact-v2__panel--info">
-          <h3>🕐 <?= e(t('contact.sla_title')) ?></h3>
+          <h3><?= e(t('contact.sla_title')) ?></h3>
           <p><?= e(t('contact.sla_text')) ?></p>
         </div>
       </aside>
@@ -243,7 +243,7 @@ include __DIR__ . '/../header.php';
 
       <div class="wt-contact-help__cols">
         <div class="wt-contact-help__col">
-          <h3>📝 <?= e(t('contact.help_what')) ?></h3>
+          <h3><?= e(t('contact.help_what')) ?></h3>
           <ul>
             <li><?= e(t('contact.help_what_1')) ?></li>
             <li><?= e(t('contact.help_what_2')) ?></li>
@@ -251,7 +251,7 @@ include __DIR__ . '/../header.php';
           </ul>
         </div>
         <div class="wt-contact-help__col">
-          <h3>⚡ <?= e(t('contact.help_faster')) ?></h3>
+          <h3><?= e(t('contact.help_faster')) ?></h3>
           <ul>
             <li><?= e(t('contact.help_faster_1')) ?></li>
             <li><?= e(t('contact.help_faster_2')) ?></li>

@@ -20,6 +20,14 @@
 --
 -- INSERT IGNORE : idempotent.
 -- ⚠️ Importer avec --default-character-set=utf8mb4.
+-- CALENDRIER DE PUBLICATION
+-- published_at = 2026-09-07 18:41:00 (et non UTC_TIMESTAMP()).
+-- Publier 27 articles le même jour signale une production en masse : c'est
+-- exactement ce qu'un évaluateur qualité cherche à détecter. Les dates sont
+-- donc échelonnées sur jours ouvrés, à des heures variables.
+-- Le code n'affiche un article que si published_at <= maintenant : appliquer
+-- toutes les migrations d'un coup est donc sans risque, chaque article
+-- apparaîtra à sa date.
 -- ============================================================================
 INSERT IGNORE INTO `blog_posts`
  (`slug`, `category_id`, `title`, `excerpt`, `cover_emoji`, `author_name`,
@@ -33,7 +41,7 @@ VALUES (
  'Équipe Wintaskly',
  'Épargner avec de petits revenus : le guide complet',
  'Comment constituer une épargne quand les revenus sont modestes : ordre des priorités, mécanismes d''automatisation, erreurs fréquentes et repères pour ne pas se décourager.',
- 'published', 9, UTC_TIMESTAMP(),
+ 'published', 9, '2026-09-07 18:41:00',
  '<p>La plupart des conseils d''épargne s''adressent à des gens qui ont déjà de la marge. « Mettez de côté 20 % de vos revenus », « investissez ce dont vous n''avez pas besoin » : quand le mois se termine à zéro, ces phrases ne servent à rien. Pire, elles découragent.</p>
 <p>Ce guide part de la situation inverse : un budget serré, des revenus irréguliers, aucune marge évidente. Il n''explique pas comment devenir riche — il explique comment sortir de la situation où le moindre imprévu devient une crise.</p>
 

@@ -288,6 +288,14 @@ window.WT_I18N = {
   'use strict';
 
   /* ---- 1) Service Worker registration ---- */
+  /* Libellés de la bannière d'installation : passés depuis PHP pour suivre
+     la langue active. Ils étaient figés en français, donc affichés tels
+     quels à un visiteur anglophone. */
+  var WT_PWA = <?= json_encode([
+      'title' => t('pwa.install_title'),
+      'text'  => t('pwa.install_text'),
+  ], JSON_UNESCAPED_UNICODE | JSON_HEX_TAG) ?>;
+
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', function () {
       // On passe la version Wintaskly en query string. Quand WT_VERSION
@@ -358,8 +366,8 @@ window.WT_I18N = {
     const banner = makeBanner(
       '<div class="wt-pwa-banner__icon">⚡</div>' +
       '<div class="wt-pwa-banner__text">' +
-        '<strong>Installer Wintaskly</strong>' +
-        '<small>Accédez au faucet en un tap depuis votre écran d\'accueil</small>' +
+        '<strong>' + WT_PWA.title + '</strong>' +
+        '<small>' + WT_PWA.text + '</small>' +
       '</div>' +
       '<button class="wt-pwa-banner__install" type="button">Installer</button>' +
       '<button class="wt-pwa-banner__close" type="button" aria-label="Fermer">✕</button>'

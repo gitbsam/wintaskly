@@ -30,11 +30,11 @@ VALUES (
 
 <h2>Activer son carton : l''étape que tout le monde oublie</h2>
 <p>Obtenir un carton ne suffit pas : il faut l''<strong>activer</strong>. Un carton non activé ne participe pas à la partie, même si les tirages ont lieu et que les numéros correspondent.</p>
-<p>C''est de loin l''erreur la plus fréquente. Des joueurs suivent les tirages pendant plusieurs jours, puis constatent que leur carton n''a rien enregistré : il n''avait simplement jamais été activé. Le réflexe à prendre est donc simple — dès que vous récupères votre carton du jour, activez-le immédiatement.</p>
+<p>C''est de loin l''erreur la plus fréquente. Des joueurs suivent les tirages pendant plusieurs jours, puis constatent que leur carton n''a rien enregistré : il n''avait simplement jamais été activé. Le réflexe à prendre est donc simple — dès que vous récupérez votre carton du jour, activez-le immédiatement.</p>
 
 <h2>Cocher les numéros : ce n''est pas automatique</h2>
 <p>Deuxième source de confusion : les numéros tirés ne se cochent pas tout seuls sur votre carton. C''est à vous de valider ceux qui correspondent, en revenant sur la page du jeu.</p>
-<p>Cela peut sembler contraignant, mais c''est ce qui rend le jeu actif plutôt que purement passif. Concrètement, cela signifie qu''un passage régulier sur la page du Bingo fait partie du jeu. Si vous laissez passer plusieurs jours sans revenir, vous risques de découvrir trop tard que des numéros correspondaient à votre carton.</p>
+<p>Cela peut sembler contraignant, mais c''est ce qui rend le jeu actif plutôt que purement passif. Concrètement, cela signifie qu''un passage régulier sur la page du Bingo fait partie du jeu. Si vous laissez passer plusieurs jours sans revenir, vous risquez de découvrir trop tard que des numéros correspondaient à votre carton.</p>
 
 <h2>Carton gratuit et cartons supplémentaires</h2>
 <p>Un carton est accessible gratuitement, ce qui permet à tout le monde de participer sans dépenser de coins. Il est également possible d''obtenir des cartons supplémentaires en les achetant avec ses coins.</p>

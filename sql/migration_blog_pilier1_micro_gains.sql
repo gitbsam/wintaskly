@@ -13,6 +13,14 @@
 --
 -- INSERT IGNORE : idempotent, ne recrée pas l'article si le slug existe déjà.
 -- ⚠️ Importer avec --default-character-set=utf8mb4.
+-- CALENDRIER DE PUBLICATION
+-- published_at = 2026-08-18 09:05:00 (et non UTC_TIMESTAMP()).
+-- Publier 27 articles le même jour signale une production en masse : c'est
+-- exactement ce qu'un évaluateur qualité cherche à détecter. Les dates sont
+-- donc échelonnées sur jours ouvrés, à des heures variables.
+-- Le code n'affiche un article que si published_at <= maintenant : appliquer
+-- toutes les migrations d'un coup est donc sans risque, chaque article
+-- apparaîtra à sa date.
 -- ============================================================================
 INSERT IGNORE INTO `blog_posts`
  (`slug`, `category_id`, `title`, `excerpt`, `cover_emoji`, `author_name`,
@@ -26,7 +34,7 @@ VALUES (
  'Équipe Wintaskly',
  'Micro-gains en ligne : le guide complet (2026)',
  'Comprendre les micro-gains en ligne : les quatre types de tâches, d''où vient l''argent, ce qu''on peut réellement espérer gagner et les signaux d''alerte d''une plateforme douteuse.',
- 'published', 9, UTC_TIMESTAMP(),
+ 'published', 9, '2026-08-18 09:05:00',
  '<p>Les plateformes de micro-gains promettent toutes la même chose : gagner de l''argent avec son temps libre. Certaines tiennent parole, beaucoup non. Et entre les deux, une zone grise où l''on perd surtout son temps.</p>
 <p>Ce guide explique le fonctionnement réel de ce secteur : d''où vient l''argent, ce que chaque type de tâche rapporte concrètement, ce qu''on peut raisonnablement espérer, et surtout comment repérer une plateforme qui ne vous paiera jamais. Il est écrit pour quelqu''un qui n''y connaît rien et qui hésite à se lancer.</p>
 

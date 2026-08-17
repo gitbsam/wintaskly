@@ -14,7 +14,7 @@ VALUES (
  'sondages-remuneres-guide-complet-gagner-argent',
  (SELECT id FROM blog_categories WHERE slug='astuces'),
  'Sondages rémunérés : le guide complet pour gagner de l''argent en donnant ton avis',
- 'Les sondages rémunérés sont une façon accessible de gagner un complément. Découvre comment ils fonctionnent, comment maximiser tes gains et éviter les pièges.',
+ 'Les sondages rémunérés sont une façon accessible de gagner un complément. Découvre comment ils fonctionnent, comment maximiser vos gains et éviter les pièges.',
  '📋',
  'Équipe Wintaskly',
  'Sondages rémunérés : guide complet pour gagner de l''argent (2026)',
@@ -33,7 +33,7 @@ VALUES (
 <h2>Comment maximiser ses gains</h2>
 <p>Quelques stratégies font une vraie différence :</p>
 <ul>
-<li><strong>Remplis ton profil avec soin.</strong> Les plateformes t''envoient des sondages correspondant à ton profil. Un profil complet et honnête augmente le nombre de sondages auxquels tu es éligible.</li>
+<li><strong>Remplis ton profil avec soin.</strong> Les plateformes vous envoient des sondages correspondant à ton profil. Un profil complet et honnête augmente le nombre de sondages auxquels tu es éligible.</li>
 <li><strong>Réponds rapidement.</strong> Beaucoup de sondages ont des quotas. Les premiers arrivés sont les premiers servis. Active les notifications pour ne pas rater les opportunités.</li>
 <li><strong>Sois régulier.</strong> Comme pour toute activité de micro-gains, la constance paie davantage que les sessions intensives mais rares.</li>
 <li><strong>Réponds honnêtement et avec attention.</strong> Les plateformes intègrent des questions pièges pour repérer les réponses au hasard. Bâcler peut te faire exclure.</li>
@@ -73,31 +73,31 @@ VALUES (
 
 <h2>Définir un objectif clair</h2>
 <p>La première étape pour bien gérer un complément de revenu est de savoir à quoi il sert. Un gain sans objectif file entre les doigts ; un gain avec une destination précise devient un projet. Pose-toi la question : pourquoi est-ce que je gagne cet argent en plus ?</p>
-<p>Les objectifs peuvent être variés : constituer une petite épargne de précaution, financer un achat précis, rembourser une dette, ou simplement t''offrir un plaisir sans toucher à ton budget principal. Quel que soit ton but, le nommer change tout.</p>
+<p>Les objectifs peuvent être variés : constituer une petite épargne de précaution, financer un achat précis, rembourser une dette, ou simplement vous offrir un plaisir sans toucher à ton budget principal. Quel que soit ton but, le nommer change tout.</p>
 
 <h2>La règle des enveloppes</h2>
-<p>Une méthode simple et efficace consiste à répartir tes gains complémentaires en "enveloppes" dès que tu les reçois. Par exemple :</p>
+<p>Une méthode simple et efficace consiste à répartir vos gains complémentaires en "enveloppes" dès que tu les reçois. Par exemple :</p>
 <ul>
 <li>Une part pour l''épargne (à mettre de côté immédiatement).</li>
 <li>Une part pour un objectif précis (un projet qui te tient à cœur).</li>
 <li>Une part pour le plaisir (pour rester motivé sans culpabiliser).</li>
 </ul>
-<p>Cette répartition t''évite de tout dépenser d''un coup et donne à chaque euro une mission. Même avec de petites sommes, l''habitude crée une discipline précieuse.</p>
+<p>Cette répartition vous évite de tout dépenser d''un coup et donne à chaque euro une mission. Même avec de petites sommes, l''habitude crée une discipline précieuse.</p>
 
 <h2>Suivre ses gains</h2>
 <p>On ne gère bien que ce que l''on mesure. Tiens un suivi simple de tes revenus complémentaires : combien tu gagnes, d''où ça vient, et où ça va. Un simple tableau ou une note sur ton téléphone suffit.</p>
-<p>Ce suivi a deux vertus : il te motive en rendant tes progrès visibles, et il t''aide à identifier les sources les plus rentables pour y concentrer tes efforts. Avec le temps, tu affines ta stratégie naturellement.</p>
+<p>Ce suivi a deux vertus : il te motive en rendant vos progrès visibles, et il vous aide à identifier les sources les plus rentables pour y concentrer tes efforts. Avec le temps, tu affines ta stratégie naturellement.</p>
 
 <h2>Éviter le piège de la dépense automatique</h2>
 <p>Un danger fréquent : considérer ses gains complémentaires comme de "l''argent gratuit" à dépenser sans réfléchir. C''est une erreur. Cet argent représente ton temps et ton effort. Le traiter avec le même sérieux que ton revenu principal change radicalement son impact sur ta vie financière.</p>
-<p>Une astuce simple : transfère tes gains vers un compte séparé dès que tu les retires. Ce qui n''est pas immédiatement accessible est moins facilement dépensé sur un coup de tête.</p>
+<p>Une astuce simple : transfère vos gains vers un compte séparé dès que tu les retires. Ce qui n''est pas immédiatement accessible est moins facilement dépensé sur un coup de tête.</p>
 
 <h2>Penser sur le long terme</h2>
 <p>Un petit montant régulier, accumulé sur des mois, devient une somme significative. C''est la magie de la constance. Plutôt que de te décourager parce que les gains semblent modestes au quotidien, projette-toi : que représenteront ces gains au bout de six mois ou un an, si tu les épargnes intelligemment ?</p>
 <p>Cette vision long terme transforme la perception de tes revenus complémentaires. Ils ne sont plus de la petite monnaie, mais les briques d''un projet plus grand.</p>
 
 <h2>Conclusion</h2>
-<p>Tes revenus complémentaires méritent une vraie stratégie. En définissant un objectif, en répartissant intelligemment, en suivant tes gains et en pensant long terme, tu transformes de petites sommes en un véritable atout financier. La gestion ne demande pas d''être un expert : juste un peu de discipline et de constance. Tes efforts en ligne n''en auront que plus de valeur.</p>'
+<p>Tes revenus complémentaires méritent une vraie stratégie. En définissant un objectif, en répartissant intelligemment, en suivant vos gains et en pensant long terme, tu transformes de petites sommes en un véritable atout financier. La gestion ne demande pas d''être un expert : juste un peu de discipline et de constance. Tes efforts en ligne n''en auront que plus de valeur.</p>'
 );
 
 -- Article 8 — L'avenir des micro-tâches et de l'économie numérique (catégorie: actualites)

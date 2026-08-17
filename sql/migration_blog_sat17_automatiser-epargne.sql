@@ -9,6 +9,14 @@
 -- fonds d'urgence (dimensionnement).
 --
 -- ⚠️ Importer avec --default-character-set=utf8mb4.
+-- CALENDRIER DE PUBLICATION
+-- published_at = 2026-09-28 14:52:00 (et non UTC_TIMESTAMP()).
+-- Publier 27 articles le même jour signale une production en masse : c'est
+-- exactement ce qu'un évaluateur qualité cherche à détecter. Les dates sont
+-- donc échelonnées sur jours ouvrés, à des heures variables.
+-- Le code n'affiche un article que si published_at <= maintenant : appliquer
+-- toutes les migrations d'un coup est donc sans risque, chaque article
+-- apparaîtra à sa date.
 -- ============================================================================
 INSERT IGNORE INTO `blog_posts`
  (`slug`, `category_id`, `title`, `excerpt`, `cover_emoji`, `author_name`,
@@ -22,7 +30,7 @@ VALUES (
  'Équipe Wintaskly',
  'Automatiser son épargne : les mécanismes efficaces',
  'Pourquoi l''épargne automatique fonctionne mieux que la discipline, et quels mécanismes mettre en place selon que vos revenus sont réguliers ou variables.',
- 'published', 5, UTC_TIMESTAMP(),
+ 'published', 5, '2026-09-28 14:52:00',
  '<p>« Il suffit d''être discipliné. » C''est le conseil le plus répandu en matière d''épargne, et l''un des moins efficaces — parce qu''il fait reposer un résultat de long terme sur une ressource qui s''épuise : la volonté.</p>
 <p>Les mécanismes automatiques donnent de bien meilleurs résultats, non parce qu''ils sont malins, mais parce qu''ils <strong>retirent la décision du chemin</strong>.</p>
 

@@ -119,6 +119,10 @@ return [
     'about.mission_p1' => 'Wintaskly permet à toute personne de convertir un peu de son temps libre en récompenses réelles, en participant à des campagnes publicitaires et des offres proposées par des partenaires vérifiés.',
     'about.mission_p2' => 'Notre objectif est de rendre ce processus simple, transparent et sécurisé : pas de promesses irréalistes, des règles claires, et un système anti-fraude qui protège la valeur des récompenses pour tous.',
     'about.h_how' => 'Comment fonctionne la plateforme',
+    'about.h_origin'           => 'Pourquoi Wintaskly existe',
+    'about.origin_p1'          => 'Wintaskly est né d\'un constat simple, fait en testant nous-mêmes une dizaine de plateformes de micro-gains : la plupart fonctionnent, mais presque aucune n\'explique ce qu\'elle fait. Des seuils de retrait fixés si haut qu\'ils ne sont jamais atteints, des règles qui changent sans préavis, des montants de gains affichés en page d\'accueil sans qu\'on sache d\'où ils sortent, et un support qui ne répond pas quand un paiement tarde.',
+    'about.origin_p2'          => 'Le projet est développé et administré depuis La Réunion par un développeur indépendant. Ce n\'est pas une grande structure, et nous n\'avons pas de raison de le cacher : cela signifie des moyens limités, mais aussi qu\'aucun investisseur n\'attend un rendement rapide sur votre dos. Les décisions sont prises en fonction de ce qui tient dans la durée, pas d\'un objectif de croissance trimestriel.',
+    'about.origin_p3'          => 'L\'ambition n\'est donc pas d\'être la plateforme qui promet le plus, mais celle dont les règles sont écrites, stables et vérifiables. C\'est aussi pour cette raison que nous publions une politique anti-fraude publique, une ligne éditoriale, et des articles qui expliquent honnêtement les limites de ce modèle — y compris quand cela ne nous arrange pas.',
     'about.how_p1' => 'Les récompenses distribuées sur Wintaskly proviennent de plusieurs sources, chacune avec ses propres règles de validation :',
     'about.how_li1' => 'Faucet : une réclamation gratuite toutes les 3 heures.',
     'about.how_li2' => 'Shortlinks et PTC : des campagnes publicitaires courtes, validées après un temps de visionnage minimum.',
@@ -449,7 +453,7 @@ return [
     'mail.verify.cta'     => 'Vérifier mon adresse',
     'mail.verify.notice'  => 'Ce lien expire dans 24 heures. Si vous n’êtes pas à l’origine de cette inscription, ignorez ce message.',
 
-    'mail.reset.subject'  => 'Réinitialise votre mot de passe Wintaskly',
+    'mail.reset.subject'  => 'Réinitialisez votre mot de passe Wintaskly',
     'mail.reset.title'    => 'Réinitialisation du mot de passe',
     'mail.reset.body'     => 'Vous avez demandé à réinitialiser votre mot de passe. Cliquez sur le bouton ci-dessous pour en choisir un nouveau.',
     'mail.reset.cta'      => 'Choisir un nouveau mot de passe',
@@ -515,7 +519,7 @@ return [
     // ----- v4 FAQ ------------------------------------------------------
     'faq.title'       => 'Foire aux questions',
     'faq.lead'        => 'Les réponses aux questions les plus fréquentes sur Wintaskly.',
-    'faq.cta_contact' => 'Vous ne trouves pas ? Contactez-nous',
+    'faq.cta_contact' => 'Vous ne trouvez pas ? Contactez-nous',
     // Q/R démo — modifiable depuis ce fichier de langue.
     'faq.q_general_what'   => 'Qu’est-ce que Wintaskly ?',
     // FAQ — questions enrichies
@@ -596,7 +600,7 @@ return [
 
     // ----- v4 contact --------------------------------------------------
     'contact.title'           => 'Nous contacter',
-    'contact.lead'            => 'Décris votre problème ou votre question. Notre équipe répond rapidement.',
+    'contact.lead'            => 'Décrivez votre problème ou votre question. Notre équipe répond rapidement.',
     'contact.name'            => 'Votre nom',
     'contact.subject'         => 'Sujet',
     'contact.message'         => 'Message',
@@ -667,6 +671,8 @@ return [
     'nav.tasks'                     => 'Tâches',
     // Blog system
     'nav.blog'                      => 'Blog',
+    'pwa.install_title'          => 'Installer Wintaskly',
+    'pwa.install_text'           => 'Accédez au faucet en un geste depuis votre écran d\'accueil',
 
     // Double authentification multi-methodes
     'mail.twofa.subject'               => 'Votre code de connexion Wintaskly',
@@ -1162,7 +1168,7 @@ return [
     'tasks.charter_li3'             => 'Un seul compte autorisé par foyer / adresse IP.',
     'tasks.charter_footer'          => 'Le non-respect de ces règles entraîne le gel automatique des retraits.',
     'tasks.faucet_desc'             => 'Réclamez une dose de Coins toutes les 3 heures via un captcha visuel anti-bot.',
-    'tasks.shortlinks_desc'         => 'Traverse une passerelle puis franchis un shortlink partenaire — quelques secondes pour quelques Coins.',
+    'tasks.shortlinks_desc'         => 'Traversez une passerelle puis franchis un shortlink partenaire — quelques secondes pour quelques Coins.',
     'tasks.ptc_desc'                => 'Visualise une annonce pendant un chrono court, puis valide par un mini-captcha pour recevoir la récompense.',
     'tasks.offerwalls_desc'         => 'Complétez des offres partenaires (sondages, inscriptions, mini-jeux) avec des récompenses élevées.',
     'tasks.per_ad'                  => 'par annonce',
@@ -1510,7 +1516,7 @@ return [
     'home.tasks.offerwalls.providers' => '%d partenaires actifs',
     // ----- V8 — Activity Feed v2 -----
     'home.feed.live'           => 'En direct',
-    'home.feed.lead'           => 'Les dernières récompenses validées sur Wintaskly. Vous pourrais être le prochain.',
+    'home.feed.lead'           => 'Les dernières récompenses validées sur Wintaskly. Vous pourriez être le prochain.',
     'home.feed.verb.faucet'    => 'a réclamé',
     'home.feed.verb.shortlink' => 'a complété un lien et gagné',
     'home.feed.verb.ptc'       => 'a visionné une pub et reçu',
@@ -1613,7 +1619,7 @@ return [
     'faucet.seconds'          => 'Sec',
     'faucet.seconds_remaining'=> 'Secondes restantes',
     'faucet.you_earn'         => 'Vous allez gagner',
-    'faucet.session_warning'  => 'Vous disposes de %d minutes maximum pour compléter le processus.',
+    'faucet.session_warning'  => 'Vous disposez de %d minutes maximum pour compléter le processus.',
     'faucet.session_remaining'=> 'Session :',
     'faucet.session_expired'  => 'Session expirée',
     'faucet.total_claims'     => 'Total claims',
@@ -1918,7 +1924,7 @@ return [
     'admin.upd.maint_title'        => 'Mode maintenance',
     'admin.upd.maint_lead'         => 'Quand activé, tous les utilisateurs voient une page de maintenance. Les admins continuent d’accéder au site normalement.',
     'admin.upd.maint_toggle'       => 'Activer le mode maintenance',
-    'admin.upd.maint_hint'         => 'Activez ceci pendant que vous télécharges/extracts le ZIP de mise à jour.',
+    'admin.upd.maint_hint'         => 'Activez ceci pendant que vous téléchargez/extracts le ZIP de mise à jour.',
     'admin.upd.maint_msg'          => 'Message affiché aux utilisateurs',
     'admin.upd.maint_msg_placeholder' => 'Ex: Wintaskly évolue ! Nous serons de retour dans quelques minutes.',
     'admin.upd.maint_enabled'      => '🔧 Mode maintenance ACTIVÉ. Les utilisateurs sont sur la page de maintenance.',
@@ -1974,7 +1980,7 @@ return [
     'admin.cron.crontab_show'      => 'Voir le crontab linux suggéré',
     'admin.cron.crontab_hint'      => 'Toutes les 5 minutes. Ajuste selon votre charge.',
     'admin.cron.lws_label'         => 'Commande pour LWS / Hébergeur mutualisé',
-    'admin.cron.lws_hint'          => 'Collez cette commande dans le panneau cron de votre hébergeur (LWS, OVH, Hostinger). Vous choisiras la fréquence (5 min recommandé) via leur interface graphique. Le header Cache-Control force le contournement de Varnish.',
+    'admin.cron.lws_hint'          => 'Collez cette commande dans le panneau cron de votre hébergeur (LWS, OVH, Hostinger). Vous choisirez la fréquence (5 min recommandé) via leur interface graphique. Le header Cache-Control force le contournement de Varnish.',
     'admin.cron.generic_label'     => 'Format crontab générique (VPS / serveur dédié)',
     'admin.cron.confirm_rotate'    => 'Régénérer le token ? L\'ancienne URL ne fonctionnera plus.',
     'admin.cron.btn_rotate'        => 'Régénérer le token',
@@ -2041,7 +2047,7 @@ return [
     // Contact
     'contact.name_placeholder'   => 'Comment vous appelez-vous ?',
     'contact.subject_placeholder' => 'Résume votre demande en quelques mots',
-    'contact.message_placeholder' => 'Décris votre situation. Plus vous donnes de détails, plus on peut vous aider rapidement.',
+    'contact.message_placeholder' => 'Décrivez votre situation. Plus vous donnez de détails, plus on peut vous aider rapidement.',
     'contact.response_time'      => 'Réponse en moyenne sous 48 h ouvrées. Pensez à vérifier votre spam.',
     'contact.before_title'       => 'Avant de nous écrire',
     'contact.before_lead'        => 'Beaucoup de questions sont déjà traitées dans la FAQ. Jetez un œil, ça pourrait vous faire gagner du temps.',

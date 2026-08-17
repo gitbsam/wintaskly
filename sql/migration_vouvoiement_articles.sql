@@ -27,11 +27,11 @@ UPDATE `blog_posts` SET
 
 <h2>Activer son carton : l''étape que tout le monde oublie</h2>
 <p>Obtenir un carton ne suffit pas : il faut l''<strong>activer</strong>. Un carton non activé ne participe pas à la partie, même si les tirages ont lieu et que les numéros correspondent.</p>
-<p>C''est de loin l''erreur la plus fréquente. Des joueurs suivent les tirages pendant plusieurs jours, puis constatent que leur carton n''a rien enregistré : il n''avait simplement jamais été activé. Le réflexe à prendre est donc simple — dès que vous récupères votre carton du jour, activez-le immédiatement.</p>
+<p>C''est de loin l''erreur la plus fréquente. Des joueurs suivent les tirages pendant plusieurs jours, puis constatent que leur carton n''a rien enregistré : il n''avait simplement jamais été activé. Le réflexe à prendre est donc simple — dès que vous récupérez votre carton du jour, activez-le immédiatement.</p>
 
 <h2>Cocher les numéros : ce n''est pas automatique</h2>
 <p>Deuxième source de confusion : les numéros tirés ne se cochent pas tout seuls sur votre carton. C''est à vous de valider ceux qui correspondent, en revenant sur la page du jeu.</p>
-<p>Cela peut sembler contraignant, mais c''est ce qui rend le jeu actif plutôt que purement passif. Concrètement, cela signifie qu''un passage régulier sur la page du Bingo fait partie du jeu. Si vous laissez passer plusieurs jours sans revenir, vous risques de découvrir trop tard que des numéros correspondaient à votre carton.</p>
+<p>Cela peut sembler contraignant, mais c''est ce qui rend le jeu actif plutôt que purement passif. Concrètement, cela signifie qu''un passage régulier sur la page du Bingo fait partie du jeu. Si vous laissez passer plusieurs jours sans revenir, vous risquez de découvrir trop tard que des numéros correspondaient à votre carton.</p>
 
 <h2>Carton gratuit et cartons supplémentaires</h2>
 <p>Un carton est accessible gratuitement, ce qui permet à tout le monde de participer sans dépenser de coins. Il est également possible d''obtenir des cartons supplémentaires en les achetant avec ses coins.</p>
@@ -61,14 +61,14 @@ WHERE `slug` = 'comment-fonctionne-bingo-wintaskly';
 
 UPDATE `blog_posts` SET
   `title` = 'Coins, conversion, retrait minimum : comment ça marche vraiment',
-  `excerpt` = 'Vous accumules des coins mais vous ne savez pas exactement comment ils deviennent de l''argent réel ? Voici le mécanisme complet, du solde affiché au paiement reçu.',
+  `excerpt` = 'Vous accumulez des coins mais vous ne savez pas exactement comment ils deviennent de l''argent réel ? Voici le mécanisme complet, du solde affiché au paiement reçu.',
   `meta_description` = 'Comprendre les coins Wintaskly : comment fonctionne la conversion, pourquoi il existe un seuil minimum de retrait, et ce qui se passe après votre demande.',
-  `body` = '<p>Vous réclamez votre faucet, vous enchaînes quelques tâches, votre solde grimpe. Puis vient la question que tout le monde se pose tôt ou tard : <strong>comment ces coins deviennent-ils concrètement de l''argent sur mon compte ?</strong></p>
+  `body` = '<p>Vous réclamez votre faucet, vous enchaînez quelques tâches, votre solde grimpe. Puis vient la question que tout le monde se pose tôt ou tard : <strong>comment ces coins deviennent-ils concrètement de l''argent sur mon compte ?</strong></p>
 <p>Le mécanisme est simple une fois qu''on l''a en tête, mais plusieurs notions se mélangent souvent : le taux de conversion, le seuil minimum, la méthode de paiement, et le délai de traitement. Démêlons tout ça.</p>
 
 <h2>Le coin : une unité de compte, pas une monnaie</h2>
 <p>Le coin n''est pas une cryptomonnaie et n''a pas de cours qui fluctue. C''est une <strong>unité de compte interne</strong> à la plateforme : une façon simple de mesurer ce que vous avez gagné, quelle que soit la tâche accomplie.</p>
-<p>Pourquoi ne pas afficher directement des euros ou des dollars ? Parce que les tâches rapportent des montants très petits. Compter en coins permet d''afficher des nombres lisibles plutôt que des fractions de centime à quatre décimales, et de garder le même repère quelle que soit la devise de retrait que vous choisiras ensuite.</p>
+<p>Pourquoi ne pas afficher directement des euros ou des dollars ? Parce que les tâches rapportent des montants très petits. Compter en coins permet d''afficher des nombres lisibles plutôt que des fractions de centime à quatre décimales, et de garder le même repère quelle que soit la devise de retrait que vous choisirez ensuite.</p>
 
 <h2>Le taux de conversion : de coins à argent réel</h2>
 <p>Chaque méthode de retrait possède son propre taux de conversion : un nombre de coins qui correspond à une unité de la devise concernée. C''est ce taux qui traduit votre solde en montant réel au moment de la demande.</p>
@@ -164,12 +164,12 @@ UPDATE `blog_posts` SET
 <p>C''est dommage, parce que cette page n''est pas un simple affichage décoratif. C''est un outil de pilotage. Voici comment lire chacune de ses parties, et ce que la plupart des utilisateurs ne remarquent jamais.</p>
 
 <h2>Le solde : ce qu''il dit et ce qu''il ne dit pas</h2>
-<p>Le <strong>solde</strong> affiche vos coins disponibles. Rien de compliqué. Mais un détail passe souvent inaperçu : ce chiffre est un état à l''instant T, pas une trajectoire. Il ne vous dit pas si vous progresses plus vite ou moins vite que la semaine dernière.</p>
+<p>Le <strong>solde</strong> affiche vos coins disponibles. Rien de compliqué. Mais un détail passe souvent inaperçu : ce chiffre est un état à l''instant T, pas une trajectoire. Il ne vous dit pas si vous progressez plus vite ou moins vite que la semaine dernière.</p>
 <p>Pour cette information, il faut regarder ailleurs sur la page — et c''est justement l''intérêt des autres indicateurs.</p>
 
 <h2>Le niveau : l''indicateur de progression long terme</h2>
 <p>Le <strong>niveau</strong> reflète votre activité cumulée sur la plateforme, via l''XP accumulée en accomplissant des tâches. Contrairement au solde, qui baisse quand vous retirez, le niveau ne recule jamais : il mesure votre parcours, pas votre portefeuille.</p>
-<p>Un indicateur de progression t''indique ce qu''il vous reste avant le niveau suivant. C''est une information utile quand vous hésites à faire une dernière tâche avant de fermer : savoir que vous êtes proche d''un palier change souvent la décision.</p>
+<p>Un indicateur de progression vous indique ce qu''il vous reste avant le niveau suivant. C''est une information utile quand vous hésitez à faire une dernière tâche avant de fermer : savoir que vous êtes proche d''un palier change souvent la décision.</p>
 
 <h2>Le graphique des gains : le vrai outil de pilotage</h2>
 <p>C''est probablement l''élément le plus sous-utilisé de la page. Le graphique <strong>« Mes gains »</strong> affiche vos gains sur les <strong>sept derniers jours</strong>.</p>
@@ -178,7 +178,7 @@ UPDATE `blog_posts` SET
 
 <h2>L''historique récent : pour vérifier, pas seulement pour contempler</h2>
 <p>L''<strong>historique récent</strong> liste vos dernières transactions. Beaucoup le survolent, alors qu''il a une utilité concrète : <strong>vérifier</strong>.</p>
-<p>C''est là que vous confirmes qu''une tâche a bien été créditée. Si vous avez un doute sur une validation — une offre partenaire, une annonce PTC — c''est le premier endroit à consulter avant de contacter le support. Souvent, la réponse y est déjà, et cela évite une attente inutile.</p>
+<p>C''est là que vous confirmez qu''une tâche a bien été créditée. Si vous avez un doute sur une validation — une offre partenaire, une annonce PTC — c''est le premier endroit à consulter avant de contacter le support. Souvent, la réponse y est déjà, et cela évite une attente inutile.</p>
 
 <h2>Le bonus quotidien et la série : ne casse pas la chaîne</h2>
 <p>Le <strong>bonus quotidien</strong> est affiché directement sur le tableau de bord, avec votre <strong>série de jours consécutifs</strong>. C''est volontaire : c''est l''une des rares mécaniques où l''oubli d''une seule journée a un coût réel.</p>
@@ -228,7 +228,7 @@ UPDATE `blog_posts` SET
 <p>Si l''automatisation n''est pas possible, la règle de repli est de le faire <strong>immédiatement</strong> à la réception de l''argent, jamais « plus tard dans la semaine ».</p>
 
 <h2>Séparer physiquement les comptes</h2>
-<p>Un montant mis de côté sur votre compte courant n''est pas vraiment épargné. Il est simplement mélangé au reste, et sera dépensé sans même que vous t''en rendes compte.</p>
+<p>Un montant mis de côté sur votre compte courant n''est pas vraiment épargné. Il est simplement mélangé au reste, et sera dépensé sans même que vous vous en rendiez compte.</p>
 <p>Un compte séparé crée une <strong>friction utile</strong> : pour dépenser cet argent, il faut faire un geste délibéré. Cette petite barrière suffit à protéger l''épargne dans la grande majorité des cas.</p>
 <p>Cette séparation a un second avantage, souvent sous-estimé : voir le solde de ce compte grandir est motivant. C''est un retour visuel concret sur un effort qui, autrement, resterait invisible.</p>
 
@@ -265,21 +265,21 @@ UPDATE `blog_posts` SET
   `excerpt` = 'Toutes les tâches Wintaskly ne se valent pas selon votre temps disponible et vos objectifs. Voici comment choisir intelligemment entre faucet, PTC et offerwalls.',
   `meta_description` = 'Faucet, PTC ou offerwalls : comparatif complet pour choisir la tâche la plus adaptée à votre temps disponible et à vos objectifs de gains sur Wintaskly.',
   `body` = '<p>Sur Wintaskly, vous avez le choix entre plusieurs types de tâches pour gagner des coins : faucet, PTC, shortlinks, offerwalls... Mais laquelle privilégier ? La réponse dépend surtout d''une chose : <strong>votre profil</strong>. Le temps que vous avez devant vous, votre objectif de gains, et la façon dont vous utilisez la plateforme au quotidien changent complètement la réponse.</p>
-<p>Ce guide compare les trois piliers de Wintaskly pour t''aider à construire votre propre routine, plutôt que de suivre un modèle unique qui ne vous correspond pas forcément.</p>
+<p>Ce guide compare les trois piliers de Wintaskly pour vous aider à construire votre propre routine, plutôt que de suivre un modèle unique qui ne vous correspond pas forcément.</p>
 
 <h2>Le faucet : pour les micro-pauses</h2>
 <p>Le faucet, c''est la tâche la plus simple qui existe sur la plateforme. Un clic, un court délai d''attente, et c''est réclamé. Aucune compétence, aucune attention particulière requise.</p>
-<p><strong>Votre profil si vous privilégies le faucet :</strong> vous avez des micro-moments dans la journée (une pause café, une file d''attente, entrez deux tâches au travail) et vous voulez les rentabiliser sans y penser. Le faucet est aussi la meilleure porte d''entrée pour construire une série (streak) quotidienne — la régularité y compte plus que l''intensité.</p>
+<p><strong>Votre profil si vous privilégiez le faucet :</strong> vous avez des micro-moments dans la journée (une pause café, une file d''attente, entrez deux tâches au travail) et vous voulez les rentabiliser sans y penser. Le faucet est aussi la meilleure porte d''entrée pour construire une série (streak) quotidienne — la régularité y compte plus que l''intensité.</p>
 <p>Sa limite : le gain par réclamation reste modeste. Ce n''est pas la tâche qui fera grimper votre solde rapidement, mais elle ne demande presque aucun effort.</p>
 
 <h2>Le PTC : pour du passif pendant que vous faites autre chose</h2>
-<p>Le PTC (Paid-To-Click) fonctionne différemment : vous lances une annonce, un minuteur se déclenche, et vous devez rester sur la fenêtre jusqu''à la fin pour être crédité. C''est un cran au-dessus du faucet en termes de gains, pour un effort qui reste minimal.</p>
-<p><strong>Votre profil si vous privilégies le PTC :</strong> vous êtes devant votre écran un moment (en train de lire, d''attendre un téléchargement, de suivre un cours en ligne) et vous pouvez laisser un onglet ouvert en arrière-plan. Attention cependant : contrairement au faucet, le PTC exige de rester présent jusqu''au bout — fermer la fenêtre trop tôt annule la validation.</p>
+<p>Le PTC (Paid-To-Click) fonctionne différemment : vous lancez une annonce, un minuteur se déclenche, et vous devez rester sur la fenêtre jusqu''à la fin pour être crédité. C''est un cran au-dessus du faucet en termes de gains, pour un effort qui reste minimal.</p>
+<p><strong>Votre profil si vous privilégiez le PTC :</strong> vous êtes devant votre écran un moment (en train de lire, d''attendre un téléchargement, de suivre un cours en ligne) et vous pouvez laisser un onglet ouvert en arrière-plan. Attention cependant : contrairement au faucet, le PTC exige de rester présent jusqu''au bout — fermer la fenêtre trop tôt annule la validation.</p>
 <p>C''est une tâche idéale à enchaîner plusieurs fois de suite si vous avez dix minutes devant vous, mais elle demande un minimum de disponibilité continue, contrairement au faucet que vous pouvez réclamer en trois secondes et oublier.</p>
 
 <h2>Les offerwalls : pour maximiser vos gains quand vous avez du temps</h2>
 <p>Les offerwalls regroupent des offres proposées par des partenaires : sondages, tests d''applications, inscriptions à des services. C''est de loin la catégorie qui rapporte le plus par tâche accomplie — mais c''est aussi celle qui demande le plus de temps et d''engagement.</p>
-<p><strong>Votre profil si vous privilégies les offerwalls :</strong> vous avez une vraie session devant vous (le soir, le week-end) et votre objectif est d''atteindre un seuil de retrait plus rapidement plutôt que de grappiller quelques coins entre deux portes. Certaines offres prennent quelques minutes, d''autres beaucoup plus — lisez toujours les conditions avant de commencer une offre pour éviter les mauvaises surprises.</p>
+<p><strong>Votre profil si vous privilégiez les offerwalls :</strong> vous avez une vraie session devant vous (le soir, le week-end) et votre objectif est d''atteindre un seuil de retrait plus rapidement plutôt que de grappiller quelques coins entre deux portes. Certaines offres prennent quelques minutes, d''autres beaucoup plus — lisez toujours les conditions avant de commencer une offre pour éviter les mauvaises surprises.</p>
 <p>C''est la tâche à privilégier si votre objectif est clairement orienté résultat : convertir vos coins en argent réel le plus efficacement possible.</p>
 
 <h2>Et les shortlinks dans tout ça ?</h2>
@@ -310,13 +310,13 @@ UPDATE `blog_posts` SET
 <p>On la mesure en pourcentage annuel. Une inflation de 3 % signifie qu''en moyenne, ce qui coûtait 100 € l''an dernier coûte environ 103 € cette année. Rien d''alarmant sur un an, mais l''effet s''accumule.</p>
 
 <h2>L''autre face du miroir : votre argent perd du pouvoir d''achat</h2>
-<p>Voici le point que beaucoup de gens saisissent de travers. L''inflation ne fait pas seulement monter les prix : elle fait <strong>baisser la valeur réelle de l''argent que vous possèdes</strong>. Ce sont les deux faces de la même pièce.</p>
+<p>Voici le point que beaucoup de gens saisissent de travers. L''inflation ne fait pas seulement monter les prix : elle fait <strong>baisser la valeur réelle de l''argent que vous possédez</strong>. Ce sont les deux faces de la même pièce.</p>
 <p>Prenons un exemple concret. Vous mettez 1 000 € de côté sur un compte qui ne rapporte rien. Un an plus tard, vous avez toujours 1 000 € sur votre relevé — le chiffre n''a pas bougé. Mais si les prix ont augmenté de 3 % pendant ce temps, ces 1 000 € achètent désormais l''équivalent de ce que 970 € achetaient un an plus tôt. Vous n''as rien perdu sur le papier, et pourtant vous avez bel et bien perdu.</p>
 <p>C''est ce qu''on appelle la différence entre la valeur <em>nominale</em> (le chiffre affiché) et la valeur <em>réelle</em> (ce que ce chiffre permet réellement d''acheter).</p>
 
 <h2>L''effet cumulé : le vrai piège</h2>
 <p>Sur un an, 3 % passent presque inaperçus. Le problème, c''est que l''inflation se cumule année après année, un peu comme des intérêts — mais à l''envers, contre vous.</p>
-<p>À 3 % par an, une somme laissée dormante perd environ un quart de son pouvoir d''achat en une dizaine d''années. Ce n''est plus un détail : c''est un vrai transfert de valeur, silencieux, qui ne t''envoie aucune notification.</p>
+<p>À 3 % par an, une somme laissée dormante perd environ un quart de son pouvoir d''achat en une dizaine d''années. Ce n''est plus un détail : c''est un vrai transfert de valeur, silencieux, qui ne vous envoie aucune notification.</p>
 <p>C''est pour cette raison que les conseillers financiers répètent qu''un compte courant n''est pas un outil d''épargne. Il est fait pour faire transiter de l''argent, pas pour le conserver longtemps.</p>
 
 <h2>Pourquoi les prix montent-ils ?</h2>
@@ -399,18 +399,18 @@ WHERE `slug` = 'side-hustle-micro-revenus-tendance-mondiale';
 
 UPDATE `blog_posts` SET
   `title` = 'Guide du débutant : comment gagner vos premiers coins sur Wintaskly',
-  `excerpt` = 'Vous débutes sur Wintaskly ? Ce guide complet t''explique pas à pas comment créer votre compte, réaliser vos premières tâches et accumuler vos premiers coins efficacement.',
+  `excerpt` = 'Vous débutez sur Wintaskly ? Ce guide complet vous explique pas à pas comment créer votre compte, réaliser vos premières tâches et accumuler vos premiers coins efficacement.',
   `meta_description` = 'Apprenez à gagner vos premiers coins sur Wintaskly : inscription, faucet, raccourcisseurs de liens, PTC et offres. Guide pas à pas pour bien démarrer.',
-  `body` = '<p>Bienvenue sur Wintaskly ! Si vous venez de découvrir notre plateforme de micro-gains, vous vous demandes sûrement par où commencer. Ce guide complet va t''accompagner pas à pas, depuis la création de votre compte jusqu''à vos premiers retraits.</p>
+  `body` = '<p>Bienvenue sur Wintaskly ! Si vous venez de découvrir notre plateforme de micro-gains, vous vous demandez sûrement par où commencer. Ce guide complet va vous accompagner pas à pas, depuis la création de votre compte jusqu''à vos premiers retraits.</p>
 
 <h2>Qu''est-ce que Wintaskly exactement ?</h2>
-<p>Wintaskly est une plateforme de type GPT (Get-Paid-To, ou "payé pour faire"). Le principe est simple : vous réalises de petites tâches en ligne et vous gagnez des <strong>coins</strong>, une monnaie virtuelle que vous pouvez ensuite convertir et retirer. Ces tâches ne demandent aucune compétence particulière : il suffit d''un peu de temps libre et d''une connexion internet.</p>
+<p>Wintaskly est une plateforme de type GPT (Get-Paid-To, ou "payé pour faire"). Le principe est simple : vous réalisez de petites tâches en ligne et vous gagnez des <strong>coins</strong>, une monnaie virtuelle que vous pouvez ensuite convertir et retirer. Ces tâches ne demandent aucune compétence particulière : il suffit d''un peu de temps libre et d''une connexion internet.</p>
 <p>Contrairement à beaucoup d''idées reçues, ce type de plateforme ne vous rendra pas riche du jour au lendemain. En revanche, utilisée régulièrement et intelligemment, elle peut constituer un complément intéressant pour arrondir vos fins de mois.</p>
 
 <h2>Étape 1 : créer votre compte</h2>
-<p>La première étape est évidemment de t''inscrire. Le processus prend moins de deux minutes :</p>
+<p>La première étape est évidemment de vous inscrire. Le processus prend moins de deux minutes :</p>
 <ul>
-<li>Clique sur le bouton d''inscription en haut de la page.</li>
+<li>Cliquez sur le bouton d''inscription en haut de la page.</li>
 <li>Renseigne votre adresse e-mail et choisissez un mot de passe solide.</li>
 <li>Valide votre adresse e-mail en cliquant sur le lien que vous recevrez.</li>
 </ul>
@@ -454,14 +454,14 @@ UPDATE `blog_posts` SET
 </ul>
 
 <h2>En résumé</h2>
-<p>Gagner vos premiers coins sur Wintaskly est à la portée de tous. Créez votre compte, explore les différentes tâches, adopte une routine régulière, et soyez patient. Les micro-gains récompensent la constance bien plus que l''intensité. À vous de jouer !</p>'
+<p>Gagner vos premiers coins sur Wintaskly est à la portée de tous. Créez votre compte, explorez les différentes tâches, adoptez une routine régulière, et soyez patient. Les micro-gains récompensent la constance bien plus que l''intensité. À vous de jouer !</p>'
 WHERE `slug` = 'guide-debutant-gagner-coins-wintaskly';
 
 UPDATE `blog_posts` SET
   `title` = 'Cryptomonnaie pour débutants : comprendre les bases avant de se lancer',
   `excerpt` = 'Bitcoin, wallet, blockchain... Le vocabulaire de la crypto peut intimider. Cet article décrypte les notions essentielles pour comprendre comment fonctionnent les paiements en cryptomonnaie.',
   `meta_description` = 'Comprendre la cryptomonnaie facilement : blockchain, wallet, Bitcoin, frais de réseau. Guide pédagogique pour débutants qui veulent se lancer sereinement.',
-  `body` = '<p>La cryptomonnaie est partout : dans les médias, les conversations, et de plus en plus dans les paiements en ligne. Pourtant, pour beaucoup, ce domaine reste flou et intimidant. Si vous recevez des paiements en crypto ou que vous envisages de t''y intéresser, ce guide va t''éclairer sur les notions fondamentales, sans jargon inutile.</p>
+  `body` = '<p>La cryptomonnaie est partout : dans les médias, les conversations, et de plus en plus dans les paiements en ligne. Pourtant, pour beaucoup, ce domaine reste flou et intimidant. Si vous recevez des paiements en crypto ou que vous envisagez de vous y intéresser, ce guide va vous éclairer sur les notions fondamentales, sans jargon inutile.</p>
 
 <h2>Qu''est-ce qu''une cryptomonnaie ?</h2>
 <p>Une cryptomonnaie est une monnaie numérique qui fonctionne sans banque centrale ni autorité unique. Au lieu d''être gérée par une institution, elle repose sur un réseau d''ordinateurs répartis dans le monde entier. Cette absence d''intermédiaire central est l''une des caractéristiques les plus importantes de la crypto.</p>
@@ -478,7 +478,7 @@ UPDATE `blog_posts` SET
 <li><strong>La clé publique</strong> : c''est votre adresse, que vous pouvez partager pour recevoir des paiements. C''est l''équivalent de votre numéro de compte bancaire.</li>
 <li><strong>La clé privée</strong> : c''est votre mot de passe secret, qui vous donne le contrôle de vos fonds. Ne la partage JAMAIS avec qui que ce soit. Quiconque possède votre clé privée possède vos cryptos.</li>
 </ul>
-<p>Cette distinction est cruciale. La règle d''or de la crypto est : "Not your keys, not your coins" (si vous ne contrôles pas vos clés, vous ne contrôles pas vos cryptos).</p>
+<p>Cette distinction est cruciale. La règle d''or de la crypto est : "Not your keys, not your coins" (si vous ne contrôlez pas vos clés, vous ne contrôlez pas vos cryptos).</p>
 
 <h2>Les frais de réseau</h2>
 <p>Chaque transaction sur une blockchain implique des frais, appelés "frais de réseau" ou "frais de gas". Ces frais rémunèrent les ordinateurs qui valident et sécurisent les transactions. Ils varient selon l''affluence sur le réseau : plus il y a de transactions en attente, plus les frais augmentent.</p>
@@ -496,7 +496,7 @@ UPDATE `blog_posts` SET
 <p>La crypto offre une grande liberté, mais cette liberté s''accompagne de responsabilités. Voici les principes à respecter absolument :</p>
 <ul>
 <li>Ne partage jamais votre clé privée ou votre phrase de récupération.</li>
-<li>Méfie-vous des offres trop belles pour être vraies : les arnaques sont nombreuses dans cet univers.</li>
+<li>Méfiez-vous des offres trop belles pour être vraies : les arnaques sont nombreuses dans cet univers.</li>
 <li>Vérifie toujours deux fois l''adresse de destination avant d''envoyer des fonds : une transaction crypto est irréversible.</li>
 <li>Active l''authentification à deux facteurs partout où c''est possible.</li>
 </ul>
@@ -515,12 +515,12 @@ UPDATE `blog_posts` SET
 <p>C''est le conseil numéro un, et pour cause. Les plateformes GPT récompensent la fidélité. Une visite quotidienne de dix minutes rapporte généralement bien plus qu''une session de deux heures une fois par semaine. Pourquoi ? Parce que de nombreux mécanismes (bonus quotidien, faucet, séries de connexion) se basent sur votre présence régulière.</p>
 
 <h2>2. Ne rate jamais votre bonus quotidien</h2>
-<p>Le bonus quotidien est de l''argent gratuit, littéralement. La plupart des plateformes augmentent même la récompense à mesure que vous enchaînes les jours consécutifs : c''est ce qu''on appelle une "série" ou "streak". Rater un jour peut réinitialiser votre série et vous faire perdre des bonus importants. Créez-vous un rappel si nécessaire.</p>
+<p>Le bonus quotidien est de l''argent gratuit, littéralement. La plupart des plateformes augmentent même la récompense à mesure que vous enchaînez les jours consécutifs : c''est ce qu''on appelle une "série" ou "streak". Rater un jour peut réinitialiser votre série et vous faire perdre des bonus importants. Créez-vous un rappel si nécessaire.</p>
 
 <h2>3. Choisissez les tâches les plus rentables au temps investi</h2>
-<p>Toutes les tâches ne se valent pas. Pour optimiser, calcule mentalement le rapport entre la récompense et le temps nécessaire. Les raccourcisseurs de liens, par exemple, offrent souvent un excellent rendement : quelques secondes pour une récompense correcte. Les offres partenaires rapportent gros mais demandent plus d''engagement. Adapte votre choix au temps dont vous ditesposes.</p>
+<p>Toutes les tâches ne se valent pas. Pour optimiser, calcule mentalement le rapport entre la récompense et le temps nécessaire. Les raccourcisseurs de liens, par exemple, offrent souvent un excellent rendement : quelques secondes pour une récompense correcte. Les offres partenaires rapportent gros mais demandent plus d''engagement. Adaptez votre choix au temps dont vous disposez.</p>
 
-<h2>4. Exploite le parrainage</h2>
+<h2>4. Exploitez le parrainage</h2>
 <p>Le parrainage est sans doute le levier le plus puissant pour augmenter vos gains sur le long terme. En invitant des amis, vous touchez généralement une commission sur leurs gains, sans que cela ne réduise les leurs. Partagez votre lien de parrainage sur vos réseaux, dans des communautés intéressées, ou auprès de proches. Quelques filleuls actifs peuvent transformer vos revenus.</p>
 
 <h2>5. Débloque les succès et récompenses</h2>
@@ -530,7 +530,7 @@ UPDATE `blog_posts` SET
 <p>Les plateformes organisent régulièrement des événements spéciaux, des concours ou des périodes de gains boostés. Ces moments sont l''occasion de gagner davantage. Activez les notifications et consultez régulièrement les annonces pour ne rien manquer.</p>
 
 <h2>7. Reste patient et gardez une vision réaliste</h2>
-<p>La dernière astuce est peut-être la plus importante : gardez des attentes réalistes. Les micro-tâches ne remplacent pas un emploi. Elles constituent un complément. En adoptant cet état d''esprit, vous éviteras la frustration et vous resteras motivé sur la durée, ce qui est précisément ce qui paie le plus.</p>
+<p>La dernière astuce est peut-être la plus importante : gardez des attentes réalistes. Les micro-tâches ne remplacent pas un emploi. Elles constituent un complément. En adoptant cet état d''esprit, vous éviterez la frustration et vous resterez motivé sur la durée, ce qui est précisément ce qui paie le plus.</p>
 
 <h2>En conclusion</h2>
 <p>Maximiser ses gains sur une plateforme de micro-tâches ne relève pas de la chance, mais de la méthode. Régularité, bonus quotidien, choix intelligent des tâches, parrainage et patience : applique ces principes et vous verrez une réelle différence dans votre progression. Le succès appartient à ceux qui jouent sur la durée.</p>'
@@ -556,7 +556,7 @@ UPDATE `blog_posts` SET
 <p>Active la 2FA partout où elle est disponible. C''est l''une des mesures les plus efficaces pour empêcher les accès non autorisés, et elle ne prend que quelques secondes à utiliser au quotidien.</p>
 
 <h2>Reconnaître les tentatives de phishing</h2>
-<p>Le phishing (hameçonnage) est une technique d''arnaque très répandue. Le principe : vous faire croire que vous communiques avec un service légitime pour vous soutirer vos identifiants ou vos informations. Voici les signes qui doivent t''alerter :</p>
+<p>Le phishing (hameçonnage) est une technique d''arnaque très répandue. Le principe : vous faire croire que vous communiquez avec un service légitime pour vous soutirer vos identifiants ou vos informations. Voici les signes qui doivent vous alerter :</p>
 <ul>
 <li>Un e-mail ou un message qui crée un sentiment d''urgence ("votre compte va être suspendu !").</li>
 <li>Des fautes d''orthographe ou une formulation maladroite.</li>
@@ -573,13 +573,13 @@ UPDATE `blog_posts` SET
 <p>Vos données personnelles ont de la valeur. Quelques précautions simples :</p>
 <ul>
 <li>Ne partage que les informations strictement nécessaires.</li>
-<li>Méfie-vous des formulaires qui demandent trop de détails personnels.</li>
+<li>Méfiez-vous des formulaires qui demandent trop de détails personnels.</li>
 <li>Utilise une adresse e-mail dédiée pour vos inscriptions à des plateformes.</li>
 <li>Lis les politiques de confidentialité pour comprendre comment vos données sont utilisées.</li>
 </ul>
 
 <h2>Que faire en cas de problème ?</h2>
-<p>Si vous suspectes que votre compte a été compromis, agissez vite :</p>
+<p>Si vous suspectez que votre compte a été compromis, agissez vite :</p>
 <ul>
 <li>Change immédiatement votre mot de passe.</li>
 <li>Active la 2FA si ce n''était pas déjà fait.</li>
@@ -588,12 +588,12 @@ UPDATE `blog_posts` SET
 </ul>
 
 <h2>Conclusion</h2>
-<p>La sécurité en ligne n''est pas une affaire de chance, mais d''habitudes. Un mot de passe solide et unique, l''authentification à deux facteurs, une vigilance face au phishing et un bon sens face aux promesses irréalistes : avec ces réflexes, vous réduis drastiquement les risques. Prenez quelques minutes aujourd''hui pour renforcer la sécurité de vos comptes, vous vous remercieras plus tard.</p>'
+<p>La sécurité en ligne n''est pas une affaire de chance, mais d''habitudes. Un mot de passe solide et unique, l''authentification à deux facteurs, une vigilance face au phishing et un bon sens face aux promesses irréalistes : avec ces réflexes, vous réduisez drastiquement les risques. Prenez quelques minutes aujourd''hui pour renforcer la sécurité de vos comptes, vous vous remercierez plus tard.</p>'
 WHERE `slug` = 'securite-ligne-proteger-compte-arnaques';
 
 UPDATE `blog_posts` SET
   `title` = 'Le parrainage : la clé pour générer des revenus passifs en ligne',
-  `excerpt` = 'Le parrainage est l''un des moyens les plus efficaces d''augmenter ses gains sur le long terme. On t''explique comment ça fonctionne et comment bâtir un réseau actif.',
+  `excerpt` = 'Le parrainage est l''un des moyens les plus efficaces d''augmenter ses gains sur le long terme. On vous explique comment ça fonctionne et comment bâtir un réseau actif.',
   `meta_description` = 'Comprendre le parrainage : commissions, revenus passifs, comment recruter des filleuls actifs et bâtir un réseau durable. Guide complet et conseils pratiques.',
   `body` = '<p>Et si une partie de vos gains pouvait être générée par d''autres personnes, sans effort supplémentaire de votre part ? C''est exactement la promesse du parrainage. Souvent sous-estimé par les débutants, c''est pourtant l''un des leviers les plus puissants pour augmenter durablement ses revenus en ligne. Voyons comment en tirer parti.</p>
 
@@ -602,7 +602,7 @@ UPDATE `blog_posts` SET
 <p>Le point essentiel à comprendre : cette commission ne réduit pas les gains de votre filleul. Elle est versée en plus, par la plateforme, comme une récompense pour avoir fait grandir la communauté. C''est un système gagnant-gagnant.</p>
 
 <h2>Pourquoi parle-t-on de revenus "passifs" ?</h2>
-<p>Une fois qu''un filleul est actif, vous continues de percevoir des commissions sur son activité sans avoir à intervenir. Votre travail initial (l''inviter et l''encourager à démarrer) continue de porter ses fruits dans le temps. C''est ce qui distingue le revenu passif du revenu actif : vous n''échanges plus votre temps contre de l''argent à chaque fois.</p>
+<p>Une fois qu''un filleul est actif, vous continuez de percevoir des commissions sur son activité sans avoir à intervenir. Votre travail initial (l''inviter et l''encourager à démarrer) continue de porter ses fruits dans le temps. C''est ce qui distingue le revenu passif du revenu actif : vous n''échanges plus votre temps contre de l''argent à chaque fois.</p>
 <p>Attention toutefois : "passif" ne veut pas dire "sans aucun effort". Construire un réseau de filleuls actifs demande un investissement de départ. Mais cet effort est rentabilisé sur la durée.</p>
 
 <h2>Comment recruter des filleuls ?</h2>
@@ -628,5 +628,5 @@ UPDATE `blog_posts` SET
 <p>Évite les pratiques douteuses comme le spam ou les promesses mensongères : elles peuvent vous nuire à long terme et ternir votre réputation. La transparence et l''authenticité sont vos meilleurs atouts.</p>
 
 <h2>Conclusion</h2>
-<p>Le parrainage est une opportunité réelle de générer des revenus complémentaires durables, à condition de l''aborder avec sérieux. Recrute intelligemment, privilégie l''engagement à la quantité, accompagne vos filleuls et inscrivez votre action dans la durée. Bien mené, un réseau de parrainage peut devenir l''une de vos sources de gains les plus précieuses, travaillant pour vous même quand vous vous reposes.</p>'
+<p>Le parrainage est une opportunité réelle de générer des revenus complémentaires durables, à condition de l''aborder avec sérieux. Recrute intelligemment, privilégie l''engagement à la quantité, accompagne vos filleuls et inscrivez votre action dans la durée. Bien mené, un réseau de parrainage peut devenir l''une de vos sources de gains les plus précieuses, travaillant pour vous même quand vous vous reposez.</p>'
 WHERE `slug` = 'parrainage-revenus-passifs-comment-ca-marche';

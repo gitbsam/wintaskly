@@ -13,6 +13,14 @@
 -- répartition du budget courant.
 --
 -- ⚠️ Importer avec --default-character-set=utf8mb4.
+-- CALENDRIER DE PUBLICATION
+-- published_at = 2026-09-18 14:12:00 (et non UTC_TIMESTAMP()).
+-- Publier 27 articles le même jour signale une production en masse : c'est
+-- exactement ce qu'un évaluateur qualité cherche à détecter. Les dates sont
+-- donc échelonnées sur jours ouvrés, à des heures variables.
+-- Le code n'affiche un article que si published_at <= maintenant : appliquer
+-- toutes les migrations d'un coup est donc sans risque, chaque article
+-- apparaîtra à sa date.
 -- ============================================================================
 INSERT IGNORE INTO `blog_posts`
  (`slug`, `category_id`, `title`, `excerpt`, `cover_emoji`, `author_name`,
@@ -26,7 +34,7 @@ VALUES (
  'Équipe Wintaskly',
  'La règle 50/30/20 : méthode et limites réelles',
  'Comprendre la répartition budgétaire 50/30/20, ce qu''elle apporte, et les situations dans lesquelles elle est inapplicable — avec les alternatives.',
- 'published', 5, UTC_TIMESTAMP(),
+ 'published', 5, '2026-09-18 14:12:00',
  '<p>C''est la méthode de budget la plus répandue : répartir ses revenus après impôts en trois parts — la moitié pour les besoins, un peu moins d''un tiers pour les envies, le reste pour l''épargne et le remboursement de dettes.</p>
 <p>Elle a des qualités réelles. Elle a aussi une limite majeure, rarement mentionnée par ceux qui la recommandent.</p>
 

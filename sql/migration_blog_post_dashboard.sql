@@ -28,12 +28,12 @@ VALUES (
 <p>C''est dommage, parce que cette page n''est pas un simple affichage décoratif. C''est un outil de pilotage. Voici comment lire chacune de ses parties, et ce que la plupart des utilisateurs ne remarquent jamais.</p>
 
 <h2>Le solde : ce qu''il dit et ce qu''il ne dit pas</h2>
-<p>Le <strong>solde</strong> affiche vos coins disponibles. Rien de compliqué. Mais un détail passe souvent inaperçu : ce chiffre est un état à l''instant T, pas une trajectoire. Il ne vous dit pas si vous progresses plus vite ou moins vite que la semaine dernière.</p>
+<p>Le <strong>solde</strong> affiche vos coins disponibles. Rien de compliqué. Mais un détail passe souvent inaperçu : ce chiffre est un état à l''instant T, pas une trajectoire. Il ne vous dit pas si vous progressez plus vite ou moins vite que la semaine dernière.</p>
 <p>Pour cette information, il faut regarder ailleurs sur la page — et c''est justement l''intérêt des autres indicateurs.</p>
 
 <h2>Le niveau : l''indicateur de progression long terme</h2>
 <p>Le <strong>niveau</strong> reflète votre activité cumulée sur la plateforme, via l''XP accumulée en accomplissant des tâches. Contrairement au solde, qui baisse quand vous retirez, le niveau ne recule jamais : il mesure votre parcours, pas votre portefeuille.</p>
-<p>Un indicateur de progression t''indique ce qu''il vous reste avant le niveau suivant. C''est une information utile quand vous hésites à faire une dernière tâche avant de fermer : savoir que vous êtes proche d''un palier change souvent la décision.</p>
+<p>Un indicateur de progression vous indique ce qu''il vous reste avant le niveau suivant. C''est une information utile quand vous hésitez à faire une dernière tâche avant de fermer : savoir que vous êtes proche d''un palier change souvent la décision.</p>
 
 <h2>Le graphique des gains : le vrai outil de pilotage</h2>
 <p>C''est probablement l''élément le plus sous-utilisé de la page. Le graphique <strong>« Mes gains »</strong> affiche vos gains sur les <strong>sept derniers jours</strong>.</p>
@@ -42,7 +42,7 @@ VALUES (
 
 <h2>L''historique récent : pour vérifier, pas seulement pour contempler</h2>
 <p>L''<strong>historique récent</strong> liste vos dernières transactions. Beaucoup le survolent, alors qu''il a une utilité concrète : <strong>vérifier</strong>.</p>
-<p>C''est là que vous confirmes qu''une tâche a bien été créditée. Si vous avez un doute sur une validation — une offre partenaire, une annonce PTC — c''est le premier endroit à consulter avant de contacter le support. Souvent, la réponse y est déjà, et cela évite une attente inutile.</p>
+<p>C''est là que vous confirmez qu''une tâche a bien été créditée. Si vous avez un doute sur une validation — une offre partenaire, une annonce PTC — c''est le premier endroit à consulter avant de contacter le support. Souvent, la réponse y est déjà, et cela évite une attente inutile.</p>
 
 <h2>Le bonus quotidien et la série : ne casse pas la chaîne</h2>
 <p>Le <strong>bonus quotidien</strong> est affiché directement sur le tableau de bord, avec votre <strong>série de jours consécutifs</strong>. C''est volontaire : c''est l''une des rares mécaniques où l''oubli d''une seule journée a un coût réel.</p>

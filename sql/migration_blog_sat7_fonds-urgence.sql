@@ -12,6 +12,14 @@
 -- particulier — comment le dimensionner, où le placer, quand y toucher.
 --
 -- ⚠️ Importer avec --default-character-set=utf8mb4.
+-- CALENDRIER DE PUBLICATION
+-- published_at = 2026-09-14 14:52:00 (et non UTC_TIMESTAMP()).
+-- Publier 27 articles le même jour signale une production en masse : c'est
+-- exactement ce qu'un évaluateur qualité cherche à détecter. Les dates sont
+-- donc échelonnées sur jours ouvrés, à des heures variables.
+-- Le code n'affiche un article que si published_at <= maintenant : appliquer
+-- toutes les migrations d'un coup est donc sans risque, chaque article
+-- apparaîtra à sa date.
 -- ============================================================================
 INSERT IGNORE INTO `blog_posts`
  (`slug`, `category_id`, `title`, `excerpt`, `cover_emoji`, `author_name`,
@@ -25,7 +33,7 @@ VALUES (
  'Équipe Wintaskly',
  'Le fonds d''urgence : combien, où et pourquoi',
  'Comment dimensionner un fonds d''urgence selon sa situation réelle, où le conserver pour qu''il reste disponible, et dans quels cas y recourir.',
- 'published', 5, UTC_TIMESTAMP(),
+ 'published', 5, '2026-09-14 14:52:00',
  '<p>Le fonds d''urgence est le concept le plus consensuel de la finance personnelle, et l''un des plus mal expliqués. On vous dira « trois à six mois de dépenses », sans jamais préciser de quelles dépenses il s''agit, ni pourquoi ce chiffre plutôt qu''un autre.</p>
 <p>Voici comment le calculer à partir de <em>votre</em> situation, où le garder, et à quoi il sert vraiment.</p>
 

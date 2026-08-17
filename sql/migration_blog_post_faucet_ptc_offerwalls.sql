@@ -21,21 +21,21 @@ VALUES (
  'Faucet, PTC ou offerwalls : comparatif complet pour choisir la tâche la plus adaptée à votre temps disponible et à vos objectifs de gains sur Wintaskly.',
  'published', 5, UTC_TIMESTAMP(),
  '<p>Sur Wintaskly, vous avez le choix entre plusieurs types de tâches pour gagner des coins : faucet, PTC, shortlinks, offerwalls... Mais laquelle privilégier ? La réponse dépend surtout d''une chose : <strong>votre profil</strong>. Le temps que vous avez devant vous, votre objectif de gains, et la façon dont vous utilisez la plateforme au quotidien changent complètement la réponse.</p>
-<p>Ce guide compare les trois piliers de Wintaskly pour t''aider à construire votre propre routine, plutôt que de suivre un modèle unique qui ne vous correspond pas forcément.</p>
+<p>Ce guide compare les trois piliers de Wintaskly pour vous aider à construire votre propre routine, plutôt que de suivre un modèle unique qui ne vous correspond pas forcément.</p>
 
 <h2>Le faucet : pour les micro-pauses</h2>
 <p>Le faucet, c''est la tâche la plus simple qui existe sur la plateforme. Un clic, un court délai d''attente, et c''est réclamé. Aucune compétence, aucune attention particulière requise.</p>
-<p><strong>Votre profil si vous privilégies le faucet :</strong> vous avez des micro-moments dans la journée (une pause café, une file d''attente, entrez deux tâches au travail) et vous voulez les rentabiliser sans y penser. Le faucet est aussi la meilleure porte d''entrée pour construire une série (streak) quotidienne — la régularité y compte plus que l''intensité.</p>
+<p><strong>Votre profil si vous privilégiez le faucet :</strong> vous avez des micro-moments dans la journée (une pause café, une file d''attente, entrez deux tâches au travail) et vous voulez les rentabiliser sans y penser. Le faucet est aussi la meilleure porte d''entrée pour construire une série (streak) quotidienne — la régularité y compte plus que l''intensité.</p>
 <p>Sa limite : le gain par réclamation reste modeste. Ce n''est pas la tâche qui fera grimper votre solde rapidement, mais elle ne demande presque aucun effort.</p>
 
 <h2>Le PTC : pour du passif pendant que vous faites autre chose</h2>
-<p>Le PTC (Paid-To-Click) fonctionne différemment : vous lances une annonce, un minuteur se déclenche, et vous devez rester sur la fenêtre jusqu''à la fin pour être crédité. C''est un cran au-dessus du faucet en termes de gains, pour un effort qui reste minimal.</p>
-<p><strong>Votre profil si vous privilégies le PTC :</strong> vous êtes devant votre écran un moment (en train de lire, d''attendre un téléchargement, de suivre un cours en ligne) et vous pouvez laisser un onglet ouvert en arrière-plan. Attention cependant : contrairement au faucet, le PTC exige de rester présent jusqu''au bout — fermer la fenêtre trop tôt annule la validation.</p>
+<p>Le PTC (Paid-To-Click) fonctionne différemment : vous lancez une annonce, un minuteur se déclenche, et vous devez rester sur la fenêtre jusqu''à la fin pour être crédité. C''est un cran au-dessus du faucet en termes de gains, pour un effort qui reste minimal.</p>
+<p><strong>Votre profil si vous privilégiez le PTC :</strong> vous êtes devant votre écran un moment (en train de lire, d''attendre un téléchargement, de suivre un cours en ligne) et vous pouvez laisser un onglet ouvert en arrière-plan. Attention cependant : contrairement au faucet, le PTC exige de rester présent jusqu''au bout — fermer la fenêtre trop tôt annule la validation.</p>
 <p>C''est une tâche idéale à enchaîner plusieurs fois de suite si vous avez dix minutes devant vous, mais elle demande un minimum de disponibilité continue, contrairement au faucet que vous pouvez réclamer en trois secondes et oublier.</p>
 
 <h2>Les offerwalls : pour maximiser vos gains quand vous avez du temps</h2>
 <p>Les offerwalls regroupent des offres proposées par des partenaires : sondages, tests d''applications, inscriptions à des services. C''est de loin la catégorie qui rapporte le plus par tâche accomplie — mais c''est aussi celle qui demande le plus de temps et d''engagement.</p>
-<p><strong>Votre profil si vous privilégies les offerwalls :</strong> vous avez une vraie session devant vous (le soir, le week-end) et votre objectif est d''atteindre un seuil de retrait plus rapidement plutôt que de grappiller quelques coins entre deux portes. Certaines offres prennent quelques minutes, d''autres beaucoup plus — lisez toujours les conditions avant de commencer une offre pour éviter les mauvaises surprises.</p>
+<p><strong>Votre profil si vous privilégiez les offerwalls :</strong> vous avez une vraie session devant vous (le soir, le week-end) et votre objectif est d''atteindre un seuil de retrait plus rapidement plutôt que de grappiller quelques coins entre deux portes. Certaines offres prennent quelques minutes, d''autres beaucoup plus — lisez toujours les conditions avant de commencer une offre pour éviter les mauvaises surprises.</p>
 <p>C''est la tâche à privilégier si votre objectif est clairement orienté résultat : convertir vos coins en argent réel le plus efficacement possible.</p>
 
 <h2>Et les shortlinks dans tout ça ?</h2>

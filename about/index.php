@@ -40,14 +40,33 @@ include __DIR__ . '/../header.php';
 
     <div class="wt-legal-v2__content">
 
+      <?php
+        /* Numérotation automatique des sections.
+           La section « chiffres » est conditionnelle : quand elle ne
+           s'affiche pas (aucun membre encore), des numéros écrits en dur
+           laissaient un trou visible — la page passait de 3 à 5. */
+        $n = 0;
+      ?>
       <section class="wt-legal-v2__section">
-        <h2>1. <?= e(t('about.h_mission')) ?></h2>
+        <h2><?= ++$n ?>. <?= e(t('about.h_mission')) ?></h2>
         <p><?= e(t('about.mission_p1')) ?></p>
         <p><?= e(t('about.mission_p2')) ?></p>
       </section>
 
+      <?php /* Origine du projet — la question « pourquoi ce site existe-t-il ? »
+               est celle qu'un visiteur méfiant se pose en premier, et celle
+               qu'aucune plateforme de ce secteur ne traite. Y répondre est le
+               signal d'expertise le plus direct qu'une page « À propos »
+               puisse porter. */ ?>
       <section class="wt-legal-v2__section">
-        <h2>2. <?= e(t('about.h_how')) ?></h2>
+        <h2><?= ++$n ?>. <?= e(t('about.h_origin')) ?></h2>
+        <p><?= e(t('about.origin_p1')) ?></p>
+        <p><?= e(t('about.origin_p2')) ?></p>
+        <p><?= e(t('about.origin_p3')) ?></p>
+      </section>
+
+      <section class="wt-legal-v2__section">
+        <h2><?= ++$n ?>. <?= e(t('about.h_how')) ?></h2>
         <p><?= e(t('about.how_p1')) ?></p>
         <ul class="wt-legal-v2__list">
           <li><?= e(t('about.how_li1')) ?></li>
@@ -61,7 +80,7 @@ include __DIR__ . '/../header.php';
       </section>
 
       <section class="wt-legal-v2__section">
-        <h2>3. <?= e(t('about.h_values')) ?></h2>
+        <h2><?= ++$n ?>. <?= e(t('about.h_values')) ?></h2>
         <ul class="wt-legal-v2__list">
           <li><strong><?= e(t('about.value1_t')) ?> :</strong> <?= e(t('about.value1_d')) ?></li>
           <li><strong><?= e(t('about.value2_t')) ?> :</strong> <?= e(t('about.value2_d')) ?></li>
@@ -72,25 +91,25 @@ include __DIR__ . '/../header.php';
 
       <?php if ($statsUsers > 0): ?>
       <section class="wt-legal-v2__section">
-        <h2>4. <?= e(t('about.h_numbers')) ?></h2>
+        <h2><?= ++$n ?>. <?= e(t('about.h_numbers')) ?></h2>
         <p><?= e(sprintf((string) t('about.numbers_p'), number_format($statsUsers, 0, '.', ' '))) ?></p>
       </section>
       <?php endif; ?>
 
       <section class="wt-legal-v2__section">
-        <h2>5. <?= e(t('about.h_future')) ?></h2>
+        <h2><?= ++$n ?>. <?= e(t('about.h_future')) ?></h2>
         <p><?= e(t('about.future_p')) ?></p>
       </section>
 
       <section class="wt-legal-v2__section">
-        <h2>6. <?= e(t('about.h_model')) ?></h2>
+        <h2><?= ++$n ?>. <?= e(t('about.h_model')) ?></h2>
         <p><?= e(t('about.model_p1')) ?></p>
         <p><?= e(t('about.model_p2')) ?></p>
         <p><?= e(t('about.model_p3')) ?></p>
       </section>
 
       <section class="wt-legal-v2__section">
-        <h2>7. <?= e(t('about.h_expect')) ?></h2>
+        <h2><?= ++$n ?>. <?= e(t('about.h_expect')) ?></h2>
         <p><?= e(t('about.expect_p1')) ?></p>
         <ul>
           <li><?= e(t('about.expect_li1')) ?></li>
@@ -101,7 +120,7 @@ include __DIR__ . '/../header.php';
       </section>
 
       <section class="wt-legal-v2__section">
-        <h2>8. <?= e(t('about.h_contact')) ?></h2>
+        <h2><?= ++$n ?>. <?= e(t('about.h_contact')) ?></h2>
         <p>
           <?= e(t('about.contact_p')) ?>
           <a href="<?= e(wt_url('/help/contact.php')) ?>"><?= e(t('about.contact_link')) ?></a>.

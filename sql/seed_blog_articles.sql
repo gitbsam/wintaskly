@@ -16,22 +16,22 @@ VALUES (
  'guide-debutant-gagner-coins-wintaskly',
  (SELECT id FROM blog_categories WHERE slug='guides'),
  'Guide du débutant : comment gagner tes premiers coins sur Wintaskly',
- 'Tu débutes sur Wintaskly ? Ce guide complet t''explique pas à pas comment créer ton compte, réaliser tes premières tâches et accumuler tes premiers coins efficacement.',
+ 'Tu débutes sur Wintaskly ? Ce guide complet vous explique pas à pas comment créer ton compte, réaliser tes premières tâches et accumuler tes premiers coins efficacement.',
  '🚀',
  'Équipe Wintaskly',
  'Guide débutant Wintaskly : gagner ses premiers coins (2026)',
  'Apprends à gagner tes premiers coins sur Wintaskly : inscription, faucet, raccourcisseurs de liens, PTC et offres. Guide pas à pas pour bien démarrer.',
  'published', 6, UTC_TIMESTAMP(),
- '<p>Bienvenue sur Wintaskly ! Si tu viens de découvrir notre plateforme de micro-gains, tu te demandes sûrement par où commencer. Ce guide complet va t''accompagner pas à pas, depuis la création de ton compte jusqu''à tes premiers retraits.</p>
+ '<p>Bienvenue sur Wintaskly ! Si tu viens de découvrir notre plateforme de micro-gains, tu te demandes sûrement par où commencer. Ce guide complet va vous accompagner pas à pas, depuis la création de ton compte jusqu''à tes premiers retraits.</p>
 
 <h2>Qu''est-ce que Wintaskly exactement ?</h2>
 <p>Wintaskly est une plateforme de type GPT (Get-Paid-To, ou "payé pour faire"). Le principe est simple : tu réalises de petites tâches en ligne et tu gagnes des <strong>coins</strong>, une monnaie virtuelle que tu peux ensuite convertir et retirer. Ces tâches ne demandent aucune compétence particulière : il suffit d''un peu de temps libre et d''une connexion internet.</p>
 <p>Contrairement à beaucoup d''idées reçues, ce type de plateforme ne te rendra pas riche du jour au lendemain. En revanche, utilisée régulièrement et intelligemment, elle peut constituer un complément intéressant pour arrondir tes fins de mois.</p>
 
 <h2>Étape 1 : créer ton compte</h2>
-<p>La première étape est évidemment de t''inscrire. Le processus prend moins de deux minutes :</p>
+<p>La première étape est évidemment de vous inscrire. Le processus prend moins de deux minutes :</p>
 <ul>
-<li>Clique sur le bouton d''inscription en haut de la page.</li>
+<li>Cliquez sur le bouton d''inscription en haut de la page.</li>
 <li>Renseigne ton adresse e-mail et choisis un mot de passe solide.</li>
 <li>Valide ton adresse e-mail en cliquant sur le lien que tu recevras.</li>
 </ul>
@@ -71,11 +71,11 @@ VALUES (
 <ul>
 <li><strong>Vouloir aller trop vite.</strong> Les micro-gains demandent du temps. Méfie-toi de toute promesse de gains rapides et énormes.</li>
 <li><strong>Négliger la régularité.</strong> Une visite quotidienne, même courte, est bien plus rentable que de longues sessions espacées.</li>
-<li><strong>Ignorer le système de parrainage.</strong> Inviter des amis peut considérablement augmenter tes gains sur le long terme.</li>
+<li><strong>Ignorer le système de parrainage.</strong> Inviter des amis peut considérablement augmenter vos gains sur le long terme.</li>
 </ul>
 
 <h2>En résumé</h2>
-<p>Gagner tes premiers coins sur Wintaskly est à la portée de tous. Crée ton compte, explore les différentes tâches, adopte une routine régulière, et sois patient. Les micro-gains récompensent la constance bien plus que l''intensité. À toi de jouer !</p>'
+<p>Gagner tes premiers coins sur Wintaskly est à la portée de tous. Crée ton compte, explorez les différentes tâches, adoptez une routine régulière, et sois patient. Les micro-gains récompensent la constance bien plus que l''intensité. À toi de jouer !</p>'
 );
 
 -- Article 2 — Crypto pour débutants (catégorie: crypto)
@@ -92,7 +92,7 @@ VALUES (
  'Cryptomonnaie pour débutants : guide des bases (2026)',
  'Comprendre la cryptomonnaie facilement : blockchain, wallet, Bitcoin, frais de réseau. Guide pédagogique pour débutants qui veulent se lancer sereinement.',
  'published', 7, UTC_TIMESTAMP(),
- '<p>La cryptomonnaie est partout : dans les médias, les conversations, et de plus en plus dans les paiements en ligne. Pourtant, pour beaucoup, ce domaine reste flou et intimidant. Si tu reçois des paiements en crypto ou que tu envisages de t''y intéresser, ce guide va t''éclairer sur les notions fondamentales, sans jargon inutile.</p>
+ '<p>La cryptomonnaie est partout : dans les médias, les conversations, et de plus en plus dans les paiements en ligne. Pourtant, pour beaucoup, ce domaine reste flou et intimidant. Si tu reçois des paiements en crypto ou que tu envisages de vous y intéresser, ce guide va vous éclairer sur les notions fondamentales, sans jargon inutile.</p>
 
 <h2>Qu''est-ce qu''une cryptomonnaie ?</h2>
 <p>Une cryptomonnaie est une monnaie numérique qui fonctionne sans banque centrale ni autorité unique. Au lieu d''être gérée par une institution, elle repose sur un réseau d''ordinateurs répartis dans le monde entier. Cette absence d''intermédiaire central est l''une des caractéristiques les plus importantes de la crypto.</p>
@@ -143,14 +143,14 @@ INSERT IGNORE INTO `blog_posts`
 VALUES (
  'astuces-maximiser-gains-plateforme-gpt',
  (SELECT id FROM blog_categories WHERE slug='astuces'),
- '7 astuces pour maximiser tes gains sur une plateforme de micro-tâches',
- 'Tu veux tirer le meilleur parti de ton temps sur Wintaskly ? Découvre 7 stratégies concrètes et éprouvées pour augmenter tes gains sans y passer tes journées.',
+ '7 astuces pour maximiser vos gains sur une plateforme de micro-tâches',
+ 'Tu veux tirer le meilleur parti de ton temps sur Wintaskly ? Découvre 7 stratégies concrètes et éprouvées pour augmenter vos gains sans y passer tes journées.',
  '💡',
  'Équipe Wintaskly',
  '7 astuces pour maximiser ses gains sur un site GPT (2026)',
- 'Augmente tes gains sur les plateformes de micro-tâches : régularité, parrainage, bonus quotidien, choix des tâches. 7 astuces concrètes et efficaces.',
+ 'Augmente vos gains sur les plateformes de micro-tâches : régularité, parrainage, bonus quotidien, choix des tâches. 7 astuces concrètes et efficaces.',
  'published', 5, UTC_TIMESTAMP(),
- '<p>Sur une plateforme de micro-tâches, deux personnes peuvent passer le même temps et obtenir des résultats très différents. La différence ? La stratégie. Voici sept astuces concrètes pour optimiser tes gains et faire fructifier chaque minute investie.</p>
+ '<p>Sur une plateforme de micro-tâches, deux personnes peuvent passer le même temps et obtenir des résultats très différents. La différence ? La stratégie. Voici sept astuces concrètes pour optimiser vos gains et faire fructifier chaque minute investie.</p>
 
 <h2>1. Mise sur la régularité plutôt que l''intensité</h2>
 <p>C''est le conseil numéro un, et pour cause. Les plateformes GPT récompensent la fidélité. Une visite quotidienne de dix minutes rapporte généralement bien plus qu''une session de deux heures une fois par semaine. Pourquoi ? Parce que de nombreux mécanismes (bonus quotidien, faucet, séries de connexion) se basent sur ta présence régulière.</p>
@@ -161,8 +161,8 @@ VALUES (
 <h2>3. Choisis les tâches les plus rentables au temps investi</h2>
 <p>Toutes les tâches ne se valent pas. Pour optimiser, calcule mentalement le rapport entre la récompense et le temps nécessaire. Les raccourcisseurs de liens, par exemple, offrent souvent un excellent rendement : quelques secondes pour une récompense correcte. Les offres partenaires rapportent gros mais demandent plus d''engagement. Adapte ton choix au temps dont tu disposes.</p>
 
-<h2>4. Exploite le parrainage</h2>
-<p>Le parrainage est sans doute le levier le plus puissant pour augmenter tes gains sur le long terme. En invitant des amis, tu touches généralement une commission sur leurs gains, sans que cela ne réduise les leurs. Partage ton lien de parrainage sur tes réseaux, dans des communautés intéressées, ou auprès de proches. Quelques filleuls actifs peuvent transformer tes revenus.</p>
+<h2>4. Exploitez le parrainage</h2>
+<p>Le parrainage est sans doute le levier le plus puissant pour augmenter vos gains sur le long terme. En invitant des amis, tu touches généralement une commission sur leurs gains, sans que cela ne réduise les leurs. Partage ton lien de parrainage sur tes réseaux, dans des communautés intéressées, ou auprès de proches. Quelques filleuls actifs peuvent transformer tes revenus.</p>
 
 <h2>5. Débloque les succès et récompenses</h2>
 <p>Beaucoup de plateformes proposent des systèmes de succès (achievements) qui récompensent l''atteinte de certains objectifs : un certain nombre de tâches réalisées, une série de connexions, un palier de gains. Garde un œil sur ces objectifs : ils représentent des bonus non négligeables que tu peux viser activement.</p>
@@ -185,13 +185,13 @@ VALUES (
  'securite-ligne-proteger-compte-arnaques',
  (SELECT id FROM blog_categories WHERE slug='guides'),
  'Sécurité en ligne : comment protéger ton compte et éviter les arnaques',
- 'Protéger ton compte et tes gains est essentiel. Découvre les bonnes pratiques de sécurité, les signes d''une arnaque, et les réflexes à adopter pour naviguer sereinement.',
+ 'Protéger ton compte et vos gains est essentiel. Découvre les bonnes pratiques de sécurité, les signes d''une arnaque, et les réflexes à adopter pour naviguer sereinement.',
  '🔒',
  'Équipe Wintaskly',
  'Sécurité en ligne : protéger son compte et éviter les arnaques',
  'Guide de sécurité en ligne : mots de passe forts, authentification à deux facteurs, détection des arnaques et phishing. Protège ton compte efficacement.',
  'published', 6, UTC_TIMESTAMP(),
- '<p>Sur internet, ta sécurité dépend largement de tes habitudes. Que tu utilises une plateforme de micro-gains, une messagerie ou un service bancaire, les principes de protection restent les mêmes. Ce guide te donne les réflexes essentiels pour protéger ton compte, tes gains et tes données personnelles.</p>
+ '<p>Sur internet, ta sécurité dépend largement de tes habitudes. Que tu utilises une plateforme de micro-gains, une messagerie ou un service bancaire, les principes de protection restent les mêmes. Ce guide te donne les réflexes essentiels pour protéger ton compte, vos gains et tes données personnelles.</p>
 
 <h2>Un mot de passe solide : ta première ligne de défense</h2>
 <p>Le mot de passe est la base de ta sécurité, et pourtant il est souvent négligé. Un bon mot de passe doit être :</p>
@@ -207,7 +207,7 @@ VALUES (
 <p>Active la 2FA partout où elle est disponible. C''est l''une des mesures les plus efficaces pour empêcher les accès non autorisés, et elle ne prend que quelques secondes à utiliser au quotidien.</p>
 
 <h2>Reconnaître les tentatives de phishing</h2>
-<p>Le phishing (hameçonnage) est une technique d''arnaque très répandue. Le principe : te faire croire que tu communiques avec un service légitime pour te soutirer tes identifiants ou tes informations. Voici les signes qui doivent t''alerter :</p>
+<p>Le phishing (hameçonnage) est une technique d''arnaque très répandue. Le principe : te faire croire que tu communiques avec un service légitime pour te soutirer tes identifiants ou tes informations. Voici les signes qui doivent vous alerter :</p>
 <ul>
 <li>Un e-mail ou un message qui crée un sentiment d''urgence ("ton compte va être suspendu !").</li>
 <li>Des fautes d''orthographe ou une formulation maladroite.</li>
@@ -250,13 +250,13 @@ VALUES (
  'parrainage-revenus-passifs-comment-ca-marche',
  (SELECT id FROM blog_categories WHERE slug='astuces'),
  'Le parrainage : la clé pour générer des revenus passifs en ligne',
- 'Le parrainage est l''un des moyens les plus efficaces d''augmenter ses gains sur le long terme. On t''explique comment ça fonctionne et comment bâtir un réseau actif.',
+ 'Le parrainage est l''un des moyens les plus efficaces d''augmenter ses gains sur le long terme. On vous explique comment ça fonctionne et comment bâtir un réseau actif.',
  '👥',
  'Équipe Wintaskly',
  'Le parrainage en ligne : générer des revenus passifs (guide 2026)',
  'Comprendre le parrainage : commissions, revenus passifs, comment recruter des filleuls actifs et bâtir un réseau durable. Guide complet et conseils pratiques.',
  'published', 5, UTC_TIMESTAMP(),
- '<p>Et si une partie de tes gains pouvait être générée par d''autres personnes, sans effort supplémentaire de ta part ? C''est exactement la promesse du parrainage. Souvent sous-estimé par les débutants, c''est pourtant l''un des leviers les plus puissants pour augmenter durablement ses revenus en ligne. Voyons comment en tirer parti.</p>
+ '<p>Et si une partie de vos gains pouvait être générée par d''autres personnes, sans effort supplémentaire de ta part ? C''est exactement la promesse du parrainage. Souvent sous-estimé par les débutants, c''est pourtant l''un des leviers les plus puissants pour augmenter durablement ses revenus en ligne. Voyons comment en tirer parti.</p>
 
 <h2>Qu''est-ce que le parrainage exactement ?</h2>
 <p>Le parrainage consiste à inviter de nouvelles personnes à rejoindre une plateforme grâce à ton lien personnel. Lorsqu''une personne s''inscrit via ce lien, elle devient ton "filleul". En retour, tu touches généralement une commission sur l''activité de tes filleuls.</p>

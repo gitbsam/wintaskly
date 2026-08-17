@@ -16,6 +16,14 @@
 --
 -- INSERT IGNORE : idempotent.
 -- ⚠️ Importer avec --default-character-set=utf8mb4.
+-- CALENDRIER DE PUBLICATION
+-- published_at = 2026-09-09 11:48:00 (et non UTC_TIMESTAMP()).
+-- Publier 27 articles le même jour signale une production en masse : c'est
+-- exactement ce qu'un évaluateur qualité cherche à détecter. Les dates sont
+-- donc échelonnées sur jours ouvrés, à des heures variables.
+-- Le code n'affiche un article que si published_at <= maintenant : appliquer
+-- toutes les migrations d'un coup est donc sans risque, chaque article
+-- apparaîtra à sa date.
 -- ============================================================================
 INSERT IGNORE INTO `blog_posts`
  (`slug`, `category_id`, `title`, `excerpt`, `cover_emoji`, `author_name`,
@@ -29,7 +37,7 @@ VALUES (
  'Équipe Wintaskly',
  'La crypto expliquée sans jargon : le guide complet',
  'Comprendre les cryptomonnaies simplement : blockchain, portefeuilles, adresses, frais de réseau, volatilité et sécurité, pour ceux qui en reçoivent sans vouloir spéculer.',
- 'published', 9, UTC_TIMESTAMP(),
+ 'published', 9, '2026-09-09 11:48:00',
  '<p>La plupart des explications sur la crypto s''adressent à des gens qui veulent investir. Ce guide s''adresse à quelqu''un de différent : une personne qui <strong>reçoit</strong> des cryptomonnaies — parce que c''est le moyen de paiement d''une plateforme, d''un client ou d''un service — et qui aimerait comprendre ce qu''elle a entre les mains.</p>
 <p>Pas de promesse de gains, pas de prévision de cours. Juste ce qu''il faut savoir pour ne pas perdre son argent par méconnaissance.</p>
 

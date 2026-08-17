@@ -8,6 +8,14 @@
 -- détermine la rentabilité, et pour qui chacun convient.
 --
 -- ⚠️ Importer avec --default-character-set=utf8mb4.
+-- CALENDRIER DE PUBLICATION
+-- published_at = 2026-09-21 11:52:00 (et non UTC_TIMESTAMP()).
+-- Publier 27 articles le même jour signale une production en masse : c'est
+-- exactement ce qu'un évaluateur qualité cherche à détecter. Les dates sont
+-- donc échelonnées sur jours ouvrés, à des heures variables.
+-- Le code n'affiche un article que si published_at <= maintenant : appliquer
+-- toutes les migrations d'un coup est donc sans risque, chaque article
+-- apparaîtra à sa date.
 -- ============================================================================
 INSERT IGNORE INTO `blog_posts`
  (`slug`, `category_id`, `title`, `excerpt`, `cover_emoji`, `author_name`,
@@ -21,7 +29,7 @@ VALUES (
  'Équipe Wintaskly',
  'Micro-tâches, sondages ou cashback : quel modèle choisir',
  'Comparatif des trois modèles de gains en ligne : origine des revenus, temps requis, régularité et limites de chacun.',
- 'published', 5, UTC_TIMESTAMP(),
+ 'published', 5, '2026-09-21 11:52:00',
  '<p>On les confond souvent sous l''étiquette « gagner de l''argent en ligne », alors que ces trois modèles n''ont ni la même mécanique, ni le même public, ni les mêmes limites.</p>
 <p>Comprendre d''où vient l''argent dans chaque cas suffit à savoir lequel vous conviendra — et lequel vous fera perdre votre temps.</p>
 

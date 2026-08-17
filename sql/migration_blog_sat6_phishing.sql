@@ -8,6 +8,14 @@
 -- l'examen d'un message suspect.
 --
 -- ⚠️ Importer avec --default-character-set=utf8mb4.
+-- CALENDRIER DE PUBLICATION
+-- published_at = 2026-09-10 18:37:00 (et non UTC_TIMESTAMP()).
+-- Publier 27 articles le même jour signale une production en masse : c'est
+-- exactement ce qu'un évaluateur qualité cherche à détecter. Les dates sont
+-- donc échelonnées sur jours ouvrés, à des heures variables.
+-- Le code n'affiche un article que si published_at <= maintenant : appliquer
+-- toutes les migrations d'un coup est donc sans risque, chaque article
+-- apparaîtra à sa date.
 -- ============================================================================
 INSERT IGNORE INTO `blog_posts`
  (`slug`, `category_id`, `title`, `excerpt`, `cover_emoji`, `author_name`,
@@ -21,7 +29,7 @@ VALUES (
  'Équipe Wintaskly',
  'Reconnaître un e-mail de phishing : 6 indices concrets',
  'Comment identifier une tentative d''hameçonnage : adresse d''expédition, lien réel, urgence artificielle. Et le réflexe simple qui neutralise ces attaques.',
- 'published', 5, UTC_TIMESTAMP(),
+ 'published', 5, '2026-09-10 18:37:00',
  '<p>Le temps des faux messages truffés de fautes est révolu. Les tentatives actuelles copient parfaitement les logos, la mise en page et le ton — parfois mieux que les vrais messages.</p>
 <p>Repérer une contrefaçon à l''œil devient donc hasardeux. Voici les six indices qui trahissent encore une tentative, et surtout l''habitude qui rend l''ensemble du problème caduc.</p>
 

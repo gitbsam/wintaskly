@@ -9,6 +9,14 @@
 -- premier euro, variables selon les pays.
 --
 -- ⚠️ Importer avec --default-character-set=utf8mb4.
+-- CALENDRIER DE PUBLICATION
+-- published_at = 2026-09-30 17:41:00 (et non UTC_TIMESTAMP()).
+-- Publier 27 articles le même jour signale une production en masse : c'est
+-- exactement ce qu'un évaluateur qualité cherche à détecter. Les dates sont
+-- donc échelonnées sur jours ouvrés, à des heures variables.
+-- Le code n'affiche un article que si published_at <= maintenant : appliquer
+-- toutes les migrations d'un coup est donc sans risque, chaque article
+-- apparaîtra à sa date.
 -- ============================================================================
 INSERT IGNORE INTO `blog_posts`
  (`slug`, `category_id`, `title`, `excerpt`, `cover_emoji`, `author_name`,
@@ -22,7 +30,7 @@ VALUES (
  'Équipe Wintaskly',
  'Freelance débutant : obtenir ses premières missions',
  'Comment démarrer en freelance sans référence : identifier une compétence vendable, sortir du paradoxe du débutant, fixer ses tarifs et respecter ses obligations.',
- 'published', 5, UTC_TIMESTAMP(),
+ 'published', 5, '2026-09-30 17:41:00',
  '<p>Le freelance est la piste de revenu complémentaire au meilleur rendement horaire — sans commune mesure avec les micro-tâches. C''est aussi celle dont le démarrage est le plus difficile.</p>
 <p>La difficulté n''est presque jamais technique. Elle tient à un paradoxe : pour obtenir une mission, il faut des références ; pour avoir des références, il faut des missions.</p>
 

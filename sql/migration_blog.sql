@@ -54,7 +54,7 @@ CREATE TABLE IF NOT EXISTS `blog_posts` (
 INSERT IGNORE INTO `blog_categories` (`slug`, `name`, `description`, `sort_order`) VALUES
  ('guides',      'Guides',          'Tutoriels pas à pas pour bien démarrer',          10),
  ('crypto',      'Crypto',          'Comprendre les cryptomonnaies et les paiements',  20),
- ('astuces',     'Astuces',         'Conseils pour optimiser tes gains',               30),
+ ('astuces',     'Astuces',         'Conseils pour optimiser vos gains',               30),
  ('actualites',  'Actualités',      'Nouveautés et mises à jour de la plateforme',     40);
 
 -- 4) Config blog

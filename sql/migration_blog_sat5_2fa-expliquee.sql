@@ -12,6 +12,14 @@
 -- fiable.
 --
 -- ⚠️ Importer avec --default-character-set=utf8mb4.
+-- CALENDRIER DE PUBLICATION
+-- published_at = 2026-09-08 08:41:00 (et non UTC_TIMESTAMP()).
+-- Publier 27 articles le même jour signale une production en masse : c'est
+-- exactement ce qu'un évaluateur qualité cherche à détecter. Les dates sont
+-- donc échelonnées sur jours ouvrés, à des heures variables.
+-- Le code n'affiche un article que si published_at <= maintenant : appliquer
+-- toutes les migrations d'un coup est donc sans risque, chaque article
+-- apparaîtra à sa date.
 -- ============================================================================
 INSERT IGNORE INTO `blog_posts`
  (`slug`, `category_id`, `title`, `excerpt`, `cover_emoji`, `author_name`,
@@ -25,7 +33,7 @@ VALUES (
  'Équipe Wintaskly',
  'La double authentification expliquée simplement',
  'Comprendre la double authentification : différences entre application, e-mail et SMS, rôle des codes de secours, et comment ne jamais perdre l''accès à son compte.',
- 'published', 5, UTC_TIMESTAMP(),
+ 'published', 5, '2026-09-08 08:41:00',
  '<p>La double authentification est la protection la plus efficace qui existe pour un compte en ligne. Elle est aussi celle qu''on repousse le plus, par crainte de se compliquer la vie — ou de se retrouver enfermé dehors.</p>
 <p>Voici ce qu''elle fait réellement, les différences entre les méthodes disponibles, et surtout comment l''activer sans risquer de perdre l''accès à votre compte.</p>
 

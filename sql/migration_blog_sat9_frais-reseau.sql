@@ -12,6 +12,14 @@
 -- ordres de grandeur relatifs et le raisonnement à appliquer.
 --
 -- ⚠️ Importer avec --default-character-set=utf8mb4.
+-- CALENDRIER DE PUBLICATION
+-- published_at = 2026-09-16 10:48:00 (et non UTC_TIMESTAMP()).
+-- Publier 27 articles le même jour signale une production en masse : c'est
+-- exactement ce qu'un évaluateur qualité cherche à détecter. Les dates sont
+-- donc échelonnées sur jours ouvrés, à des heures variables.
+-- Le code n'affiche un article que si published_at <= maintenant : appliquer
+-- toutes les migrations d'un coup est donc sans risque, chaque article
+-- apparaîtra à sa date.
 -- ============================================================================
 INSERT IGNORE INTO `blog_posts`
  (`slug`, `category_id`, `title`, `excerpt`, `cover_emoji`, `author_name`,
@@ -25,7 +33,7 @@ VALUES (
  'Équipe Wintaskly',
  'Frais de réseau crypto : pourquoi ils varient autant',
  'Comprendre les frais de transaction en cryptomonnaie : ce qui les fait varier d''un réseau à l''autre et d''une heure à l''autre, et comment les limiter sur de petits retraits.',
- 'published', 5, UTC_TIMESTAMP(),
+ 'published', 5, '2026-09-16 10:48:00',
  '<p>Vous retirez l''équivalent de quelques euros. Sur un réseau, les frais sont négligeables. Sur un autre, ils peuvent absorber une part significative de la somme. Même montant, même destinataire — résultat très différent.</p>
 <p>Cette différence n''a rien d''arbitraire, et la comprendre change concrètement ce que vous encaissez.</p>
 

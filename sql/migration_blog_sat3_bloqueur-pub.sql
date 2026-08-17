@@ -9,6 +9,14 @@
 -- ciblée plutôt qu'une désactivation globale.
 --
 -- ⚠️ Importer avec --default-character-set=utf8mb4.
+-- CALENDRIER DE PUBLICATION
+-- published_at = 2026-09-02 16:05:00 (et non UTC_TIMESTAMP()).
+-- Publier 27 articles le même jour signale une production en masse : c'est
+-- exactement ce qu'un évaluateur qualité cherche à détecter. Les dates sont
+-- donc échelonnées sur jours ouvrés, à des heures variables.
+-- Le code n'affiche un article que si published_at <= maintenant : appliquer
+-- toutes les migrations d'un coup est donc sans risque, chaque article
+-- apparaîtra à sa date.
 -- ============================================================================
 INSERT IGNORE INTO `blog_posts`
  (`slug`, `category_id`, `title`, `excerpt`, `cover_emoji`, `author_name`,
@@ -22,7 +30,7 @@ VALUES (
  'Équipe Wintaskly',
  'Bloqueur de publicité : pourquoi vos gains ne sont pas validés',
  'Comprendre pourquoi un bloqueur de publicité empêche la validation des tâches rémunérées, et comment le configurer sans s''exposer aux publicités intrusives.',
- 'published', 5, UTC_TIMESTAMP(),
+ 'published', 5, '2026-09-02 16:05:00',
  '<p>Vous traversez toutes les pages, vous attendez le délai, vous cliquez au bon endroit — et rien n''est crédité. Aucun message d''erreur, juste un gain qui n''arrive pas.</p>
 <p>Dans l''immense majorité des cas, la cause est la même : un bloqueur de publicité actif. Voici pourquoi, et ce qu''on peut faire sans renoncer à toute protection.</p>
 

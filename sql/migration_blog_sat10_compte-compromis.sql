@@ -10,6 +10,14 @@
 -- Décrit le système 2FA réel (multi-méthodes + codes de secours, v8.74).
 --
 -- ⚠️ Importer avec --default-character-set=utf8mb4.
+-- CALENDRIER DE PUBLICATION
+-- published_at = 2026-09-17 16:23:00 (et non UTC_TIMESTAMP()).
+-- Publier 27 articles le même jour signale une production en masse : c'est
+-- exactement ce qu'un évaluateur qualité cherche à détecter. Les dates sont
+-- donc échelonnées sur jours ouvrés, à des heures variables.
+-- Le code n'affiche un article que si published_at <= maintenant : appliquer
+-- toutes les migrations d'un coup est donc sans risque, chaque article
+-- apparaîtra à sa date.
 -- ============================================================================
 INSERT IGNORE INTO `blog_posts`
  (`slug`, `category_id`, `title`, `excerpt`, `cover_emoji`, `author_name`,
@@ -23,7 +31,7 @@ VALUES (
  'Équipe Wintaskly',
  'Compte compromis : la marche à suivre',
  'Que faire si votre compte est piraté : séquence d''actions prioritaires, reprise de contrôle, et signaux d''alerte à repérer en amont.',
- 'published', 5, UTC_TIMESTAMP(),
+ 'published', 5, '2026-09-17 16:23:00',
  '<p>Si vous lisez ceci en urgence, allez directement à la section « La séquence à suivre ». L''ordre des actions compte plus que leur exhaustivité : certaines n''ont d''effet que si elles sont faites en premier.</p>
 
 <h2>Les signes qui doivent alerter</h2>

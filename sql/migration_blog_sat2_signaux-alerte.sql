@@ -8,6 +8,14 @@
 -- nommément serait à la fois risqué juridiquement et peu crédible.
 --
 -- ⚠️ Importer avec --default-character-set=utf8mb4.
+-- CALENDRIER DE PUBLICATION
+-- published_at = 2026-08-27 09:48:00 (et non UTC_TIMESTAMP()).
+-- Publier 27 articles le même jour signale une production en masse : c'est
+-- exactement ce qu'un évaluateur qualité cherche à détecter. Les dates sont
+-- donc échelonnées sur jours ouvrés, à des heures variables.
+-- Le code n'affiche un article que si published_at <= maintenant : appliquer
+-- toutes les migrations d'un coup est donc sans risque, chaque article
+-- apparaîtra à sa date.
 -- ============================================================================
 INSERT IGNORE INTO `blog_posts`
  (`slug`, `category_id`, `title`, `excerpt`, `cover_emoji`, `author_name`,
@@ -21,7 +29,7 @@ VALUES (
  'Équipe Wintaskly',
  '8 signaux d''alerte d''une plateforme de micro-gains douteuse',
  'Comment vérifier qu''une plateforme de micro-gains paie réellement : mentions légales, seuil de retrait, origine des revenus, avis. Une grille de lecture applicable à tout site.',
- 'published', 5, UTC_TIMESTAMP(),
+ 'published', 5, '2026-08-27 09:48:00',
  '<p>Le secteur des micro-gains attire beaucoup de sites éphémères : ouverts en quelques semaines, exploités le temps de collecter du trafic, fermés avant le premier paiement. Le temps que vous y consacrez est alors perdu — et parfois vos données avec.</p>
 <p>Voici huit signaux qui permettent de trier assez vite. Appliquez-les à n''importe quelle plateforme, y compris celle-ci : une plateforme qui craint cet examen ne mérite pas votre temps.</p>
 

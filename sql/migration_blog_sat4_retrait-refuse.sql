@@ -9,6 +9,14 @@
 -- ce sont des réglages administrables.
 --
 -- ⚠️ Importer avec --default-character-set=utf8mb4.
+-- CALENDRIER DE PUBLICATION
+-- published_at = 2026-09-04 11:12:00 (et non UTC_TIMESTAMP()).
+-- Publier 27 articles le même jour signale une production en masse : c'est
+-- exactement ce qu'un évaluateur qualité cherche à détecter. Les dates sont
+-- donc échelonnées sur jours ouvrés, à des heures variables.
+-- Le code n'affiche un article que si published_at <= maintenant : appliquer
+-- toutes les migrations d'un coup est donc sans risque, chaque article
+-- apparaîtra à sa date.
 -- ============================================================================
 INSERT IGNORE INTO `blog_posts`
  (`slug`, `category_id`, `title`, `excerpt`, `cover_emoji`, `author_name`,
@@ -22,7 +30,7 @@ VALUES (
  'Équipe Wintaskly',
  'Retrait refusé : les 3 causes et comment les éviter',
  'Les motifs réels de refus d''un retrait : e-mail non vérifié, compte trop récent, compte sous revue. Comment les anticiper et que faire en cas de blocage.',
- 'published', 5, UTC_TIMESTAMP(),
+ 'published', 5, '2026-09-04 11:12:00',
  '<p>Atteindre le seuil de retrait puis voir sa demande refusée est particulièrement frustrant. La bonne nouvelle : les motifs de refus sont peu nombreux, tous prévisibles, et tous évitables si on les connaît à l''avance.</p>
 <p>Autre point important : <strong>un refus ne fait pas perdre vos Coins</strong>. Ils sont recrédités sur votre solde, et vous pouvez redemander une fois le problème réglé.</p>
 

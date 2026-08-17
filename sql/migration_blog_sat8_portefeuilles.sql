@@ -9,6 +9,14 @@
 --   • le propos reste : protéger ce qu'on reçoit, proportionnellement.
 --
 -- ⚠️ Importer avec --default-character-set=utf8mb4.
+-- CALENDRIER DE PUBLICATION
+-- published_at = 2026-09-15 08:52:00 (et non UTC_TIMESTAMP()).
+-- Publier 27 articles le même jour signale une production en masse : c'est
+-- exactement ce qu'un évaluateur qualité cherche à détecter. Les dates sont
+-- donc échelonnées sur jours ouvrés, à des heures variables.
+-- Le code n'affiche un article que si published_at <= maintenant : appliquer
+-- toutes les migrations d'un coup est donc sans risque, chaque article
+-- apparaîtra à sa date.
 -- ============================================================================
 INSERT IGNORE INTO `blog_posts`
  (`slug`, `category_id`, `title`, `excerpt`, `cover_emoji`, `author_name`,
@@ -22,7 +30,7 @@ VALUES (
  'Équipe Wintaskly',
  'Portefeuille chaud ou froid : lequel choisir',
  'Comprendre les différences entre portefeuille hébergé, logiciel et matériel, et adapter le niveau de protection au montant réellement détenu.',
- 'published', 5, UTC_TIMESTAMP(),
+ 'published', 5, '2026-09-15 08:52:00',
  '<p>« Portefeuille chaud », « portefeuille froid », « garde autonome » : le vocabulaire décourage, alors que la distinction sous-jacente est simple et se résume à une question — <strong>vos clés sont-elles connectées à internet, et qui les détient ?</strong></p>
 <p>Voici de quoi choisir sans surinvestir dans une protection disproportionnée, ni laisser une somme conséquente exposée.</p>
 

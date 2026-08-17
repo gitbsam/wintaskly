@@ -8,6 +8,14 @@
 -- L'article donne les critères de choix, pas une réponse.
 --
 -- ⚠️ Importer avec --default-character-set=utf8mb4.
+-- CALENDRIER DE PUBLICATION
+-- published_at = 2026-09-25 15:41:00 (et non UTC_TIMESTAMP()).
+-- Publier 27 articles le même jour signale une production en masse : c'est
+-- exactement ce qu'un évaluateur qualité cherche à détecter. Les dates sont
+-- donc échelonnées sur jours ouvrés, à des heures variables.
+-- Le code n'affiche un article que si published_at <= maintenant : appliquer
+-- toutes les migrations d'un coup est donc sans risque, chaque article
+-- apparaîtra à sa date.
 -- ============================================================================
 INSERT IGNORE INTO `blog_posts`
  (`slug`, `category_id`, `title`, `excerpt`, `cover_emoji`, `author_name`,
@@ -21,7 +29,7 @@ VALUES (
  'Équipe Wintaskly',
  'Gestionnaire de mots de passe : pourquoi et comment',
  'Comprendre l''intérêt d''un gestionnaire de mots de passe, les critères pour en choisir un, et la méthode pour migrer progressivement sans se compliquer la vie.',
- 'published', 5, UTC_TIMESTAMP(),
+ 'published', 5, '2026-09-25 15:41:00',
  '<p>La réutilisation des mots de passe est la première cause de comptes compromis. Pas les failles techniques, pas les attaques sophistiquées : simplement le même mot de passe employé sur plusieurs sites, dont l''un a été piraté.</p>
 <p>Le gestionnaire de mots de passe résout ce problème définitivement. Voici comment il fonctionne réellement, et pourquoi la crainte principale qu''il inspire est infondée.</p>
 

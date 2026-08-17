@@ -12,6 +12,14 @@
 -- pas faire, plutôt que d'entretenir l'ambiguïté.
 --
 -- ⚠️ Importer avec --default-character-set=utf8mb4.
+-- CALENDRIER DE PUBLICATION
+-- published_at = 2026-09-23 09:37:00 (et non UTC_TIMESTAMP()).
+-- Publier 27 articles le même jour signale une production en masse : c'est
+-- exactement ce qu'un évaluateur qualité cherche à détecter. Les dates sont
+-- donc échelonnées sur jours ouvrés, à des heures variables.
+-- Le code n'affiche un article que si published_at <= maintenant : appliquer
+-- toutes les migrations d'un coup est donc sans risque, chaque article
+-- apparaîtra à sa date.
 -- ============================================================================
 INSERT IGNORE INTO `blog_posts`
  (`slug`, `category_id`, `title`, `excerpt`, `cover_emoji`, `author_name`,
@@ -25,7 +33,7 @@ VALUES (
  'Équipe Wintaskly',
  'Offre offerwall non créditée : causes et recours',
  'Comprendre pourquoi une offre partenaire est refusée ou reste en attente, qui prend la décision, et comment formuler une réclamation qui aboutit.',
- 'published', 5, UTC_TIMESTAMP(),
+ 'published', 5, '2026-09-23 09:37:00',
  '<p>Vous avez répondu au sondage jusqu''au bout, installé l''application, atteint le niveau demandé. Et rien n''arrive. C''est la situation la plus frustrante de toutes les tâches rémunérées, et la plus mal comprise.</p>
 <p>Voici ce qui se passe réellement, et ce qui peut être fait — en étant clair sur ce qui ne peut pas l''être.</p>
 

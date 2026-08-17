@@ -114,6 +114,10 @@ return [
     'about.mission_p1' => 'Wintaskly lets anyone turn a bit of their free time into real rewards, by taking part in advertising campaigns and offers from verified partners.',
     'about.mission_p2' => 'Our goal is to make this process simple, transparent and secure: no unrealistic promises, clear rules, and an anti-fraud system that protects reward value for everyone.',
     'about.h_how' => 'How the platform works',
+    'about.h_origin'           => 'Why Wintaskly exists',
+    'about.origin_p1'          => 'Wintaskly grew out of a simple observation, made while testing a dozen micro-earning platforms ourselves: most of them work, but almost none explain what they do. Withdrawal thresholds set so high they are never reached, rules that change without notice, earnings figures shown on the home page with no indication of where they come from, and support that goes quiet when a payment is late.',
+    'about.origin_p2'          => 'The project is built and run from Réunion Island by an independent developer. It is not a large company, and we have no reason to hide that: it means limited resources, but also that no investor is waiting for a quick return at your expense. Decisions are made on what holds up over time, not on a quarterly growth target.',
+    'about.origin_p3'          => 'The aim is therefore not to be the platform that promises the most, but the one whose rules are written down, stable and verifiable. That is also why we publish a public anti-fraud policy, an editorial policy, and articles that honestly set out the limits of this model — including when it does not suit us.',
     'about.how_p1' => 'Rewards distributed on Wintaskly come from several sources, each with its own validation rules:',
     'about.how_li1' => 'Faucet: a free claim every 3 hours.',
     'about.how_li2' => 'Shortlinks and PTC: short advertising campaigns, validated after a minimum viewing time.',
@@ -650,6 +654,8 @@ return [
     'nav.tasks'                     => 'Tasks',
     // Blog system
     'nav.blog'                      => 'Blog',
+    'pwa.install_title'          => 'Install Wintaskly',
+    'pwa.install_text'           => 'Reach the faucet in one tap from your home screen',
 
     // Double authentification multi-methodes
     'mail.twofa.subject'               => 'Your Wintaskly login code',

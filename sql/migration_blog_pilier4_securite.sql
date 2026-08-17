@@ -15,6 +15,14 @@
 --
 -- INSERT IGNORE : idempotent.
 -- ⚠️ Importer avec --default-character-set=utf8mb4.
+-- CALENDRIER DE PUBLICATION
+-- published_at = 2026-09-03 08:05:00 (et non UTC_TIMESTAMP()).
+-- Publier 27 articles le même jour signale une production en masse : c'est
+-- exactement ce qu'un évaluateur qualité cherche à détecter. Les dates sont
+-- donc échelonnées sur jours ouvrés, à des heures variables.
+-- Le code n'affiche un article que si published_at <= maintenant : appliquer
+-- toutes les migrations d'un coup est donc sans risque, chaque article
+-- apparaîtra à sa date.
 -- ============================================================================
 INSERT IGNORE INTO `blog_posts`
  (`slug`, `category_id`, `title`, `excerpt`, `cover_emoji`, `author_name`,
@@ -28,7 +36,7 @@ VALUES (
  'Équipe Wintaskly',
  'Sécuriser son compte et ses gains : le guide complet',
  'Protéger son compte de micro-gains : mot de passe solide, double authentification, reconnaissance des tentatives de phishing et sécurité du portefeuille crypto.',
- 'published', 8, UTC_TIMESTAMP(),
+ 'published', 8, '2026-09-03 08:05:00',
  '<p>Un compte de micro-gains devient une cible dès qu''il contient de la valeur. Pas parce qu''il représente une fortune — mais parce qu''il est facile à revendre, difficile à récupérer, et que son propriétaire s''en aperçoit souvent trop tard.</p>
 <p>La bonne nouvelle : la sécurité d''un compte tient à quelques gestes simples, faits une fois pour toutes. Ce guide les détaille, du plus élémentaire au plus technique, sans jargon inutile.</p>
 

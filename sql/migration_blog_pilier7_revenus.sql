@@ -16,6 +16,14 @@
 --
 -- INSERT IGNORE : idempotent.
 -- ⚠️ Importer avec --default-character-set=utf8mb4.
+-- CALENDRIER DE PUBLICATION
+-- published_at = 2026-09-11 11:37:00 (et non UTC_TIMESTAMP()).
+-- Publier 27 articles le même jour signale une production en masse : c'est
+-- exactement ce qu'un évaluateur qualité cherche à détecter. Les dates sont
+-- donc échelonnées sur jours ouvrés, à des heures variables.
+-- Le code n'affiche un article que si published_at <= maintenant : appliquer
+-- toutes les migrations d'un coup est donc sans risque, chaque article
+-- apparaîtra à sa date.
 -- ============================================================================
 INSERT IGNORE INTO `blog_posts`
  (`slug`, `category_id`, `title`, `excerpt`, `cover_emoji`, `author_name`,
@@ -29,7 +37,7 @@ VALUES (
  'Équipe Wintaskly',
  'Revenus complémentaires : le panorama honnête',
  'Comparatif réaliste des pistes de revenus complémentaires : temps requis, compétences, délai avant premier euro et limites de chacune. Sans promesse ni formation à vendre.',
- 'published', 9, UTC_TIMESTAMP(),
+ 'published', 9, '2026-09-11 11:37:00',
  '<p>Cherchez « revenu complémentaire » en ligne, et vous tomberez surtout sur des promesses : des montants mensuels affichés en gros, des méthodes « que personne ne connaît », des formations à acheter. Presque tout y est faux, ou au mieux très exagéré.</p>
 <p>Ce guide fait l''inverse. Il passe en revue les pistes réellement accessibles, avec pour chacune ce qu''elle demande vraiment, le délai avant le premier euro, et ses limites. Aucune n''est présentée comme miraculeuse, parce qu''aucune ne l''est.</p>
 

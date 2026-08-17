@@ -88,7 +88,7 @@ include __DIR__ . '/../header.php';
         <section id="types">
           <h2>2. <?= e(t('legal.cookies.h_types_title')) ?></h2>
 
-          <h3 class="wt-legal-v2__sub">🔧 <?= e(t('legal.cookies.essential_title')) ?></h3>
+          <h3 class="wt-legal-v2__sub"><?= e(t('legal.cookies.essential_title')) ?></h3>
           <p><?= e(t('legal.cookies.essential_body')) ?></p>
           <div class="wt-table-wrap">
             <table class="wt-table wt-legal-v2__table">
@@ -134,10 +134,10 @@ include __DIR__ . '/../header.php';
             </table>
           </div>
 
-          <h3 class="wt-legal-v2__sub">📊 <?= e(t('legal.cookies.analytics_title')) ?></h3>
+          <h3 class="wt-legal-v2__sub"><?= e(t('legal.cookies.analytics_title')) ?></h3>
           <p><?= e(t('legal.cookies.analytics_body')) ?></p>
 
-          <h3 class="wt-legal-v2__sub">📢 <?= e(t('legal.cookies.ads_title')) ?></h3>
+          <h3 class="wt-legal-v2__sub"><?= e(t('legal.cookies.ads_title')) ?></h3>
           <p><?= e(t('legal.cookies.ads_body')) ?></p>
 
           <!-- Durées des cookies tiers : exigée par la CNIL au même titre

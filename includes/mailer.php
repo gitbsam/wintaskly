@@ -446,20 +446,20 @@ final class WtMailer
 
         switch ($kind) {
             case 'verify_email':
-                $subject = function_exists('t') ? t('mail.verify.subject') : 'Vérifie ton adresse e-mail';
+                $subject = function_exists('t') ? t('mail.verify.subject') : 'Vérifiez votre adresse e-mail';
                 $title   = function_exists('t') ? t('mail.verify.title')   : 'Bienvenue sur Wintaskly';
-                $body    = function_exists('t') ? t('mail.verify.body')    : 'Confirme ton adresse en cliquant sur le bouton ci-dessous.';
+                $body    = function_exists('t') ? t('mail.verify.body')    : 'Confirmez votre adresse en cliquant sur le bouton ci-dessous.';
                 $cta     = function_exists('t') ? t('mail.verify.cta')     : 'Vérifier mon adresse';
                 $notice  = function_exists('t') ? t('mail.verify.notice')  : 'Ce lien expire dans 24 heures.';
                 $accent  = '#2563eb'; // bleu électrique
                 break;
 
             case 'reset_password':
-                $subject = function_exists('t') ? t('mail.reset.subject') : 'Réinitialise ton mot de passe';
+                $subject = function_exists('t') ? t('mail.reset.subject') : 'Réinitialisez votre mot de passe';
                 $title   = function_exists('t') ? t('mail.reset.title')   : 'Réinitialisation de mot de passe';
-                $body    = function_exists('t') ? t('mail.reset.body')    : 'Tu as demandé à réinitialiser ton mot de passe. Clique sur le bouton ci-dessous pour en choisir un nouveau.';
+                $body    = function_exists('t') ? t('mail.reset.body')    : 'Vous avez demandé à réinitialiser votre mot de passe. Cliquez sur le bouton ci-dessous pour en choisir un nouveau.';
                 $cta     = function_exists('t') ? t('mail.reset.cta')     : 'Choisir un nouveau mot de passe';
-                $notice  = function_exists('t') ? t('mail.reset.notice')  : 'Ce lien expire dans 1 heure. Si tu n\'es pas à l\'origine de cette demande, ignore ce message.';
+                $notice  = function_exists('t') ? t('mail.reset.notice')  : 'Ce lien expire dans 1 heure. Si vous n\'êtes pas à l\'origine de cette demande, ignorez ce message.';
                 $accent  = '#f59e0b'; // or premium
                 break;
 
@@ -489,9 +489,9 @@ final class WtMailer
             default:
                 $subject = function_exists('t') ? t('mail.alert.subject') : 'Alerte de sécurité Wintaskly';
                 $title   = function_exists('t') ? t('mail.alert.title')   : 'Connexion détectée';
-                $body    = (string)($vars['body'] ?? 'Une activité notable a été détectée sur ton compte.');
+                $body    = (string)($vars['body'] ?? 'Une activité notable a été détectée sur votre compte.');
                 $cta     = function_exists('t') ? t('mail.alert.cta')     : 'Vérifier mon compte';
-                $notice  = function_exists('t') ? t('mail.alert.notice')  : 'Si tu es à l\'origine de cette action, tu peux ignorer ce message.';
+                $notice  = function_exists('t') ? t('mail.alert.notice')  : 'Si vous êtes à l\'origine de cette action, vous pouvez ignorer ce message.';
                 $accent  = '#dc2626';
                 break;
         }
@@ -556,7 +556,7 @@ final class WtMailer
               </td></tr>
               <tr><td align="center" style="padding:0 24px 16px">
                 <p style="margin:0;color:#94a3b8;font:13px/1.5 Manrope,Arial,sans-serif">
-                  Ou copie ce lien dans ton navigateur :<br>
+                  Ou copiez ce lien dans votre navigateur :<br>
                   <a href="' . $e($v['link']) . '" style="color:#93c5fd;word-break:break-all">' . $e($v['link']) . '</a>
                 </p>
               </td></tr>';

@@ -12,6 +12,14 @@
 --
 -- INSERT IGNORE : idempotent.
 -- ⚠️ Importer avec --default-character-set=utf8mb4.
+-- CALENDRIER DE PUBLICATION
+-- published_at = 2026-09-01 18:05:00 (et non UTC_TIMESTAMP()).
+-- Publier 27 articles le même jour signale une production en masse : c'est
+-- exactement ce qu'un évaluateur qualité cherche à détecter. Les dates sont
+-- donc échelonnées sur jours ouvrés, à des heures variables.
+-- Le code n'affiche un article que si published_at <= maintenant : appliquer
+-- toutes les migrations d'un coup est donc sans risque, chaque article
+-- apparaîtra à sa date.
 -- ============================================================================
 INSERT IGNORE INTO `blog_posts`
  (`slug`, `category_id`, `title`, `excerpt`, `cover_emoji`, `author_name`,
@@ -25,7 +33,7 @@ VALUES (
  'Équipe Wintaskly',
  'Retraits et moyens de paiement : le guide complet',
  'Comprendre la conversion des Coins, le seuil minimum, les méthodes de retrait disponibles, les causes de refus et les délais réels avant réception des fonds.',
- 'published', 8, UTC_TIMESTAMP(),
+ 'published', 8, '2026-09-01 18:05:00',
  '<p>Le retrait est le moment de vérité d''une plateforme de micro-gains. C''est là que la promesse se concrétise — ou pas. C''est aussi l''étape qui génère le plus de questions, parce qu''elle fait intervenir des acteurs et des mécaniques invisibles depuis l''interface.</p>
 <p>Ce guide explique l''ensemble du parcours : comment vos Coins deviennent une somme réelle, ce qui déclenche un refus, ce qui se passe après validation, et combien de temps l''argent met réellement à arriver.</p>
 

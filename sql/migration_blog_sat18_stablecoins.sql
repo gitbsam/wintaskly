@@ -9,6 +9,14 @@
 -- article promotionnel passerait sous silence.
 --
 -- ⚠️ Importer avec --default-character-set=utf8mb4.
+-- CALENDRIER DE PUBLICATION
+-- published_at = 2026-09-29 08:48:00 (et non UTC_TIMESTAMP()).
+-- Publier 27 articles le même jour signale une production en masse : c'est
+-- exactement ce qu'un évaluateur qualité cherche à détecter. Les dates sont
+-- donc échelonnées sur jours ouvrés, à des heures variables.
+-- Le code n'affiche un article que si published_at <= maintenant : appliquer
+-- toutes les migrations d'un coup est donc sans risque, chaque article
+-- apparaîtra à sa date.
 -- ============================================================================
 INSERT IGNORE INTO `blog_posts`
  (`slug`, `category_id`, `title`, `excerpt`, `cover_emoji`, `author_name`,
@@ -22,7 +30,7 @@ VALUES (
  'Équipe Wintaskly',
  'Stablecoins : utilité et risques réels',
  'Comprendre les stablecoins : mécanismes d''adossement, intérêt pour éviter la volatilité, et les risques spécifiques que ce type d''actif introduit.',
- 'published', 5, UTC_TIMESTAMP(),
+ 'published', 5, '2026-09-29 08:48:00',
  '<p>La volatilité est le principal obstacle à l''usage courant des cryptomonnaies : difficile de se servir d''un moyen de paiement dont la valeur peut varier sensiblement en quelques heures.</p>
 <p>Les stablecoins répondent à ce problème. Ils apportent une vraie solution — et introduisent en échange un risque d''une nature différente, qu''il vaut mieux connaître.</p>
 

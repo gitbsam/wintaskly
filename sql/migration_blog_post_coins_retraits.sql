@@ -16,18 +16,18 @@ VALUES (
  'coins-conversion-retrait-minimum-comment-ca-marche',
  (SELECT id FROM blog_categories WHERE slug='guides'),
  'Coins, conversion, retrait minimum : comment ça marche vraiment',
- 'Vous accumules des coins mais vous ne savez pas exactement comment ils deviennent de l''argent réel ? Voici le mécanisme complet, du solde affiché au paiement reçu.',
+ 'Vous accumulez des coins mais vous ne savez pas exactement comment ils deviennent de l''argent réel ? Voici le mécanisme complet, du solde affiché au paiement reçu.',
  '💰',
  'Équipe Wintaskly',
  'Coins Wintaskly : conversion, seuil de retrait et paiement expliqués',
  'Comprendre les coins Wintaskly : comment fonctionne la conversion, pourquoi il existe un seuil minimum de retrait, et ce qui se passe après votre demande.',
  'published', 6, UTC_TIMESTAMP(),
- '<p>Vous réclamez votre faucet, vous enchaînes quelques tâches, votre solde grimpe. Puis vient la question que tout le monde se pose tôt ou tard : <strong>comment ces coins deviennent-ils concrètement de l''argent sur mon compte ?</strong></p>
+ '<p>Vous réclamez votre faucet, vous enchaînez quelques tâches, votre solde grimpe. Puis vient la question que tout le monde se pose tôt ou tard : <strong>comment ces coins deviennent-ils concrètement de l''argent sur mon compte ?</strong></p>
 <p>Le mécanisme est simple une fois qu''on l''a en tête, mais plusieurs notions se mélangent souvent : le taux de conversion, le seuil minimum, la méthode de paiement, et le délai de traitement. Démêlons tout ça.</p>
 
 <h2>Le coin : une unité de compte, pas une monnaie</h2>
 <p>Le coin n''est pas une cryptomonnaie et n''a pas de cours qui fluctue. C''est une <strong>unité de compte interne</strong> à la plateforme : une façon simple de mesurer ce que vous avez gagné, quelle que soit la tâche accomplie.</p>
-<p>Pourquoi ne pas afficher directement des euros ou des dollars ? Parce que les tâches rapportent des montants très petits. Compter en coins permet d''afficher des nombres lisibles plutôt que des fractions de centime à quatre décimales, et de garder le même repère quelle que soit la devise de retrait que vous choisiras ensuite.</p>
+<p>Pourquoi ne pas afficher directement des euros ou des dollars ? Parce que les tâches rapportent des montants très petits. Compter en coins permet d''afficher des nombres lisibles plutôt que des fractions de centime à quatre décimales, et de garder le même repère quelle que soit la devise de retrait que vous choisirez ensuite.</p>
 
 <h2>Le taux de conversion : de coins à argent réel</h2>
 <p>Chaque méthode de retrait possède son propre taux de conversion : un nombre de coins qui correspond à une unité de la devise concernée. C''est ce taux qui traduit votre solde en montant réel au moment de la demande.</p>

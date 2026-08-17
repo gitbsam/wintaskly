@@ -28,13 +28,13 @@ VALUES (
 <p>On la mesure en pourcentage annuel. Une inflation de 3 % signifie qu''en moyenne, ce qui coûtait 100 € l''an dernier coûte environ 103 € cette année. Rien d''alarmant sur un an, mais l''effet s''accumule.</p>
 
 <h2>L''autre face du miroir : votre argent perd du pouvoir d''achat</h2>
-<p>Voici le point que beaucoup de gens saisissent de travers. L''inflation ne fait pas seulement monter les prix : elle fait <strong>baisser la valeur réelle de l''argent que vous possèdes</strong>. Ce sont les deux faces de la même pièce.</p>
+<p>Voici le point que beaucoup de gens saisissent de travers. L''inflation ne fait pas seulement monter les prix : elle fait <strong>baisser la valeur réelle de l''argent que vous possédez</strong>. Ce sont les deux faces de la même pièce.</p>
 <p>Prenons un exemple concret. Vous mettez 1 000 € de côté sur un compte qui ne rapporte rien. Un an plus tard, vous avez toujours 1 000 € sur votre relevé — le chiffre n''a pas bougé. Mais si les prix ont augmenté de 3 % pendant ce temps, ces 1 000 € achètent désormais l''équivalent de ce que 970 € achetaient un an plus tôt. Vous n''as rien perdu sur le papier, et pourtant vous avez bel et bien perdu.</p>
 <p>C''est ce qu''on appelle la différence entre la valeur <em>nominale</em> (le chiffre affiché) et la valeur <em>réelle</em> (ce que ce chiffre permet réellement d''acheter).</p>
 
 <h2>L''effet cumulé : le vrai piège</h2>
 <p>Sur un an, 3 % passent presque inaperçus. Le problème, c''est que l''inflation se cumule année après année, un peu comme des intérêts — mais à l''envers, contre vous.</p>
-<p>À 3 % par an, une somme laissée dormante perd environ un quart de son pouvoir d''achat en une dizaine d''années. Ce n''est plus un détail : c''est un vrai transfert de valeur, silencieux, qui ne t''envoie aucune notification.</p>
+<p>À 3 % par an, une somme laissée dormante perd environ un quart de son pouvoir d''achat en une dizaine d''années. Ce n''est plus un détail : c''est un vrai transfert de valeur, silencieux, qui ne vous envoie aucune notification.</p>
 <p>C''est pour cette raison que les conseillers financiers répètent qu''un compte courant n''est pas un outil d''épargne. Il est fait pour faire transiter de l''argent, pas pour le conserver longtemps.</p>
 
 <h2>Pourquoi les prix montent-ils ?</h2>

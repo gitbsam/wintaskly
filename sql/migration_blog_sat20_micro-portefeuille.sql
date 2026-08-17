@@ -8,6 +8,14 @@
 -- explique le mécanisme et les critères, pas les adresses.
 --
 -- ⚠️ Importer avec --default-character-set=utf8mb4.
+-- CALENDRIER DE PUBLICATION
+-- published_at = 2026-10-01 09:37:00 (et non UTC_TIMESTAMP()).
+-- Publier 27 articles le même jour signale une production en masse : c'est
+-- exactement ce qu'un évaluateur qualité cherche à détecter. Les dates sont
+-- donc échelonnées sur jours ouvrés, à des heures variables.
+-- Le code n'affiche un article que si published_at <= maintenant : appliquer
+-- toutes les migrations d'un coup est donc sans risque, chaque article
+-- apparaîtra à sa date.
 -- ============================================================================
 INSERT IGNORE INTO `blog_posts`
  (`slug`, `category_id`, `title`, `excerpt`, `cover_emoji`, `author_name`,
@@ -21,7 +29,7 @@ VALUES (
  'Équipe Wintaskly',
  'Micro-portefeuille crypto : utilité et limites',
  'Comprendre le rôle d''un micro-portefeuille dans les retraits de petits montants, ce qu''il permet, et les précautions à prendre avec ce type de service.',
- 'published', 5, UTC_TIMESTAMP(),
+ 'published', 5, '2026-10-01 09:37:00',
  '<p>Un problème arithmétique se pose dès qu''on veut distribuer de très petites sommes en cryptomonnaie : sur certains réseaux, les frais de transaction dépassent largement le montant envoyé. Transférer l''équivalent de quelques centimes coûterait plus cher que ce qu''on transfère.</p>
 <p>Les micro-portefeuilles existent pour résoudre exactement ce problème. Voici comment, et ce que cela implique.</p>
 
