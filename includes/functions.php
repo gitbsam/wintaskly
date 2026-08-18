@@ -80,13 +80,30 @@ function award_user(int $userId, float $coins, int $xp, string $type, ?string $m
                 $stmt->execute();
                 $stmt->close();
 
+                /* Journal des commissions — alimente la page de parrainage.
+                 *
+                 * ⚠️ Cette insertion peut échouer SILENCIEUSEMENT si la
+                 * colonne `source` est un ENUM qui n'accepte pas encore
+                 * 'ptc' et 'offerwall' (base non migrée). Le parrain était
+                 * alors bien crédité — la transaction, elle, passe — mais
+                 * la page affichait un total sous-évalué, voire zéro.
+                 *
+                 * On journalise donc l'échec au lieu de le laisser passer :
+                 * un écart entre le solde et le total affiché doit être
+                 * visible dans les logs, pas découvert par l'utilisateur. */
                 $stmt = $db->prepare(
                     "INSERT INTO referral_earnings
                        (referrer_id, referee_id, source, source_amount, commission)
                      VALUES (?, ?, ?, ?, ?)"
                 );
                 $stmt->bind_param('iisdd', $referrerId, $userId, $type, $coins, $bonus);
-                $stmt->execute();
+                if (!@$stmt->execute()) {
+                    error_log(sprintf(
+                        '[Wintaskly referral] journal non ecrit (source=%s, parrain=%d) : %s'
+                        . ' — verifiez que sql/migration_fix_referral_source_enum.sql est applique',
+                        $type, $referrerId, $stmt->error
+                    ));
+                }
                 $stmt->close();
             }
         }

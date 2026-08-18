@@ -38,15 +38,81 @@ $lang = $GLOBALS['WT_LANG'] ?? [];
  * visiteurs — et les évaluateurs — consultent pour juger si le site aide
  * réellement ses utilisateurs. On y expose donc les guides existants, ce
  * qui donne à la fois du contenu et du maillage interne vers le blog. */
-$helpGuides = [];
-if (function_exists('wt_blog_categories') && function_exists('wt_blog_posts')) {
-    foreach (wt_blog_categories() as $cat) {
-        if ((int) ($cat['post_count'] ?? 0) < 1) { continue; }
-        $posts = wt_blog_posts(4, 0, (int) $cat['id']);
-        if ($posts) {
-            $helpGuides[] = ['cat' => $cat, 'posts' => $posts];
+/* Base de connaissances organisée PAR QUESTION, pas par catégorie.
+ *
+ * Le hub listait les guides selon la taxonomie du blog — Guides, Finance,
+ * Astuces, Crypto. C'est une classification éditoriale, utile pour lire,
+ * inutile pour chercher : quelqu'un dont une offre n'est pas créditée ne
+ * se demande pas dans quelle catégorie ranger son problème.
+ *
+ * On associe donc chaque intention à des articles précis. Un article peut
+ * apparaître sous plusieurs thèmes — c'est voulu : il répond à plusieurs
+ * questions. Les articles non encore publiés (date future) sont écartés
+ * automatiquement, le hub suit donc le calendrier de publication.
+ */
+$helpTopics = [
+    ['k' => 'tasks', 'slugs' => [
+        'comprendre-optimiser-chaque-type-de-tache',
+        'faucet-pourquoi-un-delai-entre-reclamations',
+        'ptc-ce-qui-se-passe-pendant-le-compteur',
+        'shortlinks-comprendre-pages-de-passage',
+        'bien-choisir-ses-offres-partenaires',
+    ]],
+    ['k' => 'notcredited', 'slugs' => [
+        'offre-refusee-offerwall-que-faire',
+        'bloqueur-publicite-pourquoi-gains-bloques',
+        'lire-ses-propres-chiffres-tableau-de-bord',
+    ]],
+    ['k' => 'withdraw', 'slugs' => [
+        'retraits-conversion-moyens-de-paiement',
+        'pourquoi-un-retrait-peut-etre-refuse',
+        'combien-de-temps-met-un-paiement-crypto',
+        'choisir-sa-methode-de-retrait-selon-son-pays',
+        'micro-portefeuille-a-quoi-ca-sert',
+    ]],
+    ['k' => 'account', 'slugs' => [
+        'securiser-son-compte-et-ses-gains',
+        'double-authentification-expliquee-simplement',
+        'que-faire-si-votre-compte-est-compromis',
+        'gestionnaire-mots-de-passe-pourquoi-comment',
+    ]],
+    ['k' => 'fraud', 'slugs' => [
+        'reconnaitre-email-phishing-indices-concrets',
+        'signaux-alerte-plateforme-micro-gains-douteuse',
+        'arnaques-crypto-les-schemas-a-connaitre',
+    ]],
+    ['k' => 'understand', 'slugs' => [
+        'guide-complet-micro-gains-en-ligne',
+        'pourquoi-ces-plateformes-peuvent-vous-payer',
+        'combien-peut-on-vraiment-gagner-micro-taches',
+        'parrainage-ce-quil-est-vraiment-et-ses-limites',
+    ]],
+];
+
+/* Résolution en une seule requête : on ne veut pas d'un appel par article. */
+$helpArticles = [];
+try {
+    $all = [];
+    foreach ($helpTopics as $t) { $all = array_merge($all, $t['slugs']); }
+    $all = array_values(array_unique($all));
+    if ($all) {
+        $ph  = implode(',', array_fill(0, count($all), '?'));
+        $stmt = db()->prepare(
+            "SELECT slug, title, reading_minutes, cover_emoji
+               FROM blog_posts
+              WHERE slug IN ($ph)
+                AND status = 'published'
+                AND published_at <= UTC_TIMESTAMP()"
+        );
+        $stmt->bind_param(str_repeat('s', count($all)), ...$all);
+        $stmt->execute();
+        foreach ($stmt->get_result()->fetch_all(MYSQLI_ASSOC) as $row) {
+            $helpArticles[$row['slug']] = $row;
         }
+        $stmt->close();
     }
+} catch (Throwable $e) {
+    error_log('[Wintaskly help] ' . $e->getMessage());
 }
 
 $popular = [];
@@ -193,31 +259,30 @@ include __DIR__ . '/../header.php';
       </section>
     <?php endif; ?>
 
-    <?php if ($helpGuides): ?>
-      <section class="wt-help-guides" data-reveal>
-        <header class="wt-help-guides__head">
-          <h2 class="wt-help-guides__title"><?= e(t('help.guides_title')) ?></h2>
-          <p class="wt-help-guides__lead"><?= e(t('help.guides_lead')) ?></p>
+    <?php if ($helpArticles): ?>
+      <section class="wt-help-kb" data-reveal>
+        <header class="wt-help-kb__head">
+          <h2 class="wt-help-kb__title"><?= e(t('help.kb_title')) ?></h2>
+          <p class="wt-help-kb__lead"><?= e(t('help.kb_lead')) ?></p>
         </header>
 
-        <?php foreach ($helpGuides as $g): ?>
-          <div class="wt-help-guides__group">
-            <h3 class="wt-help-guides__cat">
-              <a href="<?= e(wt_url('/blog/categorie/' . $g['cat']['slug'])) ?>">
-                <?= e($g['cat']['name']) ?>
-              </a>
-              <span><?= (int) $g['cat']['post_count'] ?></span>
-            </h3>
-            <?php if (!empty($g['cat']['description'])): ?>
-              <p class="wt-help-guides__cat-desc"><?= e($g['cat']['description']) ?></p>
-            <?php endif; ?>
-            <ul class="wt-help-guides__list">
-              <?php foreach ($g['posts'] as $post): ?>
+        <?php foreach ($helpTopics as $topic):
+          $items = [];
+          foreach ($topic['slugs'] as $sl) {
+              if (isset($helpArticles[$sl])) { $items[] = $helpArticles[$sl]; }
+          }
+          if (!$items) { continue; }   // thème sans article publié : masqué
+        ?>
+          <div class="wt-help-kb__topic">
+            <h3 class="wt-help-kb__topic-title"><?= e(t('help.kb_' . $topic['k'])) ?></h3>
+            <p class="wt-help-kb__topic-desc"><?= e(t('help.kb_' . $topic['k'] . '_d')) ?></p>
+            <ul class="wt-help-kb__list">
+              <?php foreach ($items as $a): ?>
                 <li>
-                  <a href="<?= e(wt_url('/blog/' . $post['slug'])) ?>">
-                    <span class="wt-help-guides__emoji" aria-hidden="true"><?= e($post['cover_emoji'] ?: '📄') ?></span>
-                    <span class="wt-help-guides__post-title"><?= e($post['title']) ?></span>
-                    <span class="wt-help-guides__min">⏱️ <?= (int) $post['reading_minutes'] ?> <?= e(t('blog.min_read')) ?></span>
+                  <a href="<?= e(wt_url('/blog/' . $a['slug'])) ?>">
+                    <span class="wt-help-kb__emoji" aria-hidden="true"><?= e($a['cover_emoji'] ?: '📄') ?></span>
+                    <span class="wt-help-kb__label"><?= e($a['title']) ?></span>
+                    <span class="wt-help-kb__min"><?= (int) $a['reading_minutes'] ?> <?= e(t('blog.min_read')) ?></span>
                   </a>
                 </li>
               <?php endforeach; ?>
@@ -225,7 +290,7 @@ include __DIR__ . '/../header.php';
           </div>
         <?php endforeach; ?>
 
-        <p class="wt-help-guides__foot">
+        <p class="wt-help-kb__foot">
           <a class="wt-btn wt-btn--primary" href="<?= e(wt_url('/blog')) ?>">
             <?= e(t('help.guides_all')) ?> →
           </a>

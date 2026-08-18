@@ -60,9 +60,13 @@ include __DIR__ . '/../header.php';
                puisse porter. */ ?>
       <section class="wt-legal-v2__section">
         <h2><?= ++$n ?>. <?= e(t('about.h_origin')) ?></h2>
+        <?php /* Résumé seulement : le développement complet vit sur
+                 /about/why.php. Deux pages développant le même propos
+                 seraient du contenu dupliqué. */ ?>
         <p><?= e(t('about.origin_p1')) ?></p>
-        <p><?= e(t('about.origin_p2')) ?></p>
-        <p><?= e(t('about.origin_p3')) ?></p>
+        <p>
+          <a href="<?= e(wt_url('/about/why.php')) ?>"><?= e(t('about.origin_more')) ?> →</a>
+        </p>
       </section>
 
       <section class="wt-legal-v2__section">

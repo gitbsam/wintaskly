@@ -164,6 +164,8 @@ $_yearDisplay = ($_launchYear === $_currentYear)
         <h3 class="wt-footer-v2__col-title"><?= e(t('footer.cat_legal')) ?></h3>
         <ul>
           <li><a href="<?= $_base ?>/about/"><?= e(t('about.title')) ?></a></li>
+          <li><a href="<?= $_base ?>/about/why.php"><?= e(t('why.title')) ?></a></li>
+          <li><a href="<?= $_base ?>/about/partners.php"><?= e(t('partners.page_title')) ?></a></li>
           <li><a href="<?= $_base ?>/about/editorial.php"><?= e(t('editorial.title')) ?></a></li>
           <li><a href="<?= $_base ?>/legal/mentions.php"><?= e(t('legal.mentions_title')) ?></a></li>
           <li><a href="<?= $_base ?>/legal/cgu.php"><?= e(t('legal.cgu')) ?></a></li>
@@ -191,6 +193,47 @@ $_yearDisplay = ($_launchYear === $_currentYear)
     </div>
 
     <!-- ====== BOTTOM BAR ====== -->
+    <?php
+      /* Indicateurs de confiance.
+         Chacun est FACTUEL et vérifiable : rien n'est affiché qui ne
+         corresponde à une réalité de la plateforme. Le chiffrement est
+         détecté depuis la connexion réelle plutôt qu'affirmé — annoncer
+         « connexion sécurisée » sur une page servie en HTTP serait
+         exactement le genre d'incohérence qui décrédibilise le reste. */
+      $_https = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+                || (($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https');
+      $_payCount = 0;
+      try {
+          $_r = db()->query("SELECT COUNT(*) c FROM withdrawal_methods WHERE active = 1");
+          $_payCount = (int) ($_r->fetch_assoc()['c'] ?? 0);
+      } catch (Throwable $e) { /* silencieux : simple indicateur */ }
+    ?>
+    <div class="wt-trustrow" aria-label="<?= e(t('trust.aria')) ?>">
+      <?php if ($_https): ?>
+        <span class="wt-trustrow__item">
+          <span aria-hidden="true">🔒</span> <?= e(t('trust.https')) ?>
+        </span>
+      <?php endif; ?>
+      <span class="wt-trustrow__item">
+        <span aria-hidden="true">🛡️</span>
+        <a href="<?= $_base ?>/legal/privacy.php"><?= e(t('trust.data')) ?></a>
+      </span>
+      <?php if ($_payCount > 0): ?>
+        <span class="wt-trustrow__item">
+          <span aria-hidden="true">💳</span>
+          <?= e(sprintf((string) t('trust.methods'), $_payCount)) ?>
+        </span>
+      <?php endif; ?>
+      <span class="wt-trustrow__item">
+        <span aria-hidden="true">🕐</span>
+        <a href="<?= $_base ?>/help/contact.php"><?= e(t('trust.support')) ?></a>
+      </span>
+      <span class="wt-trustrow__item">
+        <span aria-hidden="true">📋</span>
+        <a href="<?= $_base ?>/help/antifraud.php"><?= e(t('trust.rules')) ?></a>
+      </span>
+    </div>
+
     <div class="wt-footer-v2__bottom">
       <small class="wt-footer-v2__copyright">
         © <?= $_yearDisplay ?> Wintaskly · <?= e(t('footer.tagline')) ?>

@@ -1064,9 +1064,21 @@ include __DIR__ . '/header.php';
             'cta'   => null,
         ],
         [
+            /* Étape de validation — elle manquait, alors que c'est la plus
+               explicative : elle dit qui décide qu'une action est valide,
+               et pourquoi certaines ne le sont pas. C'est aussi ce qui
+               distingue une plateforme qui explique son fonctionnement
+               d'une qui se contente de promettre des gains. */
             'num'   => '03',
             't'     => t('home.how.step3.t'),
             'd'     => t('home.how.step3.d'),
+            'icon'  => 'M9 11l3 3L22 4M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11', // check (validation)
+            'cta'   => null,
+        ],
+        [
+            'num'   => '04',
+            't'     => t('home.how.step4.t'),
+            'd'     => t('home.how.step4.d'),
             'icon'  => 'M21 12V7H5a2 2 0 0 1 0-4h14v4M3 5v14a2 2 0 0 0 2 2h16v-5M18 12a2 2 0 0 0 0 4h4v-4Z', // wallet (encaisser)
             'cta'   => null,
         ],

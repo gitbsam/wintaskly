@@ -1,7 +1,7 @@
 {
   "_comment": "Uploadez sur GitHub Pages: https://gitbsam.github.io/wintaskly/latest.json. IMPORTANT: la version ici doit correspondre a WT_VERSION dans includes/init.php pour que ton install soit 'a jour'. Pour une NOUVELLE version, augmente ce numero ET WT_VERSION ensemble.",
-  "version": "8.88.0",
-  "released": "2026-08-17",
+  "version": "8.96.0",
+  "released": "2026-08-18",
   "channel": "stable",
   "min_php": "8.2",
   "critical": false,
@@ -19,9 +19,9 @@
     "Service Worker network-first pour CSS/JS",
     "Mailer natif ameliore (From BDD + Return-Path anti-Hotmail)"
   ],
-  "changelog_url": "https://github.com/gitbsam/wintaskly/releases/tag/v8.88.0",
-  "download_url": "https://github.com/gitbsam/wintaskly/releases/download/v8.88.0/wintaskly.zip",
-  "sha256": "sha256:1f87d0a4cfc218095d72a63f7e4c2b6a8871e0329b900c13685cf621319ebb31",
+  "changelog_url": "https://github.com/gitbsam/wintaskly/releases/tag/v8.96.0",
+  "download_url": "https://github.com/gitbsam/wintaskly/releases/download/v8.96.0/wintaskly.zip",
+  "sha256": "sha256:ae0dc424aca02464744bca29b879812e4bf10a89383554b2d241fa09988e063c",
   "migrations": [
     { "file": "migration_shortlinks_api.sql", "description": "Colonnes mode API + callback_key" },
     { "file": "migration_shortlinks_rate.sql", "description": "Colonnes provider_rate_*" },
