@@ -139,6 +139,24 @@ return [
 
     // Adresses de paiement de confiance
     'payout.title'                 => 'Payout addresses',
+
+    // Admin — CPX Research
+    'admin.set.tab.cpx'                  => 'CPX Research',
+    'admin.set.cpx.check_title'          => 'Check the hash',
+    'admin.set.cpx.check_lead'           => 'A postback rejected with BAD_HASH almost always means the stored hash does not match your CPX account. Paste the transaction ID shown by their test tool to compare.',
+    'admin.set.cpx.check_nosecret'       => 'Enter the secure hash above first.',
+    'admin.set.cpx.check_ph'             => 'Transaction ID (trans_id)',
+    'admin.set.cpx.check_btn'            => 'Compute',
+    'admin.set.cpx.check_expected'       => 'Expected hash:',
+    'admin.set.cpx.check_hint'           => 'Compare this value with the hash= parameter in the URL CPX shows. If they differ, the stored hash is wrong: read it again in CPX (General settings), making sure not to copy a leading or trailing space.',
+    'admin.set.cpx.app_id'               => 'App ID',
+    'admin.set.cpx.app_id_hint'          => 'Provided by CPX Research in your publisher area (Info tab). Without it, the survey wall cannot be shown.',
+    'admin.set.cpx.secure_hash'          => 'Secure hash',
+    'admin.set.cpx.secure_hash_hint'     => 'Secret key provided by CPX. It authenticates postbacks: anyone who knows it can credit Coins with a simple request. Never share it; if it has leaked, ask CPX to regenerate it.',
+    'admin.set.cpx.check_ip'             => 'Verify postback origin',
+    'admin.set.cpx.check_ip_hint'        => 'Rejects calls from addresses other than CPX\'s. Disable only if your host places a proxy in front of PHP and masks the real address: otherwise all postbacks would be rejected.',
+    'admin.set.cpx.allowed_ips'          => 'Allowed addresses',
+    'admin.set.cpx.allowed_ips_hint'     => 'Comma-separated. Values documented by CPX: 188.40.3.73, 2a01:4f8:d0a:30ff::2, 157.90.97.92',
     'cpx.notif_reversed_title'       => 'Survey cancelled by the partner',
     'cpx.notif_reversed_body'        => 'A previously credited survey was cancelled by our partner after an anti-fraud check. The matching Coins have been reclaimed. If you believe this is a mistake, contact support with the approximate date of the survey.',
     'payout.lead'                  => 'Declare and confirm in advance the addresses your withdrawals may go to.',

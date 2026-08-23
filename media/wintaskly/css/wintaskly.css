@@ -13793,3 +13793,16 @@ a.wt-dash-v2__kpi-cta:hover {
 .wt-payaddr__form .wt-field { margin-bottom: .85rem; }
 .wt-payaddr__why { margin: 1.2rem 0 0; font-size: .79rem; line-height: 1.55; opacity: .65; }
 .wt-btn--sm { padding: .3rem .65rem; font-size: .78rem; }
+
+/* Admin — vérificateur de hachage CPX */
+.wt-cpx-check { margin-bottom: 1.5rem; padding: 1.1rem; background: var(--wt-bg-elev);
+  border: 1px solid var(--wt-border); border-radius: var(--wt-radius-lg, 16px); }
+.wt-cpx-check__h { font-size: .95rem; margin: 0 0 .4rem; }
+.wt-cpx-check__lead { font-size: .83rem; line-height: 1.6; opacity: .78; margin: 0 0 .9rem; }
+.wt-cpx-check__form { display: flex; gap: .5rem; flex-wrap: wrap; }
+.wt-cpx-check__form .wt-input { flex: 1; min-width: 220px; }
+.wt-cpx-check__result { margin: .9rem 0 .3rem; font-size: .86rem; }
+.wt-cpx-check__result code { display: inline-block; margin-left: .4rem; padding: .2rem .5rem;
+  background: var(--wt-bg-soft, rgba(127,127,127,.1)); border-radius: 6px; word-break: break-all; }
+.wt-cpx-check__hint { margin: 0; font-size: .79rem; line-height: 1.55; opacity: .65; }
+.wt-cpx-check__warn { margin: 0; font-size: .84rem; color: var(--wt-accent); }

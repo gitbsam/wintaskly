@@ -113,6 +113,22 @@ $schema = [
         ['key' => 'email.smtp_encryption','label'=> 'admin.set.email.smtp_encryption','type'=> 'select','hint' => 'admin.set.email.smtp_encryption_hint',
          'options' => ['' => '— Aucune —', 'tls' => 'TLS (port 587)', 'ssl' => 'SSL (port 465)']],
     ],
+    /* CPX Research — sondages rémunérés.
+       Le hachage est marqué 'sensitive' : il est masqué à l'affichage,
+       comme un mot de passe. C'est la clé qui authentifie les postbacks —
+       quiconque la connaît peut se créditer des Coins par une simple
+       requête, donc elle ne doit pas rester lisible à l'écran. */
+    'cpx' => [
+        ['key' => 'cpx.app_id',      'label' => 'admin.set.cpx.app_id',      'type' => 'text',
+         'hint' => 'admin.set.cpx.app_id_hint',      'maxlen' => 20],
+        ['key' => 'cpx.secure_hash', 'label' => 'admin.set.cpx.secure_hash', 'type' => 'password',
+         'hint' => 'admin.set.cpx.secure_hash_hint', 'maxlen' => 120, 'sensitive' => true],
+        ['key' => 'cpx.check_ip',    'label' => 'admin.set.cpx.check_ip',    'type' => 'checkbox',
+         'hint' => 'admin.set.cpx.check_ip_hint'],
+        ['key' => 'cpx.allowed_ips', 'label' => 'admin.set.cpx.allowed_ips', 'type' => 'text',
+         'hint' => 'admin.set.cpx.allowed_ips_hint', 'maxlen' => 255],
+    ],
+
     'social' => [
         ['key' => 'social.facebook', 'label' => 'admin.set.social.facebook', 'type' => 'url', 'hint' => 'admin.set.social.facebook_hint'],
         ['key' => 'social.twitter',  'label' => 'admin.set.social.twitter',  'type' => 'url', 'hint' => 'admin.set.social.twitter_hint'],
@@ -291,6 +307,7 @@ include __DIR__ . '/../header.php';
               'twofa'       => ['🔐', 'admin.set.tab.twofa'],
               'leaderboard' => ['🏆', 'admin.set.tab.leaderboard'],
               'email'       => ['📧', 'admin.set.tab.email'],
+              'cpx'         => ['📋', 'admin.set.tab.cpx'],
               'social'      => ['🌐', 'admin.set.tab.social'],
               'legal'       => ['⚖️', 'admin.set.tab.legal'],
           ];
@@ -311,6 +328,53 @@ include __DIR__ . '/../header.php';
         <?php foreach ($schema as $tab => $fields): ?>
           <section class="wt-tabs__panel <?= $tab === $activeTab ? 'is-active' : '' ?>"
                    data-panel="<?= e($tab) ?>" role="tabpanel">
+
+            <?php if ($tab === 'cpx'): ?>
+              <?php
+                /* Vérificateur de hachage.
+                 *
+                 * Un postback refusé en BAD_HASH signifie presque toujours
+                 * que le hachage enregistré ici n'est pas celui du compte
+                 * CPX — régénéré, mal copié, ou avec un espace parasite.
+                 *
+                 * Le journal PHP le signale, mais sur un hébergement
+                 * mutualisé il n'est pas toujours accessible. Ce bloc
+                 * calcule le hachage ATTENDU pour un identifiant de
+                 * transaction donné : il suffit de le comparer à celui que
+                 * CPX affiche dans son outil de test.
+                 *
+                 * Le secret n'est jamais affiché — seulement le résultat
+                 * calculé à partir de lui. */
+                $cpxSecret = trim((string) cfg('cpx.secure_hash', ''));
+                $cpxTx     = trim((string) ($_GET['cpx_tx'] ?? ''));
+                $cpxCalc   = ($cpxSecret !== '' && $cpxTx !== '')
+                           ? md5($cpxTx . '-' . $cpxSecret) : '';
+              ?>
+              <div class="wt-cpx-check">
+                <h3 class="wt-cpx-check__h"><?= e(t('admin.set.cpx.check_title')) ?></h3>
+                <p class="wt-cpx-check__lead"><?= e(t('admin.set.cpx.check_lead')) ?></p>
+
+                <?php if ($cpxSecret === ''): ?>
+                  <p class="wt-cpx-check__warn"><?= e(t('admin.set.cpx.check_nosecret')) ?></p>
+                <?php else: ?>
+                  <form method="get" class="wt-cpx-check__form">
+                    <input type="hidden" name="tab" value="cpx">
+                    <input class="wt-input" type="text" name="cpx_tx"
+                           value="<?= e($cpxTx) ?>"
+                           placeholder="<?= e(t('admin.set.cpx.check_ph')) ?>">
+                    <button class="wt-btn wt-btn--ghost" type="submit"><?= e(t('admin.set.cpx.check_btn')) ?></button>
+                  </form>
+
+                  <?php if ($cpxCalc !== ''): ?>
+                    <p class="wt-cpx-check__result">
+                      <?= e(t('admin.set.cpx.check_expected')) ?>
+                      <code><?= e($cpxCalc) ?></code>
+                    </p>
+                    <p class="wt-cpx-check__hint"><?= e(t('admin.set.cpx.check_hint')) ?></p>
+                  <?php endif; ?>
+                <?php endif; ?>
+              </div>
+            <?php endif; ?>
 
             <?php if ($tab === 'twofa'): ?>
               <?php /* État RÉEL de chaque canal : cocher une case ne suffit

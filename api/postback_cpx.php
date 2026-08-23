@@ -86,6 +86,20 @@ if ($transId === '' || $userId <= 0 || $hash === '') {
    évite de laisser deviner le hachage caractère par caractère. */
 $expected = md5($transId . '-' . $secret);
 if (!hash_equals($expected, $hash)) {
+    /* Journal de diagnostic.
+     *
+     * Un BAD_HASH a presque toujours la même cause : le hachage renseigné
+     * en administration n'est pas celui de votre compte CPX (régénéré,
+     * mal copié, ou espace parasite en début/fin).
+     *
+     * On journalise les deux valeurs pour permettre la comparaison — le
+     * SECRET lui-même n'apparaît jamais, seulement le résultat calculé.
+     * Sans cette trace, diagnostiquer revient à deviner. */
+    error_log(sprintf(
+        '[Wintaskly CPX] BAD_HASH — trans_id=%s attendu=%s recu=%s '
+        . '(verifiez le hachage de securite dans Admin > Reglages > CPX Research)',
+        $transId, $expected, $hash
+    ));
     cpx_fail('BAD_HASH', 403);
 }
 

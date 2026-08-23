@@ -144,6 +144,24 @@ return [
 
     // Adresses de paiement de confiance
     'payout.title'                 => 'Adresses de paiement',
+
+    // Admin — CPX Research
+    'admin.set.tab.cpx'                  => 'CPX Research',
+    'admin.set.cpx.check_title'          => 'Vérifier le hachage',
+    'admin.set.cpx.check_lead'           => 'Un postback refusé en BAD_HASH vient presque toujours d\'un hachage qui ne correspond pas à celui de votre compte CPX. Collez l\'identifiant de transaction affiché par leur outil de test pour comparer.',
+    'admin.set.cpx.check_nosecret'       => 'Renseignez d\'abord le hachage de sécurité ci-dessus.',
+    'admin.set.cpx.check_ph'             => 'Identifiant de transaction (trans_id)',
+    'admin.set.cpx.check_btn'            => 'Calculer',
+    'admin.set.cpx.check_expected'       => 'Hachage attendu :',
+    'admin.set.cpx.check_hint'           => 'Comparez cette valeur avec le paramètre hash= de l\'URL affichée par CPX. Si elles diffèrent, le hachage enregistré n\'est pas le bon : relisez-le dans CPX (Réglages généraux) en veillant à ne pas copier d\'espace avant ou après.',
+    'admin.set.cpx.app_id'               => 'Identifiant d\'application',
+    'admin.set.cpx.app_id_hint'          => 'Fourni par CPX Research dans votre espace éditeur (onglet Info). Sans lui, le mur de sondages ne peut pas être affiché.',
+    'admin.set.cpx.secure_hash'          => 'Hachage de sécurité',
+    'admin.set.cpx.secure_hash_hint'     => 'Clé secrète fournie par CPX. Elle authentifie les postbacks : quiconque la connaît peut créditer des Coins par une simple requête. Ne la partagez jamais ; si elle a circulé, demandez sa régénération à CPX.',
+    'admin.set.cpx.check_ip'             => 'Vérifier l\'origine des postbacks',
+    'admin.set.cpx.check_ip_hint'        => 'Refuse les appels provenant d\'une autre adresse que celles de CPX. À désactiver uniquement si votre hébergement place un proxy devant PHP et masque l\'adresse réelle : les postbacks seraient alors tous rejetés.',
+    'admin.set.cpx.allowed_ips'          => 'Adresses autorisées',
+    'admin.set.cpx.allowed_ips_hint'     => 'Séparées par des virgules. Valeurs documentées par CPX : 188.40.3.73, 2a01:4f8:d0a:30ff::2, 157.90.97.92',
     'cpx.notif_reversed_title'       => 'Sondage annulé par le partenaire',
     'cpx.notif_reversed_body'        => 'Un sondage précédemment crédité a été annulé par notre partenaire après contrôle anti-fraude. Les Coins correspondants ont été repris. Si vous pensez qu\'il s\'agit d\'une erreur, contactez le support avec la date approximative du sondage.',
     'payout.lead'                  => 'Déclarez et confirmez à l\'avance les adresses vers lesquelles vos retraits peuvent partir.',
