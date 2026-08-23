@@ -28,6 +28,29 @@ $methodId = (int)   ($_POST['method_id']     ?? 0);
 $coins    = (float) ($_POST['coins_amount']  ?? 0);
 $address  = trim((string)($_POST['payout_address'] ?? ''));
 
+/* ---- Adresse de destination -------------------------------------------
+ *
+ * En mode « adresse enregistrée obligatoire » (défaut), l'adresse n'est PAS
+ * lue depuis le formulaire : celui-ci n'envoie qu'un identifiant, et le
+ * serveur résout l'adresse réelle en vérifiant qu'elle appartient bien à
+ * l'utilisateur, qu'elle correspond à la méthode choisie, et qu'elle a été
+ * confirmée par une vérification renforcée.
+ *
+ * Ce contrôle est ici, côté serveur, et pas seulement dans l'interface :
+ * masquer un champ n'empêche personne d'envoyer la valeur de son choix.
+ * C'est la seule barrière qui compte réellement.
+ *
+ * Une valeur envoyée dans payout_address est ignorée dans ce mode — la
+ * conserver comme repli aurait annulé toute la protection. */
+if (wt_payout_requires_saved()) {
+    $addrId  = (int) ($_POST['payout_address_id'] ?? 0);
+    $address = (string) (wt_payout_address_resolve($u['id'], $addrId, $methodId) ?? '');
+    if ($address === '') {
+        header('Location: ' . wt_url('/dashboard/withdraw.php?err=addr_unknown'));
+        exit;
+    }
+}
+
 if ($methodId <= 0 || $coins <= 0 || $address === '') {
     header('Location: ' . wt_url('/dashboard/withdraw.php?err=address'));
     exit;

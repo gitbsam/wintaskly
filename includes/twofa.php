@@ -138,7 +138,12 @@ if (!function_exists('wt_2fa_user_methods')) {
         $out = [];
         foreach ($allowed as $m) {
             $ok = match ($m) {
-                'totp'  => (int) ($user['totp_enabled'] ?? 0) === 1 && !empty($user['totp_secret']),
+                /* Le secret peut ne pas figurer dans le tableau : current_user()
+                   l'exclut délibérément pour ne pas le faire circuler. On
+                   accepte donc l'indicateur booléen has_totp_secret, sinon
+                   le secret lui-même quand il est présent (contextes admin). */
+                'totp'  => (int) ($user['totp_enabled'] ?? 0) === 1
+                           && (!empty($user['has_totp_secret']) || !empty($user['totp_secret'])),
                 'email' => (int) ($user['twofa_email_enabled'] ?? 0) === 1 && !empty($user['email']),
                 'sms'   => (int) ($user['twofa_sms_enabled'] ?? 0) === 1
                            && !empty($user['twofa_phone'])

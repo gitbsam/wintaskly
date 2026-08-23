@@ -1,0 +1,10 @@
+Dossier des couvertures d'articles.
+
+Les images sont désormais téléversées depuis l'administration
+(Admin → Blog → éditer un article → « Couverture illustrée »).
+
+Le fichier est enregistré ici sous le nom {slug}-upload.{ext}, où le
+slug est celui de l'article. Ne renommez pas ces fichiers à la main :
+c'est ce nom qui permet de les retrouver.
+
+Format recommandé : 1200 × 630 px (Open Graph), 3 Mo maximum.

@@ -445,10 +445,7 @@ include __DIR__ . '/../header.php';
 
             <?php
               /* Couverture illustrée.
-                 Trois niveaux, du plus prioritaire au moins :
-                   1. l'image téléversée ici ;
-                   2. la couverture générée par scripts/generate_covers.py ;
-                   3. l'emoji ci-dessus.
+                 Deux niveaux : l'image téléversée ici, sinon l'emoji.
                  Le champ n'apparaît que si la migration a été appliquée,
                  pour ne pas proposer un formulaire qui échouerait. */
               $_hasCover = isset($blogCols['cover_image']);

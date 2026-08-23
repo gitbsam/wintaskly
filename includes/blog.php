@@ -324,9 +324,9 @@ if (!function_exists('wt_blog_cover')) {
     /**
      * Chemin d'une couverture d'article, par CONVENTION de nom.
      *
-     * Les visuels sont produits par scripts/generate_covers.py sous la forme
-     * `{slug}-cover.png` (1200×630, format Open Graph) et `{slug}-thumb.png`
-     * (600×400, listes d'articles).
+     * Les visuels sont téléversés depuis l'administration et enregistrés
+     * sous la forme `{slug}-upload.{ext}` dans media/wintaskly/img/blog/.
+     * Format recommandé : 1200×630 (Open Graph).
      *
      * Pourquoi une convention plutôt qu'une colonne en base : la table
      * blog_posts n'a pas de colonne cover_image — le gabarit de liste en
@@ -353,18 +353,25 @@ if (!function_exists('wt_blog_cover')) {
         if ($root === null) { $root = dirname(__DIR__); }
         $dir = '/media/wintaskly/img/blog/';
 
-        /* Priorité 1 — image téléversée en administration.
-           Elle prime sur la couverture générée, y compris pour la
-           miniature : une vraie illustration vaut mieux qu'un visuel
-           composé automatiquement, même en petit format. Le nom est
-           reconstruit depuis le slug, jamais lu depuis une saisie. */
-        foreach (['png', 'jpg', 'webp'] as $ext) {
+        /* Couverture téléversée depuis l'administration.
+           Le générateur automatique a été retiré : il ne produisait que du
+           texte sur un fond coloré, ce qui ne constitue pas une identité
+           visuelle. Les couvertures sont désormais créées à l'extérieur et
+           téléversées, ce qui permet de vraies illustrations.
+
+           Le nom est reconstruit depuis le slug — jamais lu depuis une
+           saisie — puis l'existence du fichier est vérifiée : un article
+           sans couverture retombe proprement sur son emoji plutôt que
+           d'afficher une image cassée.
+
+           Le paramètre $kind est conservé pour ne pas casser les appels
+           existants, mais une seule image sert désormais aux deux usages :
+           le format 1200×630 se réduit très bien en miniature. */
+        foreach (['png', 'jpg', 'jpeg', 'webp'] as $ext) {
             $up = $dir . $slug . '-upload.' . $ext;
             if (is_file($root . $up)) { return wt_url($up); }
         }
 
-        /* Priorité 2 — couverture générée par scripts/generate_covers.py. */
-        $rel = $dir . $slug . '-' . $kind . '.png';
-        return is_file($root . $rel) ? wt_url($rel) : null;
+        return null;
     }
 }

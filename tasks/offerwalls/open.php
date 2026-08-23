@@ -26,7 +26,7 @@ if ($id <= 0) {
 }
 
 $stmt = $db->prepare(
-    "SELECT id, name, logo_url, description, iframe_url
+    "SELECT id, k, name, logo_url, description, iframe_url
        FROM offerwalls WHERE id = ? AND active = 1 LIMIT 1"
 );
 $stmt->bind_param('i', $id);
@@ -34,16 +34,59 @@ $stmt->execute();
 $ow = $stmt->get_result()->fetch_assoc();
 $stmt->close();
 
-if (!$ow || empty($ow['iframe_url'])) {
+/* Mur introuvable ou inactif : contrôle en premier, avant toute lecture
+   de $ow — sinon un identifiant invalide déclencherait une erreur PHP. */
+if (!$ow) {
     header('Location: ' . wt_url('/tasks/offerwalls/'));
     exit;
 }
 
-$iframeUrl = str_replace(
-    ['{USER_ID}', '{USERNAME}'],
-    [(string) $u['id'], rawurlencode($u['username'])],
-    $ow['iframe_url']
-);
+/* CPX Research — l'URL ne peut PAS être stockée en base : elle contient un
+   hachage calculé à partir de l'identifiant de l'utilisateur connecté
+   (md5(id-secret)). Une URL figée serait la même pour tout le monde, donc
+   inutilisable comme preuve d'identité, et chacun verrait le profil du
+   premier inscrit. On la construit donc ici. */
+$isCpx = ($ow['k'] ?? '') === (string) cfg('cpx.offerwall_key', 'cpx');
+
+if ($isCpx) {
+    $appId  = trim((string) cfg('cpx.app_id', ''));
+    $secret = trim((string) cfg('cpx.secure_hash', ''));
+    if ($appId === '' || $secret === '') {
+        /* Réglages incomplets : on renvoie à la liste plutôt que d'afficher
+           un mur qui échouerait côté CPX avec un message obscur. */
+        header('Location: ' . wt_url('/tasks/offerwalls/?err=notconfigured'));
+        exit;
+    }
+
+    $uidStr = (string) $u['id'];
+    $params = [
+        'app_id'      => $appId,
+        'ext_user_id' => $uidStr,
+        'secure_hash' => md5($uidStr . '-' . $secret),
+        'username'    => (string) $u['username'],
+        'email'       => (string) ($u['email'] ?? ''),
+        'subid_1'     => '',
+        'subid_2'     => '',
+    ];
+    /* message_id : transmis par CPX lors du retour après un sondage. Sans
+       lui, l'utilisateur ne voit jamais le message de réussite ou d'échec. */
+    if (!empty($_GET['message_id'])) {
+        $params['message_id'] = (string) $_GET['message_id'];
+    }
+    $iframeUrl = 'https://offers.cpx-research.com/index.php?' . http_build_query($params);
+
+} else {
+    if (empty($ow['iframe_url'])) {
+        header('Location: ' . wt_url('/tasks/offerwalls/'));
+        exit;
+    }
+    $iframeUrl = str_replace(
+        ['{USER_ID}', '{USERNAME}'],
+        [(string) $u['id'], rawurlencode($u['username'])],
+        $ow['iframe_url']
+    );
+}
+
 
 $initials = static function (string $name): string {
     $parts = preg_split('/\s+/', trim($name)) ?: [];

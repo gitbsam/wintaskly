@@ -203,12 +203,44 @@ include __DIR__ . '/../header.php';
               <span class="wt-field__label" data-wd-address-label>
                 <?= e($methods[0]['address_label'] ?? t('wd.address')) ?>
               </span>
-              <input class="wt-input"
-                     type="text"
-                     name="payout_address"
-                     required
-                     placeholder="<?= e((string)($methods[0]['address_placeholder'] ?? '')) ?>"
-                     data-wd-address-input>
+              <?php
+                /* Sélecteur d'adresses confirmées, en remplacement de la
+                   saisie libre. La liste contient TOUTES les méthodes : le
+                   script du formulaire masque celles qui ne correspondent
+                   pas à la méthode choisie, et le serveur revérifie de
+                   toute façon la correspondance. */
+                $savedAddrs = wt_payout_requires_saved()
+                    ? wt_payout_addresses((int) $u['id'], null, true)
+                    : [];
+              ?>
+              <?php if (wt_payout_requires_saved()): ?>
+                <?php if ($savedAddrs): ?>
+                  <select class="wt-input" name="payout_address_id" required data-wd-address-select>
+                    <?php foreach ($savedAddrs as $a): ?>
+                      <option value="<?= (int) $a['id'] ?>" data-method="<?= (int) $a['method_id'] ?>">
+                        <?= e(($a['label'] ? $a['label'] . ' — ' : '') . $a['address']) ?>
+                      </option>
+                    <?php endforeach; ?>
+                  </select>
+                  <small class="wt-field__hint">
+                    <a href="<?= e(wt_url('/dashboard/payout-addresses.php')) ?>"><?= e(t('payout.manage_link')) ?></a>
+                  </small>
+                <?php else: ?>
+                  <?php /* Aucune adresse confirmée : on n'affiche pas un
+                           formulaire inutilisable, on explique quoi faire. */ ?>
+                  <div class="wt-alert wt-alert--info">
+                    <?= e(t('payout.none_yet')) ?>
+                    <a href="<?= e(wt_url('/dashboard/payout-addresses.php')) ?>"><?= e(t('payout.add_first')) ?></a>
+                  </div>
+                <?php endif; ?>
+              <?php else: ?>
+                <input class="wt-input"
+                       type="text"
+                       name="payout_address"
+                       required
+                       placeholder="<?= e((string)($methods[0]['address_placeholder'] ?? '')) ?>"
+                       data-wd-address-input>
+              <?php endif; ?>
             </label>
           </div>
 
@@ -387,6 +419,28 @@ include __DIR__ . '/../header.php';
 
     if (labelEl) labelEl.textContent = addressLabel;
     if (inputEl) inputEl.placeholder = addressPlaceholder;
+
+    /* Filtrage des adresses enregistrées selon la méthode choisie.
+       Purement visuel : le serveur revérifie la correspondance, donc
+       contourner ce filtre ne permet rien. */
+    var addrSelect = form.querySelector('[data-wd-address-select]');
+    if (addrSelect) {
+      var methodId = String(opt.value || '');
+      var firstVisible = null;
+      Array.prototype.forEach.call(addrSelect.options, function (o) {
+        var match = o.getAttribute('data-method') === methodId;
+        o.hidden   = !match;
+        o.disabled = !match;
+        if (match && !firstVisible) { firstVisible = o; }
+      });
+      /* Si l'adresse sélectionnée ne correspond plus, on bascule sur la
+         première valide — sinon le formulaire enverrait un identifiant
+         que le serveur refuserait, sans que l'utilisateur comprenne. */
+      if (firstVisible && (addrSelect.selectedOptions[0] || {}).hidden !== false) {
+        addrSelect.value = firstVisible.value;
+      }
+      addrSelect.parentElement.style.display = firstVisible ? '' : 'none';
+    }
     if (currencyEl) currencyEl.textContent = currency;
 
     if (amountInput && payoutVal) {

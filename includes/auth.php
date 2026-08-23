@@ -31,6 +31,19 @@ if (!function_exists('current_user')) {
                     role, status, created_at,
                     email_verified_at,
                     totp_enabled,
+                    /* Indicateur booléen plutôt que le secret lui-même :
+                       wt_2fa_user_methods() a besoin de savoir si un secret
+                       TOTP existe, sans que ce secret transite par
+                       current_user() — qui peut apparaître dans des logs.
+                       Sans cet indicateur, la 2FA par application était
+                       comptée comme inactive alors qu'elle fonctionnait. */
+                    (totp_secret IS NOT NULL AND totp_secret <> '') AS has_totp_secret,
+                    /* Colonnes du système 2FA multi-méthodes. Les anciennes
+                       (tfa_*, phone_e164) sont conservées dans le SELECT pour
+                       ne rien casser, mais ce sont les twofa_* que le moteur
+                       lit et écrit réellement. */
+                    twofa_email_enabled, twofa_sms_enabled,
+                    twofa_phone, twofa_phone_verified_at, twofa_preferred,
                     tfa_email_enabled, tfa_sms_enabled,
                     phone_e164,
                     bio, country,

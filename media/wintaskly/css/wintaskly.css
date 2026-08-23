@@ -13761,3 +13761,35 @@ a.wt-dash-v2__kpi-cta:hover {
   border-radius: 10px; border: 1px solid var(--wt-border); }
 .wt-blogcover__remove { display: inline-flex; align-items: center; gap: .4rem; font-size: .82rem; }
 .wt-field__hint { display: block; margin-top: .35rem; font-size: .78rem; line-height: 1.5; opacity: .65; }
+
+/* Vérification renforcée (step-up) */
+.wt-stepup { max-width: 460px; padding: 1.4rem; background: var(--wt-bg-elev);
+  border: 1px solid var(--wt-border); border-radius: var(--wt-radius-lg, 16px); }
+.wt-stepup__intro { font-size: .88rem; line-height: 1.6; opacity: .82; margin: 0 0 1.2rem; }
+.wt-stepup__form .wt-field { margin-bottom: .9rem; }
+.wt-stepup__actions { margin-top: 1rem; }
+.wt-stepup__send { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: 1rem;
+  padding-top: 1rem; border-top: 1px solid var(--wt-border); }
+.wt-stepup__why { margin: 1.2rem 0 0; font-size: .79rem; line-height: 1.55; opacity: .6; }
+
+/* Adresses de paiement de confiance */
+.wt-payaddr { margin-bottom: 1.5rem; padding: 1.3rem; background: var(--wt-bg-elev);
+  border: 1px solid var(--wt-border); border-radius: var(--wt-radius-lg, 16px); }
+.wt-payaddr__h { font-size: 1rem; margin: 0 0 1rem; }
+.wt-payaddr__empty { font-size: .87rem; opacity: .7; margin: 0; }
+.wt-payaddr__list { list-style: none; margin: 0; padding: 0; }
+.wt-payaddr__item { display: flex; flex-wrap: wrap; gap: .75rem; align-items: center;
+  justify-content: space-between; padding: .75rem 0; border-bottom: 1px solid var(--wt-border); }
+.wt-payaddr__item:last-child { border-bottom: 0; }
+.wt-payaddr__item.is-pending { opacity: .8; }
+.wt-payaddr__main { min-width: 0; flex: 1; }
+.wt-payaddr__method { font-size: .74rem; text-transform: uppercase; letter-spacing: .05em;
+  opacity: .6; margin-right: .5rem; }
+.wt-payaddr__label { font-size: .86rem; font-weight: 600; }
+.wt-payaddr__addr { display: block; font-size: .78rem; opacity: .75; word-break: break-all; margin-top: .2rem; }
+.wt-payaddr__state { display: flex; align-items: center; gap: .45rem; flex-wrap: wrap; }
+.wt-payaddr__ok { font-size: .76rem; color: var(--wt-success); }
+.wt-payaddr__pending { font-size: .76rem; color: var(--wt-accent); }
+.wt-payaddr__form .wt-field { margin-bottom: .85rem; }
+.wt-payaddr__why { margin: 1.2rem 0 0; font-size: .79rem; line-height: 1.55; opacity: .65; }
+.wt-btn--sm { padding: .3rem .65rem; font-size: .78rem; }

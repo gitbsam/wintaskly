@@ -23,6 +23,18 @@ $uid = (int) $u['id'];
 /* ---------------------------------------------------------------------
  * Traitement des formulaires (avant tout rendu, pour pouvoir rediriger)
  * ------------------------------------------------------------------- */
+/* Reprise après vérification renforcée.
+   verify-action.php pose ce drapeau puis redirige ici ; on rejoue alors
+   l'action demandée sans que l'utilisateur ait à recliquer. Le drapeau
+   est retiré immédiatement pour qu'un rechargement ne la rejoue pas. */
+if (!empty($_SESSION['stepup_autorun']) && $_SESSION['stepup_autorun'] === 'gen_backup') {
+    unset($_SESSION['stepup_autorun']);
+    if (wt_stepup_granted('gen_backup') && (string) cfg('2fa.backup_enabled', '1') === '1') {
+        wt_stepup_consume('gen_backup');
+        $_SESSION['fresh_backup_codes'] = wt_2fa_generate_backup_codes($uid);
+    }
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && csrf_check($_POST['_csrf'] ?? null)) {
     $action = (string) ($_POST['action'] ?? '');
     $db = db();
@@ -65,8 +77,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && csrf_check($_POST['_csrf'] ?? null)
     }
 
     if ($action === 'gen_backup' && (string) cfg('2fa.backup_enabled', '1') === '1') {
-        $_SESSION['fresh_backup_codes'] = wt_2fa_generate_backup_codes($uid);
-        header('Location: ' . wt_url('/dashboard/2fa-setup.php'));
+
+        /* Régénération des codes de secours — action sensible.
+         *
+         * Elle annule immédiatement TOUS les codes existants. Un attaquant
+         * ayant simplement trouvé une session ouverte pouvait donc, en un
+         * clic, priver le propriétaire de son dernier recours — sans jamais
+         * connaître un mot de passe ni un code.
+         *
+         * La PREMIÈRE génération reste libre : elle a lieu au moment de
+         * l'activation, l'utilisateur vient de prouver son identité, et
+         * exiger une vérification alors qu'aucun code n'existe encore
+         * n'aurait aucun sens. Toute génération ULTÉRIEURE est vérifiée. */
+        $alreadyHas = wt_2fa_backup_remaining($uid) > 0;
+
+        if (!$alreadyHas) {
+            $_SESSION['fresh_backup_codes'] = wt_2fa_generate_backup_codes($uid);
+            header('Location: ' . wt_url('/dashboard/2fa-setup.php'));
+            exit;
+        }
+
+        if (wt_stepup_granted('gen_backup')) {
+            wt_stepup_consume('gen_backup');   // jeton à usage unique
+            $_SESSION['fresh_backup_codes'] = wt_2fa_generate_backup_codes($uid);
+            header('Location: ' . wt_url('/dashboard/2fa-setup.php'));
+            exit;
+        }
+
+        /* Pas encore vérifié : on renvoie vers la page de vérification,
+           qui reviendra ici une fois la preuve fournie. */
+        header('Location: ' . wt_url('/dashboard/verify-action.php?a=gen_backup'));
         exit;
     }
 }
@@ -103,8 +143,16 @@ $dashActive = 'settings';
 include __DIR__ . '/../header.php';
 ?>
 
-<div class="wt-dash wt-dash-v2">
-  <?php include __DIR__ . '/_nav.php'; ?>
+<?php
+  /* Structure alignée sur les autres pages du tableau de bord.
+     Cette page ouvrait un simple <div class="wt-dash"> sans <main
+     class="wt-main"> ni conteneur .wt-dash__layout : la barre latérale
+     et le contenu n'étaient donc pas placés côte à côte, et la page
+     s'affichait sous la navigation au lieu d'à côté. */
+?>
+<main class="wt-main wt-dash">
+  <div class="wt-dash__layout">
+    <?php include __DIR__ . '/_nav.php'; ?>
 
   <section class="wt-dash__content wt-dash-v2__content">
     <header class="wt-dash-v2__head" data-reveal>
@@ -252,8 +300,9 @@ include __DIR__ . '/../header.php';
         <?php endif; ?>
       </section>
     <?php endif; ?>
-  </section>
-</div>
+    </section>
+  </div>
+</main>
 
 <!-- Lib QR code légère (génération côté client : le secret ne transite par aucun tiers) -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>

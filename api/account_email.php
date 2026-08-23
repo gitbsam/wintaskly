@@ -28,6 +28,29 @@ if ($password === '') {
     wt_json(['ok' => false, 'error' => t('account.password_required')]);
 }
 
+/* ---- Vérification renforcée ------------------------------------------
+ *
+ * Le mot de passe seul ne suffit pas pour cette action. Changer l'adresse
+ * e-mail revient à changer la clé du compte : c'est elle qui permet de
+ * réinitialiser le mot de passe. Un mot de passe issu d'une fuite, combiné
+ * à une session ouverte, permettait donc une prise de contrôle complète.
+ *
+ * Quand une méthode plus forte existe (application, SMS, code de secours),
+ * elle est exigée. L'e-mail est délibérément EXCLU comme preuve : un
+ * attaquant ayant accès à la boîte validerait sa propre demande.
+ *
+ * Si aucune méthode forte n'est active, on retombe sur le mot de passe
+ * seul — c'est le maximum possible, et cela n'affaiblit rien par rapport
+ * à l'existant. */
+$stepMethods = wt_stepup_methods($u, true);   // true = e-mail exclu
+if ($stepMethods && !wt_stepup_granted('change_email')) {
+    wt_json([
+        'ok'       => false,
+        'error'    => t('account.email_needs_stepup'),
+        'stepup'   => wt_url('/dashboard/verify-action.php?a=change_email'),
+    ]);
+}
+
 /* ---- Vérification password actuel ---- */
 $stmt = $db->prepare("SELECT password_hash FROM users WHERE id = ? LIMIT 1");
 $stmt->bind_param('i', $uid);
@@ -66,7 +89,14 @@ if ($exists) wt_json(['ok' => false, 'error' => t('account.email_taken')]);
 $db->begin_transaction();
 try {
     $stmt = $db->prepare(
-        "UPDATE users SET email = ?, email_verified_at = NULL, tfa_email_enabled = 0
+        /* On désactive la 2FA par e-mail : la nouvelle adresse n'est pas
+           encore vérifiée, l'utiliser comme second facteur serait absurde.
+           Les DEUX colonnes sont remises à zéro — le schéma en contient
+           deux pour la même chose (tfa_* héritée, twofa_* utilisée par le
+           moteur actuel), et n'en traiter qu'une laissait la 2FA e-mail
+           active sur une adresse non vérifiée. */
+        "UPDATE users SET email = ?, email_verified_at = NULL,
+                tfa_email_enabled = 0, twofa_email_enabled = 0
           WHERE id = ?"
     );
     $stmt->bind_param('si', $newEmail, $uid);
@@ -80,6 +110,11 @@ try {
     $verifyUrl = wt_url('/auth/verify-email.php?token=' . $token);
 
     $db->commit();
+
+    /* Autorisation consommée : à usage unique.
+       La laisser valide permettrait de rejouer l'action pendant sa fenêtre
+       de validité, par exemple pour enchaîner un second changement. */
+    wt_stepup_consume('change_email');
 
     try {
         wt_mail($newEmail, 'verify_email', [
