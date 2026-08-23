@@ -100,6 +100,59 @@ include __DIR__ . '/../header.php';
       </section>
       <?php endif; ?>
 
+      <?php
+        /* Chronologie du projet.
+           Volontairement sans dates précises autres que l'année de
+           lancement, qui est lue depuis la configuration : inventer un
+           calendrier détaillé serait exactement le type d'affirmation
+           invérifiable que le reste du site évite. Les étapes décrivent
+           ce qui a réellement été construit, dans l'ordre où ça l'a été.
+           L'administrateur peut préciser les dates plus tard. */
+        $_ty = (int) cfg('launch_year', (int) date('Y'));
+      ?>
+      <section class="wt-legal-v2__section">
+        <h2><?= ++$n ?>. <?= e(t('about.h_timeline')) ?></h2>
+        <p><?= e(t('about.timeline_lead')) ?></p>
+
+        <ol class="wt-timeline">
+          <li class="wt-timeline__item">
+            <span class="wt-timeline__when"><?= (int) $_ty ?></span>
+            <div class="wt-timeline__body">
+              <strong><?= e(t('about.tl_1_t')) ?></strong>
+              <p><?= e(t('about.tl_1_d')) ?></p>
+            </div>
+          </li>
+          <li class="wt-timeline__item">
+            <span class="wt-timeline__when"><?= (int) $_ty ?></span>
+            <div class="wt-timeline__body">
+              <strong><?= e(t('about.tl_2_t')) ?></strong>
+              <p><?= e(t('about.tl_2_d')) ?></p>
+            </div>
+          </li>
+          <li class="wt-timeline__item">
+            <span class="wt-timeline__when"><?= (int) $_ty ?></span>
+            <div class="wt-timeline__body">
+              <strong><?= e(t('about.tl_3_t')) ?></strong>
+              <p><?= e(t('about.tl_3_d')) ?></p>
+            </div>
+          </li>
+          <li class="wt-timeline__item">
+            <span class="wt-timeline__when"><?= (int) $_ty ?></span>
+            <div class="wt-timeline__body">
+              <strong><?= e(t('about.tl_4_t')) ?></strong>
+              <p><?= e(t('about.tl_4_d')) ?></p>
+            </div>
+          </li>
+          <li class="wt-timeline__item wt-timeline__item--now">
+            <span class="wt-timeline__when"><?= e(t('about.tl_now')) ?></span>
+            <div class="wt-timeline__body">
+              <strong><?= e(t('about.tl_5_t')) ?></strong>
+              <p><?= e(t('about.tl_5_d')) ?></p>
+            </div>
+          </li>
+        </ol>
+      </section>
+
       <section class="wt-legal-v2__section">
         <h2><?= ++$n ?>. <?= e(t('about.h_future')) ?></h2>
         <p><?= e(t('about.future_p')) ?></p>

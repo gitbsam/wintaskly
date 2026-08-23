@@ -300,9 +300,15 @@ try {
 /* ---------- Liste --------------------------------------------------- */
 $rows = [];
 if ($res = $db->query(
+    /* Les colonnes de santé ne sont ajoutées que par
+       sql/migration_provider_health.sql. On les demande uniquement si
+       elles existent : sur une base non migrée, la page continue de
+       fonctionner normalement, sans bloc d'état. */
     "SELECT id, name, provider, reward_coins, reward_xp,
-            cooldown_hours, gateway_seconds, active
-       FROM shortlinks ORDER BY id DESC"
+            cooldown_hours, gateway_seconds, active"
+    . (isset($existingCols['fail_streak'])
+        ? ", last_check_at, last_http_code, fail_streak" : "")
+    . " FROM shortlinks ORDER BY id DESC"
 )) {
     $rows = $res->fetch_all(MYSQLI_ASSOC);
     $res->free();
@@ -620,6 +626,36 @@ include __DIR__ . '/../header.php';
                       <span class="wt-admin-v2__entry-tag"><?= e($r['provider']) ?></span>
                     <?php endif; ?>
                   </header>
+
+                  <?php
+                    /* État de santé du fournisseur.
+                       Alimenté par la tâche planifiée `provider_health`.
+                       Trois cas distincts, à ne pas confondre :
+                         • jamais contrôlé  → rien n'est affiché (pas d'info
+                           n'est pas une mauvaise nouvelle) ;
+                         • échecs en cours  → avertissement avec le compteur,
+                           pour agir AVANT la désactivation automatique ;
+                         • sain             → discret, on ne surcharge pas. */
+                    $_hFail  = (int) ($r['fail_streak'] ?? 0);
+                    $_hCode  = (int) ($r['last_http_code'] ?? 0);
+                    $_hWhen  = $r['last_check_at'] ?? null;
+                    $_hLimit = max(1, (int) cfg('health.fail_limit', 3));
+                  ?>
+                  <?php if ($_hWhen && $_hFail > 0): ?>
+                    <div class="wt-admin-health wt-admin-health--warn">
+                      ⚠️ <?= e(sprintf((string) t('admin.health.failing'), $_hFail, $_hLimit)) ?>
+                      <?php if ($_hCode > 0): ?>
+                        <span class="wt-admin-health__code">HTTP <?= $_hCode ?></span>
+                      <?php else: ?>
+                        <span class="wt-admin-health__code"><?= e(t('admin.health.unreachable')) ?></span>
+                      <?php endif; ?>
+                    </div>
+                  <?php elseif ($_hWhen): ?>
+                    <div class="wt-admin-health wt-admin-health--ok">
+                      ✅ <?= e(t('admin.health.ok')) ?>
+                      <span class="wt-admin-health__code"><?= e(wt_format_datetime((string) $_hWhen, 'd/m H:i')) ?></span>
+                    </div>
+                  <?php endif; ?>
 
                   <div class="wt-admin-v2__entry-meta">
                     <span title="<?= e(t('admin.sl.reward')) ?>">

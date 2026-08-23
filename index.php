@@ -162,13 +162,13 @@ if ($res = $db->query($sql)) {
  * le bloc JSON-LD, donc tout wt_schema_add() postérieur serait ignoré.
  * Les mêmes clés alimentent l'accordéon plus bas — Google exige que les
  * questions balisées soient réellement visibles sur la page. */
-$homeFaq = [
-    ['q' => t('home.faq.q1'), 'a' => t('home.faq.a1')],
-    ['q' => t('home.faq.q2'), 'a' => t('home.faq.a2')],
-    ['q' => t('home.faq.q3'), 'a' => t('home.faq.a3')],
-    ['q' => t('home.faq.q4'), 'a' => t('home.faq.a4')],
-    ['q' => t('home.faq.q5'), 'a' => t('home.faq.a5')],
-];
+$homeFaq = [];
+for ($i = 1; $i <= 10; $i++) {
+    $q = (string) t('home.faq.q' . $i);
+    $a = (string) t('home.faq.a' . $i);
+    if ($q === '' || $q === 'home.faq.q' . $i) { continue; }
+    $homeFaq[] = ['q' => $q, 'a' => $a];
+}
 wt_schema_add(wt_schema_faq($homeFaq));
 
 include __DIR__ . '/header.php';
@@ -1235,13 +1235,17 @@ include __DIR__ . '/header.php';
     /* Balisage FAQPage : ces 5 questions sont visibles sur la page (Google
        l'exige pour les résultats enrichis). Le fil d'Ariane n'est pas
        nécessaire ici, l'accueil étant la racine. */
-    $faqItems = [
-        ['q' => t('home.faq.q1'), 'a' => t('home.faq.a1'), 'open' => true],
-        ['q' => t('home.faq.q2'), 'a' => t('home.faq.a2'), 'open' => false],
-        ['q' => t('home.faq.q3'), 'a' => t('home.faq.a3'), 'open' => false],
-        ['q' => t('home.faq.q4'), 'a' => t('home.faq.a4'), 'open' => false],
-        ['q' => t('home.faq.q5'), 'a' => t('home.faq.a5'), 'open' => false],
-    ];
+    $faqItems = [];
+    /* 10 questions, générées en boucle plutôt qu'écrites une par une :
+       en ajouter une nouvelle ne demande que deux clés de traduction.
+       Une question dont la traduction manque est ignorée, ce qui évite
+       d'afficher une entrée vide. */
+    for ($i = 1; $i <= 10; $i++) {
+        $q = (string) t('home.faq.q' . $i);
+        $a = (string) t('home.faq.a' . $i);
+        if ($q === '' || $q === 'home.faq.q' . $i) { continue; }
+        $faqItems[] = ['q' => $q, 'a' => $a, 'open' => ($i === 1)];
+    }
   ?>
   <section class="wt-faq" data-reveal>
     <div class="wt-faq__head">

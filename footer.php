@@ -211,25 +211,25 @@ $_yearDisplay = ($_launchYear === $_currentYear)
     <div class="wt-trustrow" aria-label="<?= e(t('trust.aria')) ?>">
       <?php if ($_https): ?>
         <span class="wt-trustrow__item">
-          <span aria-hidden="true">🔒</span> <?= e(t('trust.https')) ?>
+          <?= wt_icon('lock', ['size' => 15]) ?> <?= e(t('trust.https')) ?>
         </span>
       <?php endif; ?>
       <span class="wt-trustrow__item">
-        <span aria-hidden="true">🛡️</span>
+        <?= wt_icon('shield-check', ['size' => 15]) ?>
         <a href="<?= $_base ?>/legal/privacy.php"><?= e(t('trust.data')) ?></a>
       </span>
       <?php if ($_payCount > 0): ?>
         <span class="wt-trustrow__item">
-          <span aria-hidden="true">💳</span>
+          <?= wt_icon('card', ['size' => 15]) ?>
           <?= e(sprintf((string) t('trust.methods'), $_payCount)) ?>
         </span>
       <?php endif; ?>
       <span class="wt-trustrow__item">
-        <span aria-hidden="true">🕐</span>
+        <?= wt_icon('clock', ['size' => 15]) ?>
         <a href="<?= $_base ?>/help/contact.php"><?= e(t('trust.support')) ?></a>
       </span>
       <span class="wt-trustrow__item">
-        <span aria-hidden="true">📋</span>
+        <?= wt_icon('file', ['size' => 15]) ?>
         <a href="<?= $_base ?>/help/antifraud.php"><?= e(t('trust.rules')) ?></a>
       </span>
     </div>

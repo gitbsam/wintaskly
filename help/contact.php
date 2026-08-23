@@ -230,6 +230,47 @@ include __DIR__ . '/../header.php';
           <h3><?= e(t('contact.sla_title')) ?></h3>
           <p><?= e(t('contact.sla_text')) ?></p>
         </div>
+
+        <?php
+          /* Coordonnées et horaires.
+             L'adresse est lue depuis la configuration d'envoi plutôt
+             qu'écrite en dur : elle reste ainsi cohérente avec celle qui
+             apparaît dans vos e-mails, et une modification en admin se
+             répercute ici automatiquement. Si aucune adresse n'est
+             configurée, le bloc n'affiche pas de ligne vide. */
+          $_cEmail = trim((string) cfg('email.from_address', ''));
+        ?>
+        <div class="wt-contact-v2__aside-card">
+          <h3><?= e(t('contact.reach_title')) ?></h3>
+          <ul class="wt-contact-v2__reach">
+            <?php if ($_cEmail !== ''): ?>
+              <li>
+                <?= wt_icon('mail', ['size' => 15, 'class' => 'wt-ico--muted']) ?>
+                <a href="mailto:<?= e($_cEmail) ?>"><?= e($_cEmail) ?></a>
+              </li>
+            <?php endif; ?>
+            <li>
+              <?= wt_icon('clock', ['size' => 15, 'class' => 'wt-ico--muted']) ?>
+              <?= e(t('contact.hours')) ?>
+            </li>
+            <li>
+              <?= wt_icon('globe', ['size' => 15, 'class' => 'wt-ico--muted']) ?>
+              <?= e(t('contact.lang_note')) ?>
+            </li>
+          </ul>
+          <p class="wt-contact-v2__reach-note"><?= e(t('contact.reach_note')) ?></p>
+        </div>
+
+        <div class="wt-contact-v2__aside-card">
+          <h3><?= e(t('contact.links_title')) ?></h3>
+          <ul class="wt-contact-v2__links">
+            <li><a href="<?= e(wt_url('/help/faq.php')) ?>"><?= e(t('contact.link_faq')) ?></a></li>
+            <li><a href="<?= e(wt_url('/help/')) ?>"><?= e(t('contact.link_help')) ?></a></li>
+            <li><a href="<?= e(wt_url('/help/antifraud.php')) ?>"><?= e(t('contact.link_antifraud')) ?></a></li>
+            <li><a href="<?= e(wt_url('/about/partners.php')) ?>"><?= e(t('contact.link_partners')) ?></a></li>
+            <li><a href="<?= e(wt_url('/legal/privacy.php')) ?>"><?= e(t('contact.link_privacy')) ?></a></li>
+          </ul>
+        </div>
       </aside>
 
     </div>

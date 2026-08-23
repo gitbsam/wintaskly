@@ -262,8 +262,16 @@ if (!$_seoRobotsIndex): ?>
 <link rel="manifest" href="<?= $_base ?>/manifest.webmanifest">
 
 <?php
-/* Image OG : configurée en admin ou fallback assets locaux */
-$_ogImage = $_seoOgImage !== '' ? $_seoOgImage : $_base . '/media/wintaskly/img/og-image.png';
+/* Image OG, par ordre de priorité :
+     1. la couverture propre à l'article, quand on est sur un article —
+        c'est elle qui doit apparaître lors d'un partage, pas un visuel
+        générique identique pour les 58 articles ;
+     2. l'image configurée en administration ;
+     3. le visuel par défaut du site.
+   $pageOgImage est posé par blog/post.php avant l'inclusion de ce fichier. */
+$_ogImage = !empty($pageOgImage)
+    ? $pageOgImage
+    : ($_seoOgImage !== '' ? $_seoOgImage : $_base . '/media/wintaskly/img/og-image.png');
 ?>
 <!-- Open Graph + Twitter Card pour les partages -->
 <meta property="og:title"       content="<?= e($_fullTitle) ?>">

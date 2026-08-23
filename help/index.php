@@ -51,37 +51,40 @@ $lang = $GLOBALS['WT_LANG'] ?? [];
  * automatiquement, le hub suit donc le calendrier de publication.
  */
 $helpTopics = [
-    ['k' => 'tasks', 'slugs' => [
+    /* Une icône par thème, cohérente et indépendante du système du
+       visiteur — contrairement aux emojis, dont le dessin varie d'un
+       appareil à l'autre. */
+    ['k' => 'tasks', 'icon' => 'target', 'slugs' => [
         'comprendre-optimiser-chaque-type-de-tache',
         'faucet-pourquoi-un-delai-entre-reclamations',
         'ptc-ce-qui-se-passe-pendant-le-compteur',
         'shortlinks-comprendre-pages-de-passage',
         'bien-choisir-ses-offres-partenaires',
     ]],
-    ['k' => 'notcredited', 'slugs' => [
+    ['k' => 'notcredited', 'icon' => 'alert', 'slugs' => [
         'offre-refusee-offerwall-que-faire',
         'bloqueur-publicite-pourquoi-gains-bloques',
         'lire-ses-propres-chiffres-tableau-de-bord',
     ]],
-    ['k' => 'withdraw', 'slugs' => [
+    ['k' => 'withdraw', 'icon' => 'wallet', 'slugs' => [
         'retraits-conversion-moyens-de-paiement',
         'pourquoi-un-retrait-peut-etre-refuse',
         'combien-de-temps-met-un-paiement-crypto',
         'choisir-sa-methode-de-retrait-selon-son-pays',
         'micro-portefeuille-a-quoi-ca-sert',
     ]],
-    ['k' => 'account', 'slugs' => [
+    ['k' => 'account', 'icon' => 'lock', 'slugs' => [
         'securiser-son-compte-et-ses-gains',
         'double-authentification-expliquee-simplement',
         'que-faire-si-votre-compte-est-compromis',
         'gestionnaire-mots-de-passe-pourquoi-comment',
     ]],
-    ['k' => 'fraud', 'slugs' => [
+    ['k' => 'fraud', 'icon' => 'shield', 'slugs' => [
         'reconnaitre-email-phishing-indices-concrets',
         'signaux-alerte-plateforme-micro-gains-douteuse',
         'arnaques-crypto-les-schemas-a-connaitre',
     ]],
-    ['k' => 'understand', 'slugs' => [
+    ['k' => 'understand', 'icon' => 'book', 'slugs' => [
         'guide-complet-micro-gains-en-ligne',
         'pourquoi-ces-plateformes-peuvent-vous-payer',
         'combien-peut-on-vraiment-gagner-micro-taches',
@@ -274,13 +277,16 @@ include __DIR__ . '/../header.php';
           if (!$items) { continue; }   // thème sans article publié : masqué
         ?>
           <div class="wt-help-kb__topic">
-            <h3 class="wt-help-kb__topic-title"><?= e(t('help.kb_' . $topic['k'])) ?></h3>
+            <h3 class="wt-help-kb__topic-title">
+              <?= wt_icon($topic['icon'] ?? 'file', ['size' => 17, 'class' => 'wt-ico--accent']) ?>
+              <?= e(t('help.kb_' . $topic['k'])) ?>
+            </h3>
             <p class="wt-help-kb__topic-desc"><?= e(t('help.kb_' . $topic['k'] . '_d')) ?></p>
             <ul class="wt-help-kb__list">
               <?php foreach ($items as $a): ?>
                 <li>
                   <a href="<?= e(wt_url('/blog/' . $a['slug'])) ?>">
-                    <span class="wt-help-kb__emoji" aria-hidden="true"><?= e($a['cover_emoji'] ?: '📄') ?></span>
+                    <span class="wt-help-kb__emoji"><?= wt_icon('file', ['size' => 15, 'class' => 'wt-ico--muted']) ?></span>
                     <span class="wt-help-kb__label"><?= e($a['title']) ?></span>
                     <span class="wt-help-kb__min"><?= (int) $a['reading_minutes'] ?> <?= e(t('blog.min_read')) ?></span>
                   </a>

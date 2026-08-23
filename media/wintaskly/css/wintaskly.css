@@ -681,7 +681,11 @@ html.light .wt-icon-moon { display: none; }
 @media (min-width: 650px) {
   @container blogcard (min-width: 380px) {
     .wt-blog-card__link { display: flex; align-items: stretch; }
-    .wt-blog-card__cover { width: 160px; height: auto; flex-shrink: 0; }
+    /* En disposition horizontale, la couverture avait `height: auto`
+       alors que l'image intérieure demande `height: 100%` : sans ratio
+       défini, l'image s'écrasait et le titre se décalait. On impose donc
+       le ratio des miniatures (600×400) pour réserver la place. */
+    .wt-blog-card__cover { width: 160px; height: auto; aspect-ratio: 3 / 2; flex-shrink: 0; align-self: stretch; }
     .wt-blog-card__body { flex: 1; display: flex; flex-direction: column; justify-content: center; }
   }
 }
@@ -13591,3 +13595,169 @@ a.wt-dash-v2__kpi-cta:hover {
 .wt-trustrow__item { display: inline-flex; align-items: center; gap: .4rem; }
 .wt-trustrow__item a { color: inherit; text-decoration: none; border-bottom: 1px dotted currentColor; }
 .wt-trustrow__item a:hover { color: var(--wt-accent); }
+
+/* Admin — bandeau d'état de santé d'un fournisseur */
+.wt-admin-health {
+  display: inline-flex; align-items: center; gap: .45rem;
+  margin: .35rem 0 .1rem; padding: .28rem .6rem;
+  font-size: .76rem; border-radius: var(--wt-radius-pill, 999px);
+  border: 1px solid var(--wt-border);
+}
+.wt-admin-health--warn { color: var(--wt-danger); border-color: var(--wt-danger); }
+.wt-admin-health--ok   { opacity: .6; }
+.wt-admin-health__code { opacity: .7; font-variant-numeric: tabular-nums; }
+
+/* =====================================================================
+   ARTICLES — figures, schémas et encadrés
+   =====================================================================
+   Les articles étaient composés à 100 % de texte. Ces styles permettent
+   trois apports visuels sans dépendre de banques d'images génériques :
+
+     • <figure> — accueille un schéma SVG ou une capture d'écran, avec
+       une légende. La légende n'est pas décorative : elle porte souvent
+       l'explication que l'image seule ne transmet pas.
+
+     • .wt-schema — conteneur des schémas SVG. Ceux-ci utilisent les
+       variables de thème, donc ils suivent le mode clair/sombre au lieu
+       d'être figés sur un fond blanc.
+
+     • .wt-callout — encadrés « Conseil », « Attention », « À retenir ».
+       C'est le seul endroit où une icône est utilisée : elle signale la
+       nature de l'encadré, elle ne remplace pas du contenu.
+   ===================================================================== */
+.wt-article__body figure {
+  margin: 1.75rem 0;
+  padding: 0;
+}
+.wt-article__body figure img {
+  width: 100%; height: auto; display: block;
+  border-radius: var(--wt-radius-lg, 16px);
+  border: 1px solid var(--wt-border);
+}
+.wt-article__body figcaption {
+  margin-top: .6rem; font-size: .82rem; line-height: 1.55;
+  opacity: .7; text-align: center;
+}
+
+.wt-schema {
+  background: var(--wt-bg-elev);
+  border: 1px solid var(--wt-border);
+  border-radius: var(--wt-radius-lg, 16px);
+  padding: 1.25rem;
+  overflow-x: auto;
+}
+.wt-schema svg { display: block; width: 100%; height: auto; max-width: 720px; margin: 0 auto; }
+.wt-schema text { font-family: inherit; }
+
+.wt-callout {
+  display: flex; gap: .85rem; align-items: flex-start;
+  margin: 1.5rem 0; padding: .95rem 1.1rem;
+  border-radius: var(--wt-radius-md, 12px);
+  border: 1px solid var(--wt-border);
+  border-left-width: 3px;
+  background: var(--wt-bg-elev);
+  font-size: .9rem; line-height: 1.6;
+}
+.wt-callout__icon { font-size: 1.15rem; line-height: 1.4; flex-shrink: 0; }
+.wt-callout__body { flex: 1; }
+.wt-callout__body strong { display: block; margin-bottom: .2rem; }
+.wt-callout__body p:last-child { margin-bottom: 0; }
+.wt-callout--tip   { border-left-color: var(--wt-success); }
+.wt-callout--warn  { border-left-color: var(--wt-danger); }
+.wt-callout--note  { border-left-color: var(--wt-accent); }
+
+/* Couverture d'article (1200×630) */
+.wt-article__cover {
+  width: 100%; height: auto; display: block;
+  margin: 0 0 1.5rem;
+  border-radius: var(--wt-radius-lg, 16px);
+  border: 1px solid var(--wt-border);
+  aspect-ratio: 1200 / 630;   /* réserve la place : évite tout décalage (CLS) */
+  object-fit: cover;
+}
+
+/* Icônes Lucide en SVG inline — voir includes/icons.php */
+.wt-ico {
+  display: inline-block; vertical-align: -.18em;
+  flex-shrink: 0;
+  stroke: currentColor;   /* suit la couleur du texte, donc le thème */
+}
+.wt-ico--muted { opacity: .65; }
+.wt-ico--accent { color: var(--wt-accent); }
+.wt-help-kb__topic-title { display: flex; align-items: center; gap: .45rem; }
+
+/* Chronologie du projet (page À propos) */
+.wt-timeline { list-style: none; margin: 1.25rem 0 0; padding: 0 0 0 1.1rem; border-left: 2px solid var(--wt-border); }
+.wt-timeline__item { position: relative; padding: 0 0 1.35rem 1.1rem; }
+.wt-timeline__item:last-child { padding-bottom: 0; }
+.wt-timeline__item::before {
+  content: ""; position: absolute; left: -1.5rem; top: .38rem;
+  width: 9px; height: 9px; border-radius: 50%;
+  background: var(--wt-bg); border: 2px solid var(--wt-border);
+}
+.wt-timeline__item--now::before { border-color: var(--wt-accent); background: var(--wt-accent); }
+.wt-timeline__when { display: block; font-size: .74rem; letter-spacing: .06em; text-transform: uppercase; opacity: .6; margin-bottom: .15rem; }
+.wt-timeline__item--now .wt-timeline__when { color: var(--wt-accent); opacity: 1; }
+.wt-timeline__body strong { display: block; margin-bottom: .2rem; font-size: .95rem; }
+.wt-timeline__body p { margin: 0; font-size: .87rem; line-height: 1.6; opacity: .78; }
+
+/* Contact — coordonnées et liens utiles */
+.wt-contact-v2__reach, .wt-contact-v2__links { list-style: none; margin: .6rem 0 0; padding: 0; }
+.wt-contact-v2__reach li { display: flex; align-items: center; gap: .5rem; padding: .3rem 0; font-size: .87rem; }
+.wt-contact-v2__reach a { color: var(--wt-accent); }
+.wt-contact-v2__reach-note { margin: .8rem 0 0; font-size: .8rem; line-height: 1.55; opacity: .7; }
+.wt-contact-v2__links li { padding: .3rem 0; font-size: .87rem; }
+.wt-contact-v2__links a { color: inherit; border-bottom: 1px dotted currentColor; text-decoration: none; }
+.wt-contact-v2__links a:hover { color: var(--wt-accent); }
+
+/* Retraits — panneau explicatif */
+.wt-wd-info {
+  margin-top: 1.75rem; padding: 1.4rem;
+  background: var(--wt-bg-elev); border: 1px solid var(--wt-border);
+  border-radius: var(--wt-radius-lg, 16px);
+}
+.wt-wd-info__title { font-size: 1.05rem; margin: 0 0 1rem; }
+.wt-wd-info h3 { font-size: .9rem; margin: 1.2rem 0 .45rem; color: var(--wt-accent); }
+.wt-wd-info h3:first-of-type { margin-top: 0; }
+.wt-wd-info p { font-size: .86rem; line-height: 1.65; margin: 0; opacity: .82; }
+.wt-wd-info__methods, .wt-wd-info__list { list-style: none; margin: 0; padding: 0; }
+.wt-wd-info__methods li {
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: .5rem;
+  padding: .45rem 0; border-bottom: 1px solid var(--wt-border); font-size: .86rem;
+}
+.wt-wd-info__methods li:last-child { border-bottom: 0; }
+.wt-wd-info__methods span { opacity: .75; }
+.wt-wd-info__auto, .wt-wd-info__manual { font-size: .74rem; opacity: .6; font-style: normal; margin-left: auto; }
+.wt-wd-info__list li { padding: .4rem 0 .4rem 1rem; position: relative; font-size: .86rem; line-height: 1.6; opacity: .82; }
+.wt-wd-info__list li::before { content: "·"; position: absolute; left: .2rem; color: var(--wt-accent); }
+.wt-wd-info__note { margin-top: .7rem !important; font-size: .82rem !important; opacity: .7 !important; }
+.wt-wd-info__more { margin-top: 1.2rem !important; }
+.wt-wd-info__more a { color: var(--wt-accent); font-size: .86rem; }
+
+/* Profil — aperçu du compte */
+.wt-acct-overview { margin-bottom: 1.5rem; padding: 1.1rem; background: var(--wt-bg-elev);
+  border: 1px solid var(--wt-border); border-radius: var(--wt-radius-lg, 16px); }
+.wt-acct-overview__stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: .9rem; }
+@media (min-width: 640px) { .wt-acct-overview__stats { grid-template-columns: repeat(4, 1fr); } }
+.wt-acct-overview__k { display: block; font-size: .72rem; text-transform: uppercase;
+  letter-spacing: .05em; opacity: .6; margin-bottom: .15rem; }
+.wt-acct-overview__stat strong { font-size: 1.05rem; }
+.wt-acct-overview__stat strong.is-on { color: var(--wt-success); font-size: .9rem; }
+.wt-acct-overview__stat strong.is-off { color: var(--wt-danger); font-size: .9rem; }
+.wt-acct-overview__links { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: 1.1rem;
+  padding-top: 1rem; border-top: 1px solid var(--wt-border); }
+.wt-acct-overview__links a { display: inline-flex; align-items: center; gap: .4rem;
+  padding: .4rem .75rem; font-size: .82rem; color: inherit; text-decoration: none;
+  border: 1px solid var(--wt-border); border-radius: var(--wt-radius-pill, 999px); }
+.wt-acct-overview__links a:hover { border-color: var(--wt-accent); color: var(--wt-accent); }
+.wt-acct-overview__tip { display: flex; align-items: flex-start; gap: .5rem; margin: 1rem 0 0;
+  font-size: .82rem; line-height: 1.55; color: var(--wt-accent); }
+.wt-acct-overview__tip a { color: inherit; font-weight: 600; }
+
+/* Admin blog — couverture illustrée */
+.wt-field--wide { grid-column: 1 / -1; }
+.wt-blogcover { display: flex; align-items: center; gap: 1rem; margin-bottom: .6rem; }
+.wt-blogcover__img { width: 200px; height: auto; aspect-ratio: 1200/630; object-fit: cover;
+  border-radius: 10px; border: 1px solid var(--wt-border); }
+.wt-blogcover__remove { display: inline-flex; align-items: center; gap: .4rem; font-size: .82rem; }
+.wt-field__hint { display: block; margin-top: .35rem; font-size: .78rem; line-height: 1.5; opacity: .65; }

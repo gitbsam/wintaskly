@@ -37,6 +37,74 @@ include __DIR__ . '/../header.php';
         <p class="wt-muted"><?= e(t('account.lead')) ?></p>
       </header>
 
+      <?php
+        /* Aperçu du compte.
+         *
+         * La page ne contenait qu'un formulaire d'édition : ni niveau, ni
+         * historique, ni accès aux réglages de sécurité. L'utilisateur
+         * devait deviner que ces pages existaient ailleurs.
+         *
+         * Ce bloc réunit l'essentiel et renvoie vers les pages dédiées
+         * plutôt que de dupliquer leur contenu — un profil doit orienter,
+         * pas tout contenir. Les données viennent de la session courante,
+         * aucune requête supplémentaire n'est nécessaire. */
+        $_u2   = $u;   // deja charge en haut de page (current_user())
+        $_lvl  = (int) ($_u2['level'] ?? 1);
+        $_xp   = (int) ($_u2['xp'] ?? 0);
+        $_since = !empty($_u2['created_at'])
+            ? wt_format_datetime((string) $_u2['created_at'], 'm/Y') : '—';
+        $_2faOn = function_exists('wt_2fa_is_enabled') && wt_2fa_is_enabled($_u2);
+      ?>
+      <section class="wt-acct-overview">
+        <div class="wt-acct-overview__stats">
+          <div class="wt-acct-overview__stat">
+            <span class="wt-acct-overview__k"><?= e(t('account.ov_level')) ?></span>
+            <strong><?= $_lvl ?></strong>
+          </div>
+          <div class="wt-acct-overview__stat">
+            <span class="wt-acct-overview__k"><?= e(t('account.ov_xp')) ?></span>
+            <strong><?= number_format($_xp, 0, ',', ' ') ?></strong>
+          </div>
+          <div class="wt-acct-overview__stat">
+            <span class="wt-acct-overview__k"><?= e(t('account.ov_since')) ?></span>
+            <strong><?= e($_since) ?></strong>
+          </div>
+          <div class="wt-acct-overview__stat">
+            <span class="wt-acct-overview__k"><?= e(t('account.ov_2fa')) ?></span>
+            <strong class="<?= $_2faOn ? 'is-on' : 'is-off' ?>">
+              <?= e($_2faOn ? t('account.ov_2fa_on') : t('account.ov_2fa_off')) ?>
+            </strong>
+          </div>
+        </div>
+
+        <nav class="wt-acct-overview__links" aria-label="<?= e(t('account.ov_nav')) ?>">
+          <a href="<?= e(wt_url('/dashboard/')) ?>">
+            <?= wt_icon('list', ['size' => 15, 'class' => 'wt-ico--muted']) ?>
+            <?= e(t('account.ov_history')) ?>
+          </a>
+          <a href="<?= e(wt_url('/dashboard/settings.php')) ?>">
+            <?= wt_icon('info', ['size' => 15, 'class' => 'wt-ico--muted']) ?>
+            <?= e(t('account.ov_settings')) ?>
+          </a>
+          <a href="<?= e(wt_url('/dashboard/2fa-setup.php')) ?>">
+            <?= wt_icon('lock', ['size' => 15, 'class' => 'wt-ico--muted']) ?>
+            <?= e(t('account.ov_security')) ?>
+          </a>
+          <a href="<?= e(wt_url('/dashboard/withdraw.php')) ?>">
+            <?= wt_icon('wallet', ['size' => 15, 'class' => 'wt-ico--muted']) ?>
+            <?= e(t('account.ov_payouts')) ?>
+          </a>
+        </nav>
+
+        <?php if (!$_2faOn): ?>
+          <p class="wt-acct-overview__tip">
+            <?= wt_icon('shield', ['size' => 15]) ?>
+            <?= e(t('account.ov_2fa_tip')) ?>
+            <a href="<?= e(wt_url('/dashboard/2fa-setup.php')) ?>"><?= e(t('account.ov_2fa_cta')) ?></a>
+          </p>
+        <?php endif; ?>
+      </section>
+
       <?php if ($deletePending): ?>
         <div class="wt-alert wt-alert--error" style="margin-bottom:1.5rem">
           ⏳ <?= e(t('account.delete_pending_notice')) ?>

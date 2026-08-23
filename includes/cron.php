@@ -104,7 +104,19 @@ function wt_cron_run(bool $force = false): array
         $stmt->close();
 
         try {
-            $summary = (string) ($task['cb'])();
+            /* Une tâche peut renvoyer une chaîne ou un tableau.
+               Le cast direct en chaîne transformait tout tableau en
+               « Array » — le résumé était donc perdu pour toutes les
+               tâches structurées, y compris update_check. On extrait
+               désormais la clé 'summary' quand elle existe. */
+            $raw = ($task['cb'])();
+            if (is_array($raw)) {
+                $summary = isset($raw['summary'])
+                    ? (string) $raw['summary']
+                    : (string) json_encode($raw, JSON_UNESCAPED_UNICODE);
+            } else {
+                $summary = (string) $raw;
+            }
             $upd = $db->prepare(
                 "UPDATE cron_runs SET finished_at = NOW(), status = 'success', summary = ?
                   WHERE id = ?"

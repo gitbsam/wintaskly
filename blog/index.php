@@ -112,9 +112,16 @@ include __DIR__ . '/../header.php';
               <article class="wt-blog-card">
                 <a href="<?= e(wt_url('/blog/' . $post['slug'])) ?>" class="wt-blog-card__link">
                   <div class="wt-blog-card__cover">
-                    <?php if (!empty($post['cover_image'])): ?>
-                      <img src="<?= e(wt_url('/media/wintaskly/img/blog/' . $post['cover_image'])) ?>"
-                           alt="" loading="lazy" class="wt-blog-card__cover-img">
+                    <?php
+                      /* La colonne cover_image n'existe pas en base : on
+                         résout la miniature par convention de nom, avec
+                         repli sur l'emoji si le fichier n'a pas encore
+                         été généré. */
+                      $_thumb = wt_blog_cover((string) $post['slug'], 'thumb');
+                    ?>
+                    <?php if ($_thumb): ?>
+                      <img src="<?= e($_thumb) ?>" alt="" loading="lazy"
+                           width="600" height="400" class="wt-blog-card__cover-img">
                     <?php else: ?>
                       <span class="wt-blog-card__emoji"><?= e($post['cover_emoji'] ?: '📄') ?></span>
                     <?php endif; ?>

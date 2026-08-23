@@ -60,6 +60,11 @@ $_crumbs[] = ['name' => (string) $post['title'], 'url' => wt_url('/blog/' . $pos
 wt_schema_add(wt_schema_breadcrumb($_crumbs));
 $metaDescription = $post['meta_description'] ?: ($post['excerpt'] ?: '');
 
+/* Couverture propre à l'article pour les partages sociaux.
+   Lue par header.php ; sans elle, les 58 articles partageraient tous
+   la même vignette générique. */
+$pageOgImage = wt_blog_cover((string) $post['slug'], 'cover');
+
 include __DIR__ . '/../header.php';
 ?>
 
@@ -82,6 +87,12 @@ include __DIR__ . '/../header.php';
 
     <!-- En-tête de l'article -->
     <header class="wt-article__header" data-reveal>
+      <?php $_cover = wt_blog_cover((string) $post['slug'], 'cover'); ?>
+      <?php if ($_cover): ?>
+        <img class="wt-article__cover" src="<?= e($_cover) ?>"
+             alt="<?= e($post['title']) ?>"
+             width="1200" height="630" fetchpriority="high">
+      <?php endif; ?>
       <h1 class="wt-article__title"><?= e($post['title']) ?></h1>
       <div class="wt-article__meta">
         <span>✍️

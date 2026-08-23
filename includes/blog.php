@@ -319,3 +319,52 @@ if (!function_exists('wt_blog_related_tasks')) {
         return $out;
     }
 }
+
+if (!function_exists('wt_blog_cover')) {
+    /**
+     * Chemin d'une couverture d'article, par CONVENTION de nom.
+     *
+     * Les visuels sont produits par scripts/generate_covers.py sous la forme
+     * `{slug}-cover.png` (1200×630, format Open Graph) et `{slug}-thumb.png`
+     * (600×400, listes d'articles).
+     *
+     * Pourquoi une convention plutôt qu'une colonne en base : la table
+     * blog_posts n'a pas de colonne cover_image — le gabarit de liste en
+     * attendait une, qui n'a jamais existé, si bien qu'aucune couverture
+     * n'aurait pu s'afficher. Résoudre par le nom de fichier évite une
+     * migration, couvre les 58 articles existants d'un coup, et fonctionne
+     * automatiquement pour chaque nouvel article dès que sa couverture est
+     * générée.
+     *
+     * Le test d'existence évite d'afficher une image cassée : sans fichier,
+     * l'appelant retombe sur l'emoji de l'article.
+     *
+     * @param string $slug Identifiant de l'article
+     * @param string $kind 'cover' (1200×630) ou 'thumb' (600×400)
+     * @return string|null URL publique, ou null si le fichier est absent
+     */
+    function wt_blog_cover(string $slug, string $kind = 'cover'): ?string
+    {
+        $slug = preg_replace('/[^a-z0-9-]/', '', strtolower($slug));
+        if ($slug === '') { return null; }
+        $kind = $kind === 'thumb' ? 'thumb' : 'cover';
+
+        static $root = null;
+        if ($root === null) { $root = dirname(__DIR__); }
+        $dir = '/media/wintaskly/img/blog/';
+
+        /* Priorité 1 — image téléversée en administration.
+           Elle prime sur la couverture générée, y compris pour la
+           miniature : une vraie illustration vaut mieux qu'un visuel
+           composé automatiquement, même en petit format. Le nom est
+           reconstruit depuis le slug, jamais lu depuis une saisie. */
+        foreach (['png', 'jpg', 'webp'] as $ext) {
+            $up = $dir . $slug . '-upload.' . $ext;
+            if (is_file($root . $up)) { return wt_url($up); }
+        }
+
+        /* Priorité 2 — couverture générée par scripts/generate_covers.py. */
+        $rel = $dir . $slug . '-' . $kind . '.png';
+        return is_file($root . $rel) ? wt_url($rel) : null;
+    }
+}

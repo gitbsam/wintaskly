@@ -286,6 +286,78 @@ include __DIR__ . '/../header.php';
         <?php endif; ?>
       </section>
 
+      <?php
+        /* Panneau explicatif des retraits.
+         *
+         * La page ne montrait qu'un formulaire et une liste : l'utilisateur
+         * découvrait les règles au moment du refus. Tout ce qui suit est lu
+         * depuis la CONFIGURATION et la table des méthodes — aucune valeur
+         * n'est écrite en dur, donc l'affichage suit vos réglages sans
+         * risque de dire l'inverse de ce que fait le code.
+         *
+         * Note : il n'existe pas de colonne de frais dans le schéma. On
+         * n'annonce donc aucun montant de frais — affirmer « sans frais »
+         * serait faux dès qu'un réseau en prélève. On explique d'où ils
+         * viennent, ce qui est exact et utile. */
+        $_wMinAge   = (int) cfg('fraud.withdraw_min_account_age_hours', 24);
+        $_wNeedMail = (string) cfg('fraud.withdraw_require_verified_email', '1') === '1';
+        $_wMethods  = [];
+        try {
+            $r = db()->query(
+                "SELECT label, currency, min_coins, auto_payout
+                   FROM withdrawal_methods WHERE active = 1 ORDER BY sort_order"
+            );
+            while ($r && ($m = $r->fetch_assoc())) { $_wMethods[] = $m; }
+        } catch (Throwable $e) { /* simple aide : pas de blocage */ }
+      ?>
+      <section class="wt-wd-info">
+        <h2 class="wt-wd-info__title"><?= e(t('wd.info_title')) ?></h2>
+
+        <?php if ($_wMethods): ?>
+          <h3><?= e(t('wd.info_thresholds')) ?></h3>
+          <ul class="wt-wd-info__methods">
+            <?php foreach ($_wMethods as $m): ?>
+              <li>
+                <strong><?= e($m['label']) ?></strong>
+                <span><?= e(sprintf(
+                    (string) t('wd.info_min'),
+                    rtrim(rtrim(number_format((float) $m['min_coins'], 2, ',', ' '), '0'), ',')
+                )) ?></span>
+                <?php if ((int) $m['auto_payout'] === 1): ?>
+                  <em class="wt-wd-info__auto"><?= e(t('wd.info_auto')) ?></em>
+                <?php else: ?>
+                  <em class="wt-wd-info__manual"><?= e(t('wd.info_manual')) ?></em>
+                <?php endif; ?>
+              </li>
+            <?php endforeach; ?>
+          </ul>
+        <?php endif; ?>
+
+        <h3><?= e(t('wd.info_checks')) ?></h3>
+        <ul class="wt-wd-info__list">
+          <?php if ($_wNeedMail): ?>
+            <li><?= e(t('wd.info_check_mail')) ?></li>
+          <?php endif; ?>
+          <?php if ($_wMinAge > 0): ?>
+            <li><?= e(sprintf((string) t('wd.info_check_age'), $_wMinAge)) ?></li>
+          <?php endif; ?>
+          <li><?= e(t('wd.info_check_review')) ?></li>
+        </ul>
+        <p class="wt-wd-info__note"><?= e(t('wd.info_refund')) ?></p>
+
+        <h3><?= e(t('wd.info_delays')) ?></h3>
+        <p><?= e(t('wd.info_delays_d')) ?></p>
+
+        <h3><?= e(t('wd.info_fees')) ?></h3>
+        <p><?= e(t('wd.info_fees_d')) ?></p>
+
+        <p class="wt-wd-info__more">
+          <a href="<?= e(wt_url('/blog/retraits-conversion-moyens-de-paiement')) ?>">
+            <?= e(t('wd.info_guide')) ?> →
+          </a>
+        </p>
+      </section>
+
     </section>
   </div>
 </main>

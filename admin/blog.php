@@ -37,6 +37,51 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && csrf_check($_POST['_csrf'] ?? null)
         $excerpt = trim((string)($_POST['excerpt'] ?? ''));
         $body    = (string)($_POST['body'] ?? '');
         $emoji   = trim((string)($_POST['cover_emoji'] ?? ''));
+
+        /* Déclaré ici et non plus bas : le traitement de la couverture
+           ci-dessous alimente ce tableau, et une déclaration postérieure
+           l'écraserait — les erreurs d'upload auraient disparu sans trace. */
+        $errors  = [];
+
+        /* ---- Couverture téléversée -------------------------------------
+         * Le générateur automatique ne produit que du texte sur un fond :
+         * il ne sait pas dessiner une illustration. Ce champ permet de
+         * fournir une vraie image, produite avec l'outil de votre choix.
+         *
+         * Sécurité : le type est validé par getimagesize() sur le CONTENU
+         * du fichier, jamais sur son extension — une extension peut mentir,
+         * les dimensions et le type MIME réels non. Le nom final est
+         * reconstruit à partir du slug, ce qui évite toute injection par
+         * le nom d'origine. */
+        $coverImage  = trim((string)($_POST['cover_image_existing'] ?? ''));
+        $coverPrompt = trim((string)($_POST['cover_prompt'] ?? ''));
+
+        if (!empty($_FILES['cover_file']['tmp_name']) && is_uploaded_file($_FILES['cover_file']['tmp_name'])) {
+            $tmp  = $_FILES['cover_file']['tmp_name'];
+            $info = @getimagesize($tmp);
+            $ok   = ['image/png' => 'png', 'image/jpeg' => 'jpg', 'image/webp' => 'webp'];
+
+            if (!$info || !isset($ok[$info['mime']])) {
+                $errors[] = t('admin.blog.cover_bad_type');
+            } elseif ((int) $_FILES['cover_file']['size'] > 3 * 1024 * 1024) {
+                $errors[] = t('admin.blog.cover_too_big');
+            } elseif ((int) $info[0] < 600) {
+                /* En dessous de 600 px de large, l'image sera floue une fois
+                   partagée sur les réseaux, qui affichent en 1200 px. */
+                $errors[] = t('admin.blog.cover_too_small');
+            } else {
+                $dir = dirname(__DIR__) . '/media/wintaskly/img/blog';
+                if (!is_dir($dir)) { @mkdir($dir, 0775, true); }
+                $base = preg_replace('/[^a-z0-9-]/', '', strtolower($slug)) ?: 'article';
+                $fn   = $base . '-upload.' . $ok[$info['mime']];
+                if (move_uploaded_file($tmp, $dir . '/' . $fn)) {
+                    $coverImage = $fn;
+                } else {
+                    $errors[] = t('admin.blog.cover_move_failed');
+                }
+            }
+        }
+        if (!empty($_POST['cover_remove'])) { $coverImage = ''; }
         $author  = trim((string)($_POST['author_name'] ?? '')) ?: 'Équipe Wintaskly';
         $metaT   = trim((string)($_POST['meta_title'] ?? '')) ?: null;
         $metaD   = trim((string)($_POST['meta_description'] ?? '')) ?: null;
@@ -57,7 +102,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && csrf_check($_POST['_csrf'] ?? null)
             }
         }
 
-        $errors = [];
         if ($title === '') $errors[] = t('admin.blog.err_title');
         if ($body === '')  $errors[] = t('admin.blog.err_body');
 
@@ -75,16 +119,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && csrf_check($_POST['_csrf'] ?? null)
                     $stmt = $db->prepare(
                         "INSERT INTO blog_posts
                            (slug, category_id, title, excerpt, body, cover_emoji,
+                            cover_image, cover_prompt,
                             author_name, meta_title, meta_description, status,
                             reading_minutes, published_at)
-                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
                     );
-                    // Types (12) : slug=s category_id=i title=s excerpt=s body=s
-                    //   cover_emoji=s author=s meta_title=s meta_desc=s status=s
-                    //   reading_minutes=i published_at=s
+                    // Types (14) : slug=s category_id=i title=s excerpt=s body=s
+                    //   cover_emoji=s cover_image=s cover_prompt=s author=s
+                    //   meta_title=s meta_desc=s status=s reading_minutes=i
+                    //   published_at=s
                     $stmt->bind_param(
-                        'sissssssssis',
+                        'sissssssssssis',
                         $slug, $catId, $title, $excerpt, $body, $emoji,
+                        $coverImage, $coverPrompt,
                         $author, $metaT, $metaD, $status, $reading, $pubAt
                     );
                     $stmt->execute();
@@ -104,14 +151,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && csrf_check($_POST['_csrf'] ?? null)
                     $stmt = $db->prepare(
                         "UPDATE blog_posts SET
                             slug = ?, category_id = ?, title = ?, excerpt = ?,
-                            body = ?, cover_emoji = ?, author_name = ?,
+                            body = ?, cover_emoji = ?,
+                            cover_image = ?, cover_prompt = ?, author_name = ?,
                             meta_title = ?, meta_description = ?, status = ?,
                             reading_minutes = ?, published_at = ?
                           WHERE id = ?"
                     );
                     $stmt->bind_param(
-                        'sissssssssisi',
+                        'sissssssssssisi',
                         $slug, $catId, $title, $excerpt, $body, $emoji,
+                        $coverImage, $coverPrompt,
                         $author, $metaT, $metaD, $status, $reading, $pubAt, $id
                     );
                     $stmt->execute();
@@ -191,6 +240,16 @@ if (isset($_GET['edit_cat'])) {
 }
 
 // Article en cours d'édition ?
+/* Colonnes réellement présentes : les champs de couverture n'existent
+   qu'après sql/migration_blog_cover_upload.sql. On les détecte plutôt que
+   de les supposer, pour que l'administration reste utilisable sur une base
+   non migrée. */
+$blogCols = [];
+if ($res = $db->query("SHOW COLUMNS FROM blog_posts")) {
+    while ($c = $res->fetch_assoc()) { $blogCols[$c['Field']] = true; }
+    $res->free();
+}
+
 $editPost = null;
 if (isset($_GET['edit'])) {
     $editSlugOrId = (string)$_GET['edit'];
@@ -348,7 +407,7 @@ include __DIR__ . '/../header.php';
         <h2 style="margin-top:0">
           <?= $editPost ? '✏️ ' . e(t('admin.blog.edit_title')) : '➕ ' . e(t('admin.blog.add_title')) ?>
         </h2>
-        <form method="post">
+        <form method="post" enctype="multipart/form-data">
           <input type="hidden" name="_csrf" value="<?= e(csrf_token()) ?>">
           <input type="hidden" name="action" value="<?= $editPost ? 'update' : 'create' ?>">
           <?php if ($editPost): ?>
@@ -383,6 +442,44 @@ include __DIR__ . '/../header.php';
               <input class="wt-input" type="text" name="cover_emoji" maxlength="16" placeholder="📄"
                      value="<?= e((string)($editPost['cover_emoji'] ?? '')) ?>">
             </label>
+
+            <?php
+              /* Couverture illustrée.
+                 Trois niveaux, du plus prioritaire au moins :
+                   1. l'image téléversée ici ;
+                   2. la couverture générée par scripts/generate_covers.py ;
+                   3. l'emoji ci-dessus.
+                 Le champ n'apparaît que si la migration a été appliquée,
+                 pour ne pas proposer un formulaire qui échouerait. */
+              $_hasCover = isset($blogCols['cover_image']);
+              $_curCover = (string) ($editPost['cover_image'] ?? '');
+            ?>
+            <?php if ($_hasCover): ?>
+              <div class="wt-field wt-field--wide">
+                <span class="wt-field__label"><?= e(t('admin.blog.f_cover')) ?></span>
+                <?php if ($_curCover !== ''): ?>
+                  <div class="wt-blogcover">
+                    <img src="<?= e(wt_url('/media/wintaskly/img/blog/' . $_curCover)) ?>"
+                         alt="" class="wt-blogcover__img">
+                    <label class="wt-blogcover__remove">
+                      <input type="checkbox" name="cover_remove" value="1">
+                      <?= e(t('admin.blog.f_cover_remove')) ?>
+                    </label>
+                  </div>
+                  <input type="hidden" name="cover_image_existing" value="<?= e($_curCover) ?>">
+                <?php endif; ?>
+                <input class="wt-input" type="file" name="cover_file"
+                       accept="image/png,image/jpeg,image/webp">
+                <small class="wt-field__hint"><?= e(t('admin.blog.f_cover_hint')) ?></small>
+              </div>
+
+              <div class="wt-field wt-field--wide">
+                <span class="wt-field__label"><?= e(t('admin.blog.f_prompt')) ?></span>
+                <textarea class="wt-input" name="cover_prompt" rows="3"
+                          placeholder="<?= e(t('admin.blog.f_prompt_ph')) ?>"><?= e((string)($editPost['cover_prompt'] ?? '')) ?></textarea>
+                <small class="wt-field__hint"><?= e(t('admin.blog.f_prompt_hint')) ?></small>
+              </div>
+            <?php endif; ?>
             <label class="wt-field">
               <span class="wt-field__label"><?= e(t('admin.blog.f_author')) ?></span>
               <input class="wt-input" type="text" name="author_name" maxlength="120"
