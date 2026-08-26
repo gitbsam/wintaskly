@@ -223,8 +223,13 @@ if (!function_exists('cfg_set')) {
         $db = db();
 
         // Vérif que la connexion est encore active (sinon échec silencieux)
-        if (!$db->ping()) {
-            error_log('[Wintaskly cfg_set] DB connection lost for key ' . $key);
+        try {
+            if (!$db->stat()) {
+                error_log('[Wintaskly cfg_set] DB connection lost for key ' . $key);
+                return false;
+            }
+        } catch (Throwable $e) {
+            error_log('[Wintaskly cfg_set] DB connection error for key ' . $key . ': ' . $e->getMessage());
             return false;
         }
 

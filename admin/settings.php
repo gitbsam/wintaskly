@@ -129,6 +129,22 @@ $schema = [
          'hint' => 'admin.set.cpx.allowed_ips_hint', 'maxlen' => 255],
     ],
 
+    /* Drip Offers — offerwall & sondages.
+       Le Secret Key est marqué 'sensitive' : il est masqué à l'affichage,
+       comme un mot de passe. C'est la clé qui authentifie les postbacks MD5 —
+       quiconque la connaît peut se créditer des Coins par une simple
+       requête, donc elle ne doit pas rester lisible à l'écran. */
+    'dripoffers' => [
+        ['key' => 'dripoffers.api_key',      'label' => 'admin.set.dripoffers.api_key',      'type' => 'text',
+         'hint' => 'admin.set.dripoffers.api_key_hint',      'maxlen' => 64],
+        ['key' => 'dripoffers.secret_key',   'label' => 'admin.set.dripoffers.secret_key',   'type' => 'password',
+         'hint' => 'admin.set.dripoffers.secret_key_hint',   'maxlen' => 120, 'sensitive' => true],
+        ['key' => 'dripoffers.check_ip',     'label' => 'admin.set.dripoffers.check_ip',     'type' => 'checkbox',
+         'hint' => 'admin.set.dripoffers.check_ip_hint'],
+        ['key' => 'dripoffers.allowed_ips',  'label' => 'admin.set.dripoffers.allowed_ips',  'type' => 'text',
+         'hint' => 'admin.set.dripoffers.allowed_ips_hint',  'maxlen' => 255],
+    ],
+
     'social' => [
         ['key' => 'social.facebook', 'label' => 'admin.set.social.facebook', 'type' => 'url', 'hint' => 'admin.set.social.facebook_hint'],
         ['key' => 'social.twitter',  'label' => 'admin.set.social.twitter',  'type' => 'url', 'hint' => 'admin.set.social.twitter_hint'],
@@ -138,6 +154,7 @@ $schema = [
         ['key' => 'social.instagram','label' => 'admin.set.social.instagram','type' => 'url', 'hint' => 'admin.set.social.instagram_hint'],
         ['key' => 'social.tiktok',   'label' => 'admin.set.social.tiktok',   'type' => 'url', 'hint' => 'admin.set.social.tiktok_hint'],
     ],
+    
     'legal' => [
         ['key' => 'legal.editor_name',    'label' => 'admin.set.legal.editor_name',    'type' => 'text',     'hint' => 'admin.set.legal.editor_name_hint',    'maxlen' => 150],
         ['key' => 'legal.editor_status',  'label' => 'admin.set.legal.editor_status',  'type' => 'text',     'hint' => 'admin.set.legal.editor_status_hint',  'maxlen' => 150],
@@ -308,6 +325,7 @@ include __DIR__ . '/../header.php';
               'leaderboard' => ['🏆', 'admin.set.tab.leaderboard'],
               'email'       => ['📧', 'admin.set.tab.email'],
               'cpx'         => ['📋', 'admin.set.tab.cpx'],
+              'dripoffers'  => ['💧', 'admin.set.tab.dripoffers'],
               'social'      => ['🌐', 'admin.set.tab.social'],
               'legal'       => ['⚖️', 'admin.set.tab.legal'],
           ];
@@ -374,6 +392,49 @@ include __DIR__ . '/../header.php';
                   <?php endif; ?>
                 <?php endif; ?>
               </div>
+            <?php endif; ?>
+
+            <?php if ($tab === 'dripoffers'): ?>
+                <?php
+                    /* Vérificateur de signature MD5.
+                     *
+                     * Un postback refusé en BAD_SIGNATURE signifie presque toujours
+                     * que la clé secrète enregistrée n'est pas celle de Drip Offers
+                     * ou que les paramètres calculés ne correspondent pas.
+                     *
+                     * Formule Drip Offers : md5(subId . transId . reward . secret)
+                     *
+                     * Le secret n'est jamais affiché — seulement le résultat calculé. */
+                    $dripSecret = trim((string) cfg('dripoffers.secret_key', ''));
+                    $dripSubId  = trim((string) ($_GET['drip_subid']  ?? ''));
+                    $dripTx     = trim((string) ($_GET['drip_tx']     ?? ''));
+                    $dripReward = trim((string) ($_GET['drip_reward'] ?? ''));
+
+                    $dripCalc   = ($dripSecret !== '' && $dripSubId !== '' && $dripTx !== '' && $dripReward !== '')
+                    ? md5($dripSubId . $dripTx . $dripReward . $dripSecret) : '';
+                ?>
+                <div class="wt-dripoffers-check">
+                    <h3 class="wt-dripoffers-check__h"><?= e(t('admin.set.dripoffers.check_title')) ?></h3>
+                    <p class="wt-dripoffers-check__lead"><?= e(t('admin.set.dripoffers.check_lead')) ?></p>
+                <?php if ($dripSecret === ''): ?>
+                    <p class="wt-dripoffers-check__warn"><?= e(t('admin.set.dripoffers.check_nosecret')) ?></p>
+                <?php else: ?>
+                    <form method="get" class="wt-dripoffers-check__form">
+                        <input type="hidden" name="tab" value="dripoffers">
+                        <input class="wt-input" type="text" name="drip_subid" value="<?= e($dripSubId) ?>" placeholder="<?= e(t('admin.set.dripoffers.check_ph_subid')) ?>">
+                        <input class="wt-input" type="text" name="drip_tx" value="<?= e($dripTx) ?>" placeholder="<?= e(t('admin.set.dripoffers.check_ph_tx')) ?>">
+                        <input class="wt-input" type="text" name="drip_reward" value="<?= e($dripReward) ?>" placeholder="<?= e(t('admin.set.dripoffers.check_ph_reward')) ?>">
+                        <button class="wt-btn wt-btn--ghost" type="submit"><?= e(t('admin.set.dripoffers.check_btn')) ?></button>
+                    </form>
+                <?php if ($dripCalc !== ''): ?>
+                    <p class="wt-dripoffers-check__result">
+                        <?= e(t('admin.set.dripoffers.check_expected')) ?>
+                        <code><?= e($dripCalc) ?></code>
+                    </p>
+                    <p class="wt-dripoffers-check__hint"><?= e(t('admin.set.dripoffers.check_hint')) ?></p>
+                <?php endif; ?>
+            <?php endif; ?>
+                </div>
             <?php endif; ?>
 
             <?php if ($tab === 'twofa'): ?>

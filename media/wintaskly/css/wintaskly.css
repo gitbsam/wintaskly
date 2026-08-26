@@ -13806,3 +13806,111 @@ a.wt-dash-v2__kpi-cta:hover {
   background: var(--wt-bg-soft, rgba(127,127,127,.1)); border-radius: 6px; word-break: break-all; }
 .wt-cpx-check__hint { margin: 0; font-size: .79rem; line-height: 1.55; opacity: .65; }
 .wt-cpx-check__warn { margin: 0; font-size: .84rem; color: var(--wt-accent); }
+
+/* Admin — campagnes d'acquisition */
+.wt-camp-list { list-style: none; margin: 0; padding: 0; }
+.wt-camp-item { padding: 1rem 0; border-bottom: 1px solid var(--wt-border); }
+.wt-camp-item:last-child { border-bottom: 0; }
+.wt-camp-item__head { display: flex; flex-wrap: wrap; align-items: center; gap: .6rem; margin-bottom: .6rem; }
+.wt-camp-item__site { font-size: .8rem; opacity: .65; }
+.wt-camp-badge { font-size: .7rem; text-transform: uppercase; letter-spacing: .05em;
+  padding: .18rem .5rem; border-radius: 999px; border: 1px solid var(--wt-border); }
+.wt-camp-badge--active { color: var(--wt-success); border-color: var(--wt-success); }
+.wt-camp-badge--paused { color: var(--wt-accent); border-color: var(--wt-accent); }
+.wt-camp-badge--cancelled, .wt-camp-badge--ended { opacity: .55; }
+.wt-camp-link { margin-bottom: .6rem; }
+.wt-camp-link .wt-input { font-family: ui-monospace, monospace; font-size: .8rem; }
+.wt-camp-kpis { display: flex; flex-wrap: wrap; gap: 1.2rem; font-size: .82rem; margin-bottom: .7rem; }
+.wt-camp-kpis strong { font-size: .95rem; }
+.wt-camp-kpis em { opacity: .55; font-style: normal; font-size: .78rem; }
+.wt-camp-actions { display: flex; flex-wrap: wrap; gap: .4rem; }
+.wt-camp-table { overflow-x: auto; }
+.wt-camp-table table { width: 100%; border-collapse: collapse; font-size: .84rem; }
+.wt-camp-table th { text-align: left; padding: .5rem .6rem; opacity: .65;
+  font-size: .74rem; text-transform: uppercase; letter-spacing: .04em; border-bottom: 1px solid var(--wt-border); }
+.wt-camp-table td { padding: .5rem .6rem; border-bottom: 1px solid var(--wt-border); }
+.wt-camp-yes { color: var(--wt-success); }
+.wt-camp-pending { color: var(--wt-accent); font-size: .8rem; }
+.wt-camp-no { opacity: .4; }
+.wt-camp-form { display: grid; grid-template-columns: 1fr; gap: .85rem; }
+@media (min-width: 760px) { .wt-camp-form { grid-template-columns: repeat(2, 1fr); } }
+
+/* =====================================================================
+   PAGE DE CAMPAGNE (/campagn)
+   =====================================================================
+   Deux colonnes sur grand écran, une seule sur mobile. L'aside passe
+   SOUS le contenu en mobile plutôt que d'être masqué : la charte
+   d'engagements et le pavé 300×250 gardent leur valeur, l'un pour la
+   confiance, l'autre pour le revenu.
+   ===================================================================== */
+.wt-camp__wrap { max-width: 1180px; margin: 0 auto; padding: 1.5rem 1rem 3rem; }
+
+.wt-camp__hero { text-align: center; padding: 1.5rem 0 2rem; }
+.wt-camp__title { font-size: clamp(1.5rem, 4vw, 2.2rem); margin: 0 0 .8rem; line-height: 1.25; }
+.wt-camp__lead { max-width: 720px; margin: 0 auto; font-size: 1rem; line-height: 1.7; opacity: .85; }
+
+.wt-camp__offer { max-width: 560px; margin: 1.6rem auto 0; padding: 1.2rem;
+  background: var(--wt-bg-elev); border: 1px solid var(--wt-accent);
+  border-radius: var(--wt-radius-lg, 16px); }
+.wt-camp__offer-k { display: block; font-size: .76rem; text-transform: uppercase;
+  letter-spacing: .06em; opacity: .7; margin-bottom: .2rem; }
+.wt-camp__offer-v { display: block; font-size: 1.6rem; color: var(--wt-accent); margin-bottom: .5rem; }
+.wt-camp__offer-cond { margin: 0; font-size: .84rem; line-height: 1.6; opacity: .8; }
+.wt-camp__notice { max-width: 620px; margin: 1.4rem auto 0; padding: .8rem 1rem;
+  font-size: .86rem; line-height: 1.6; opacity: .8;
+  background: var(--wt-bg-elev); border: 1px solid var(--wt-border);
+  border-radius: var(--wt-radius-md, 12px); }
+
+.wt-camp__cta { display: flex; flex-wrap: wrap; gap: .7rem; justify-content: center; margin-top: 1.6rem; }
+.wt-camp__cta--inline { margin: 1.8rem 0; }
+.wt-btn--lg { padding: .8rem 1.6rem; font-size: 1rem; }
+
+.wt-camp__cols { display: grid; grid-template-columns: 1fr; gap: 2rem; margin-top: 1rem; }
+@media (min-width: 1000px) {
+  .wt-camp__cols { grid-template-columns: minmax(0, 1fr) 320px; align-items: start; }
+  .wt-camp__aside { position: sticky; top: 5rem; }
+}
+
+.wt-camp__main section { margin-bottom: 2rem; }
+.wt-camp__main h2 { font-size: 1.25rem; margin: 0 0 .8rem; }
+.wt-camp__main h3 { font-size: .98rem; margin: 0 0 .35rem; color: var(--wt-accent); }
+.wt-camp__main p { margin: 0 0 .9rem; line-height: 1.75; opacity: .86; }
+
+.wt-camp__tasks, .wt-camp__trust { display: grid; grid-template-columns: 1fr; gap: 1rem; }
+@media (min-width: 640px) { .wt-camp__tasks, .wt-camp__trust { grid-template-columns: repeat(2, 1fr); } }
+.wt-camp__task, .wt-camp__trust-item { padding: 1rem; background: var(--wt-bg-elev);
+  border: 1px solid var(--wt-border); border-radius: var(--wt-radius-lg, 16px); }
+.wt-camp__task p, .wt-camp__trust-item p { margin: 0; font-size: .87rem; }
+
+.wt-camp__steps { padding-left: 1.2rem; }
+.wt-camp__steps li { margin-bottom: .7rem; line-height: 1.7; opacity: .86; }
+
+.wt-camp__why { padding: 1.2rem; background: var(--wt-bg-elev);
+  border: 1px solid var(--wt-border); border-left: 3px solid var(--wt-accent);
+  border-radius: var(--wt-radius-lg, 16px); }
+.wt-camp__final { text-align: center; padding: 1.5rem 0; }
+.wt-camp__yearnote { font-size: .76rem; opacity: .5; text-align: center; margin: 1.5rem 0 0; }
+
+/* Emplacements publicitaires — la hauteur est réservée pour éviter tout
+   décalage de contenu au chargement (CLS). */
+.wt-camp-ad { display: flex; justify-content: center; align-items: center;
+  margin: 2rem 0; overflow: hidden; }
+.wt-camp-ad--728 { min-height: 90px; }
+.wt-camp-ad--300 { min-height: 250px; margin: 1.2rem 0; }
+.wt-camp-ad img, .wt-camp-ad iframe { max-width: 100%; height: auto; }
+
+.wt-camp__charter { padding: 1.2rem; background: var(--wt-bg-elev);
+  border: 1px solid var(--wt-border); border-radius: var(--wt-radius-lg, 16px); }
+.wt-camp__charter h2 { font-size: 1rem; margin: 0 0 .8rem; }
+.wt-camp__charter ul { list-style: none; margin: 0 0 1rem; padding: 0; }
+.wt-camp__charter li { position: relative; padding: .4rem 0 .4rem 1.1rem;
+  font-size: .85rem; line-height: 1.55; opacity: .85; }
+.wt-camp__charter li::before { content: "✓"; position: absolute; left: 0;
+  color: var(--wt-success); font-size: .8rem; }
+.wt-camp__charter a { font-size: .84rem; color: var(--wt-accent); }
+.wt-camp__aside-cta { margin-top: 1.2rem; text-align: center; }
+.wt-camp__faq { display: grid; gap: .5rem; }
+.wt-camp__qa { padding: .8rem 1rem; background: var(--wt-bg-elev);
+  border: 1px solid var(--wt-border); border-radius: var(--wt-radius-md, 12px); }
+.wt-camp__qa summary { cursor: pointer; font-weight: 600; font-size: .9rem; }
+.wt-camp__qa p { margin: .6rem 0 0; font-size: .86rem; }

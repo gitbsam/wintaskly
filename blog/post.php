@@ -169,10 +169,23 @@ include __DIR__ . '/../header.php';
 
     <!-- Partage sur les réseaux sociaux -->
     <?php
-      // URL absolue de l'article (pour le partage)
-      $scheme  = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
-      $host    = $_SERVER['HTTP_HOST'] ?? 'wintaskly.com';
-      $absUrl  = $scheme . '://' . $host . wt_url('/blog/' . $post['slug']);
+      /* URL absolue de l'article, pour le partage.
+       *
+       * ⚠️ wt_url() renvoie DÉJÀ une URL absolue : elle préfixe le chemin
+       * avec base_url. Y ajouter le schéma et l'hôte produisait une adresse
+       * doublée du type :
+       *     https://www.wintaskly.comhttps://www.wintaskly.com/blog/...
+       * Tous les boutons de partage pointaient donc vers une page
+       * inexistante — Facebook et X affichaient un aperçu vide.
+       *
+       * On se contente donc de wt_url(). Un repli sur l'hôte courant reste
+       * utile si base_url n'est pas renseignée. */
+      $absUrl = wt_url('/blog/' . $post['slug']);
+      if (!preg_match('#^https?://#i', $absUrl)) {
+          $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+          $host   = $_SERVER['HTTP_HOST'] ?? 'wintaskly.com';
+          $absUrl = $scheme . '://' . $host . '/' . ltrim($absUrl, '/');
+      }
       $shareU  = rawurlencode($absUrl);
       $shareT  = rawurlencode($post['title']);
     ?>

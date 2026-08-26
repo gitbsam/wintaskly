@@ -52,6 +52,20 @@ ErrorDocument 503 /error-500.html
   RewriteRule ^blog/?$ blog/index.php [QSA,L]
   RewriteRule ^blog/categorie/([a-z0-9-]+)/?$ blog/index.php?cat=$1 [QSA,L]
   RewriteRule ^blog/([a-z0-9-]+)/?$ blog/post.php?slug=$1 [QSA,L]
+
+  # Pretty URLs des campagnes d'acquisition
+  #   /campagn                       → page seule, aucune campagne
+  #   /campagn/<annee>               → page + annee, sans code
+  #   /campagn/<annee>/<code>        → page + campagne identifiee
+  #
+  # L'annee et le code ne sont que des PARAMETRES : aucune page n'est a
+  # creer d'une annee sur l'autre. Une valeur inconnue affiche la page
+  # normalement, sans recompense — un lien perime qui circule encore sur
+  # un site partenaire ne doit pas produire une erreur 404, sinon on perd
+  # le visiteur au lieu de le convertir.
+  RewriteRule ^campagn/?$ campagn/index.php [QSA,L]
+  RewriteRule ^campagn/([0-9]{4})/?$ campagn/index.php?y=$1 [QSA,L]
+  RewriteRule ^campagn/([0-9]{4})/([A-Za-z0-9]{1,24})/?$ campagn/index.php?y=$1&c=$2 [QSA,L]
 </IfModule>
 
 # --------------------------------------------------------------------

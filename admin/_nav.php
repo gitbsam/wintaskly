@@ -143,6 +143,15 @@ $base = rtrim($GLOBALS['WT_CONFIG']['base_url'] ?? '', '/');
       <?= e(t('admin.ptc')) ?>
     </a>
 
+    <a href="<?= $base ?>/admin/campaigns.php" class="<?= $adminActive==='campaigns' ? 'is-active' : '' ?>" style="--idx:3">
+      <span class="wt-admin-v2__nav-ico" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 11l18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/>
+        </svg>
+      </span>
+      <?= e(t('admin.campaigns')) ?>
+    </a>
+
     <a href="<?= $base ?>/admin/offerwalls.php" class="<?= $adminActive==='offerwalls' ? 'is-active' : '' ?>" style="--idx:3">
       <span class="wt-admin-v2__nav-ico" aria-hidden="true">
         <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
