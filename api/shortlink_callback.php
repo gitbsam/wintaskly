@@ -88,7 +88,9 @@ $db = db();
 // =============================================================================
 $stmt = $db->prepare(
     "SELECT a.id, a.user_id, a.shortlink_id, a.status,
-            s.callback_key, s.reward_coins, s.reward_xp, s.cooldown_hours, s.name
+            TIMESTAMPDIFF(SECOND, a.started_at, NOW()) AS elapsed,
+            s.callback_key, s.reward_coins, s.reward_xp, s.cooldown_hours,
+            s.gateway_seconds, s.name
        FROM shortlink_attempts a
        JOIN shortlinks s ON s.id = a.shortlink_id
       WHERE a.token = ?
@@ -107,6 +109,39 @@ $cbKeyStored = function_exists('wt_decrypt') ? wt_decrypt((string)$row['callback
 if (!hash_equals($cbKeyStored, $key)) {
     error_log('[Wintaskly shortlink_callback] invalid key for token ' . substr($token, 0, 12) . '...');
     $respond(false, 'invalid_key', 403);
+}
+
+/* ---- Délai minimal ----------------------------------------------------
+ *
+ * ⚠️ POURQUOI CE CONTRÔLE EST LA VRAIE PROTECTION
+ *
+ * La clé de callback n'est PAS un secret vis-à-vis du membre : elle figure
+ * dans l'adresse sur laquelle il atterrit, donc dans sa barre d'adresse et
+ * dans son historique. Il lui suffit de la lire une fois.
+ *
+ * Ensuite, rien ne l'empêcherait d'ouvrir la passerelle pour obtenir un
+ * nouveau jeton, puis d'appeler directement ce callback avec ce jeton et
+ * la clé — sans jamais traverser le raccourcisseur ni voir la moindre
+ * publicité. Le gain serait crédité, et l'annonceur n'aurait rien payé.
+ *
+ * La clé protège donc contre un tiers qui n'a jamais utilisé le lien, pas
+ * contre le membre lui-même. Ce qui protège contre lui, c'est le TEMPS :
+ * un parcours réel impose l'attente de la passerelle, puis celle du
+ * raccourcisseur. Un retour deux secondes après la génération du jeton est
+ * matériellement impossible.
+ *
+ * Le seuil reste volontairement bas — on cherche à écarter l'appel direct,
+ * pas à punir une connexion rapide. */
+$minSeconds = max(3, (int) ($row['gateway_seconds'] ?? 5))
+            + max(0, (int) cfg('shortlinks.min_provider_seconds', 5));
+
+if ((int) $row['elapsed'] < $minSeconds) {
+    error_log(sprintf(
+        '[Wintaskly shortlink_callback] retour trop rapide : %ds < %ds requis '
+        . '(token %s…, user %d) — appel direct probable',
+        (int) $row['elapsed'], $minSeconds, substr($token, 0, 12), (int) $row['user_id']
+    ));
+    $respond(false, 'too_fast', 403);
 }
 
 // Si déjà traité : pas une erreur fatale (l'user vient de voir crédit).

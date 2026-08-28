@@ -117,6 +117,38 @@ if (!empty($fraudCheck['flag']) && function_exists('wt_fraud_flag_user')) {
     wt_fraud_flag_user($newId, 40, $fraudCheck['reason']);
 }
 
+/* ---- Rattachement à une campagne d'acquisition -----------------------
+ * Deux chemins : le cookie posé sur /campagn, sinon le paramètre `camp`
+ * du lien d'inscription (navigateur bloquant les cookies, changement
+ * d'appareil). Aucune récompense n'est versée ici : elle dépend d'une
+ * activité qui n'a pas encore eu lieu. Un échec ne bloque jamais la
+ * création du compte. */
+if (function_exists('wt_campaign_attach_user')) {
+    if (!wt_campaign_attach_user($newId)) {
+        $campCode = preg_replace('/[^A-Za-z0-9]/', '',
+                        (string) ($_POST['camp'] ?? $_GET['camp'] ?? '')) ?? '';
+        if ($campCode !== '') {
+            $camp = wt_campaign_find($campCode);
+            if ($camp && wt_campaign_is_live($camp)) {
+                try {
+                    $stmt2 = db()->prepare(
+                        "INSERT IGNORE INTO campaign_visits
+                           (campaign_id, visitor_key, converted_user_id, converted_at)
+                         VALUES (?, ?, ?, UTC_TIMESTAMP())"
+                    );
+                    $cid2 = (int) $camp['id'];
+                    $vkey = bin2hex(random_bytes(16));
+                    $stmt2->bind_param('isi', $cid2, $vkey, $newId);
+                    $stmt2->execute();
+                    $stmt2->close();
+                } catch (Throwable $e) {
+                    error_log('[Wintaskly campaign] rattachement direct : ' . $e->getMessage());
+                }
+            }
+        }
+    }
+}
+
 // Nettoyage cookie de parrainage
 if (isset($_COOKIE['wt_ref'])) {
     setcookie('wt_ref', '', time() - 3600, '/');

@@ -52,6 +52,11 @@ header('Content-Type: text/plain; charset=utf-8');
 
 function cpx_fail(string $reason, int $code = 400): void
 {
+    /* Journalisation avant sortie : c'est le seul point par lequel passent
+       tous les refus, donc le seul endroit où une trace est garantie. */
+    if (function_exists('wt_postback_log')) {
+        wt_postback_log('cpx', $reason, (string) ($_GET['trans_id'] ?? ''));
+    }
     http_response_code($code);
     error_log('[Wintaskly CPX] refus : ' . $reason . ' — ' . ($_SERVER['QUERY_STRING'] ?? ''));
     echo $reason;
@@ -268,4 +273,7 @@ try {
 $label = ($type !== '' ? $type : 'survey') . '#' . $transId;
 award_user($userId, $amtLocal, 0, 'offerwall', 'CPX ' . $label);
 
+if (function_exists('wt_postback_log')) {
+    wt_postback_log('cpx', 'OK', $transId);
+}
 echo 'OK';

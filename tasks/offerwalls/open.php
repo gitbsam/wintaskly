@@ -41,6 +41,11 @@ if (!$ow) {
     exit;
 }
 
+/* Drip Offers — l'URL contient la clé API et l'identifiant de l'utilisateur
+   connecté (dripoffers.com/offerwall/API_KEY/USER_ID). Elle est construite 
+   dynamiquement pour attribuer correctement les gains à chaque utilisateur. */
+$isDrip = ($ow['k'] ?? '') === (string) cfg('dripoffers.offerwall_key', 'dripoffers');
+
 /* CPX Research — l'URL ne peut PAS être stockée en base : elle contient un
    hachage calculé à partir de l'identifiant de l'utilisateur connecté
    (md5(id-secret)). Une URL figée serait la même pour tout le monde, donc
@@ -48,7 +53,17 @@ if (!$ow) {
    premier inscrit. On la construit donc ici. */
 $isCpx = ($ow['k'] ?? '') === (string) cfg('cpx.offerwall_key', 'cpx');
 
-if ($isCpx) {
+if ($isDrip) {
+    $apiKey = trim((string) cfg('dripoffers.api_key', ''));
+    if ($apiKey === '') {
+        /* Réglages incomplets : retour à la liste avec message d'erreur */
+        header('Location: ' . wt_url('/tasks/offerwalls/?err=notconfigured'));
+        exit;
+    }
+
+    $uidStr = (string) $u['id'];
+    $iframeUrl = 'https://dripoffers.com/offerwall/' . rawurlencode($apiKey) . '/' . rawurlencode($uidStr);
+} elseif ($isCpx) {
     $appId  = trim((string) cfg('cpx.app_id', ''));
     $secret = trim((string) cfg('cpx.secure_hash', ''));
     if ($appId === '' || $secret === '') {

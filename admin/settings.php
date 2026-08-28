@@ -408,7 +408,11 @@ include __DIR__ . '/../header.php';
                     $dripSecret = trim((string) cfg('dripoffers.secret_key', ''));
                     $dripSubId  = trim((string) ($_GET['drip_subid']  ?? ''));
                     $dripTx     = trim((string) ($_GET['drip_tx']     ?? ''));
-                    $dripReward = trim((string) ($_GET['drip_reward'] ?? ''));
+                    $rawReward  = trim((string) ($_GET['drip_reward'] ?? ''));
+
+                    $dripReward = ($rawReward !== '' && is_numeric($rawReward)) 
+                    ? number_format((float)$rawReward, 2, '.', '') 
+                    : $rawReward;
 
                     $dripCalc   = ($dripSecret !== '' && $dripSubId !== '' && $dripTx !== '' && $dripReward !== '')
                     ? md5($dripSubId . $dripTx . $dripReward . $dripSecret) : '';

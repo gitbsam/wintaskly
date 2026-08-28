@@ -104,6 +104,8 @@ include __DIR__ . '/../header.php';
                 <?= e(t('legal.privacy_data_prefs_text')) ?></li>
             <li><strong><?= e(t('legal.privacy_data_support_label')) ?> :</strong>
                 <?= e(t('legal.privacy_data_support_text')) ?></li>
+            <li><strong><?= e(t('legal.privacy_data_campaign_label')) ?> :</strong>
+                <?= e(t('legal.privacy_data_campaign_text')) ?></li>
           </ul>
         </section>
 

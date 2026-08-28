@@ -140,6 +140,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && csrf_check($_POST['_csrf'] ?? null)
         $apiTok    = trim((string)($_POST['api_token']    ?? ''));
         $cbKey     = trim((string)($_POST['callback_key'] ?? ''));
 
+        /* Clé de callback obligatoire, y compris en mode manuel.
+         *
+         * Elle authentifie le retour du raccourcisseur : sans elle, le
+         * callback refuse la validation et AUCUN gain n'est crédité — sans
+         * message visible pour l'utilisateur, qui conclut simplement que la
+         * tâche ne marche pas.
+         *
+         * À la création, si le champ est laissé vide, on en génère une
+         * plutôt que d'enregistrer un lien qui échouera silencieusement.
+         * En édition, un champ vide signifie « conserver l'existante »
+         * (le secret n'est jamais réaffiché), ce cas est traité plus bas. */
+        if ($id <= 0 && $cbKey === '') {
+            $cbKey = bin2hex(random_bytes(16));
+        }
+
         // Préservation des secrets : si on édite et que le champ est laissé
         // vide (token masqué non re-saisi), on conserve la valeur en base.
         // $apiTok/$cbKey portent ici la valeur EN CLAIR (saisie) ou vide.

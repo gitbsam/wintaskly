@@ -39,6 +39,10 @@ if (!empty($_GET['ref'])) {
 }
 $refCode = trim((string) ($_COOKIE['wt_ref'] ?? ''));
 
+/* Code de campagne transmis par le lien : filet quand le cookie de visite
+   a été refusé ou que le visiteur a changé d'appareil. */
+$campCode = mb_substr(preg_replace('/[^A-Za-z0-9]/', '', (string) ($_GET['camp'] ?? '')) ?? '', 0, 24);
+
 /* Résout le username du parrain pour humaniser l'expérience */
 $refUsername = null;
 if ($refCode !== '') {
@@ -113,6 +117,9 @@ include __DIR__ . '/../header.php';
             novalidate>
         <input type="hidden" name="_csrf"    value="<?= e(csrf_token()) ?>">
         <input type="hidden" name="ref_code" value="<?= e($refCode) ?>">
+        <?php if ($campCode !== ''): ?>
+          <input type="hidden" name="camp" value="<?= e($campCode) ?>">
+        <?php endif; ?>
 
         <!-- Honeypots — invisibles humains via CSS .wt-honey -->
         <div class="wt-honey" aria-hidden="true">

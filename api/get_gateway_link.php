@@ -85,14 +85,20 @@ if ($elapsed < $delay - 1) { // -1 s de tolérance réseau
  */
 $finalUrl = '';
 
+/* La clé de callback est nécessaire dans LES DEUX modes : elle authentifie
+   le retour. Elle était déchiffrée uniquement dans la branche API, ce qui
+   laissait le mode manuel sans clé — donc sans validation possible. */
+$cbKeyPlain = function_exists('wt_decrypt')
+            ? wt_decrypt((string) $row['callback_key'])
+            : (string) $row['callback_key'];
+
 if ($row['mode'] === 'api'
     && !empty($row['api_endpoint'])
     && !empty($row['api_token'])
     && !empty($row['callback_key'])) {
 
-    // Secrets chiffrés en base → déchiffrement avant usage
+    // Secret d'API chiffré en base → déchiffrement avant usage
     $apiTokenPlain = function_exists('wt_decrypt') ? wt_decrypt((string) $row['api_token']) : (string) $row['api_token'];
-    $cbKeyPlain    = function_exists('wt_decrypt') ? wt_decrypt((string) $row['callback_key']) : (string) $row['callback_key'];
 
     $callbackUrl = wt_url('/api/shortlink_callback.php')
                  . '?token=' . urlencode($token)
@@ -107,9 +113,61 @@ if ($row['mode'] === 'api'
         $finalUrl = $shortUrl;
     }
 } else {
-    // Mode manuel : URL de destination + token de validation
-    $sep      = (strpos((string) $row['destination_url'], '?') !== false) ? '&' : '?';
-    $finalUrl = (string) $row['destination_url'] . $sep . 'wt=' . urlencode($token);
+    /* ---- Mode manuel -------------------------------------------------
+     *
+     * ⚠️ CE BLOC ÉTAIT CASSÉ, de deux façons cumulées.
+     *
+     * Il ajoutait `wt=TOKEN` à la fin de l'URL du raccourcisseur. Or :
+     *
+     *   1. Le callback attend `token` et `key` — pas `wt`, qui n'est lu
+     *      nulle part. Même arrivé à destination, il n'aurait rien validé.
+     *
+     *   2. Surtout, le paramètre était collé à l'URL EXTERNE. Avec une
+     *      destination du type `https://ouo.io/qs/xxx?s=<notre-callback>`,
+     *      le `&wt=` devenait un paramètre de ouo.io, jamais transmis à
+     *      notre callback. L'utilisateur atterrissait donc sur
+     *      `shortlink_callback.php` sans aucun paramètre — d'où la page 404
+     *      ou le message « Paramètres manquants ».
+     *
+     * LA CORRECTION
+     * Le jeton doit voyager DANS l'URL de destination, encodée comme
+     * valeur de paramètre du raccourcisseur. Deux façons de l'obtenir :
+     *
+     *   • {CALLBACK} — l'administrateur place ce marqueur là où le
+     *     raccourcisseur attend l'adresse de retour. C'est la méthode
+     *     explicite, et la seule qui fonctionne avec tous les services.
+     *
+     *   • Détection automatique — si la destination contient déjà notre
+     *     propre adresse de callback (cas des liens créés avant cette
+     *     correction), on y injecte les paramètres au bon endroit plutôt
+     *     que d'exiger une réécriture manuelle de chaque lien.
+     * ------------------------------------------------------------------ */
+    $dest = (string) $row['destination_url'];
+
+    $cbBase   = wt_url('/api/shortlink_callback.php');
+    $cbFull   = $cbBase . '?token=' . urlencode($token)
+                        . '&key=' . urlencode($cbKeyPlain);
+
+    if (strpos($dest, '{CALLBACK}') !== false) {
+        /* Le marqueur est remplacé par l'adresse ENCODÉE : elle devient la
+           valeur d'un paramètre, ses propres `?` et `&` ne doivent donc pas
+           être interprétés par le raccourcisseur. */
+        $finalUrl = str_replace('{CALLBACK}', urlencode($cbFull), $dest);
+
+    } elseif (strpos($dest, $cbBase) !== false) {
+        /* Notre callback est déjà présent en clair dans la destination :
+           on le remplace par sa version complète et encodée. */
+        $finalUrl = str_replace($cbBase, urlencode($cbFull), $dest);
+
+    } else {
+        /* Aucun point d'ancrage : le raccourcisseur ne saura pas où nous
+           renvoyer, et aucun gain ne pourra être validé. On le signale
+           plutôt que de produire un lien qui semble fonctionner mais ne
+           crédite jamais — c'est exactement le genre de panne qui remonte
+           en tickets de support des semaines plus tard. */
+        error_log('[Wintaskly shortlink] destination sans {CALLBACK} : id=' . (int) $row['sl_id']);
+        wt_json(['ok' => false, 'error' => 'no_callback_marker'], 502);
+    }
 }
 
 if ($finalUrl === '') {
