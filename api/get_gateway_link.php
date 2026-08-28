@@ -154,19 +154,53 @@ if ($row['mode'] === 'api'
            être interprétés par le raccourcisseur. */
         $finalUrl = str_replace('{CALLBACK}', urlencode($cbFull), $dest);
 
-    } elseif (strpos($dest, $cbBase) !== false) {
-        /* Notre callback est déjà présent en clair dans la destination :
-           on le remplace par sa version complète et encodée. */
-        $finalUrl = str_replace($cbBase, urlencode($cbFull), $dest);
-
     } else {
-        /* Aucun point d'ancrage : le raccourcisseur ne saura pas où nous
-           renvoyer, et aucun gain ne pourra être validé. On le signale
-           plutôt que de produire un lien qui semble fonctionner mais ne
-           crédite jamais — c'est exactement le genre de panne qui remonte
-           en tickets de support des semaines plus tard. */
-        error_log('[Wintaskly shortlink] destination sans {CALLBACK} : id=' . (int) $row['sl_id']);
-        wt_json(['ok' => false, 'error' => 'no_callback_marker'], 502);
+        /* Recherche du callback déjà présent dans la destination.
+         *
+         * ⚠️ La comparaison brute échouait sur une simple différence de
+         * forme : une destination saisie avec « www. » ne correspondait pas
+         * à l'adresse produite par wt_url() sans « www. ». On compare donc
+         * sur le CHEMIN seul, insensible au schéma et au sous-domaine. */
+        $needle = '/api/shortlink_callback.php';
+        $pos    = stripos($dest, $needle);
+
+        if ($pos !== false) {
+            /* On remplace l'adresse complète telle qu'elle apparaît, y
+               compris son éventuel `&wt=…` hérité de l'ancien format, qui
+               n'était lu nulle part. */
+            $start = $pos;
+            while ($start > 0 && !in_array($dest[$start - 1], ['=', '?', '&', ' '], true)) {
+                $start--;
+            }
+            $end = strlen($dest);
+            foreach (['&', ' '] as $stop) {
+                $p2 = strpos($dest, $stop, $pos);
+                if ($p2 !== false && $p2 < $end) { $end = $p2; }
+            }
+            $finalUrl = substr($dest, 0, $start)
+                      . urlencode($cbFull)
+                      . substr($dest, $end);
+
+        } else {
+            /* Aucun point d'ancrage.
+             *
+             * ⚠️ RÉGRESSION CORRIGÉE : cette branche renvoyait une erreur
+             * 502, ce qui cassait complètement la tâche — l'utilisateur ne
+             * pouvait plus ouvrir le lien du tout.
+             *
+             * C'est une réaction disproportionnée : un lien raccourci
+             * STATIQUE (créé une fois chez le fournisseur, avec l'adresse de
+             * retour configurée de son côté) est parfaitement légitime et
+             * n'a aucun marqueur à contenir.
+             *
+             * On laisse donc passer la destination telle quelle. Le pire cas
+             * est un gain non crédité — le même qu'avant. Bloquer l'accès
+             * était strictement pire. */
+            error_log('[Wintaskly shortlink] destination sans point d\'ancrage : id='
+                      . (int) $row['sl_id'] . ' — la validation dépendra de la '
+                      . 'configuration côté fournisseur');
+            $finalUrl = $dest;
+        }
     }
 }
 

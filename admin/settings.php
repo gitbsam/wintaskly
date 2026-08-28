@@ -52,9 +52,11 @@ $schema = [
     'tracking' => [
         ['key' => 'tracking.google_analytics_id',  'label' => 'admin.set.tracking.ga_id',         'type' => 'text', 'hint' => 'admin.set.tracking.ga_id_hint',         'maxlen' => 32,
          'validate' => fn($v) => $v === '' || preg_match('/^(G|UA|GTM)-[A-Z0-9-]+$/i', $v) ? null : 'Format attendu : G-XXXXXXXXXX, UA-… ou GTM-…'],
-        ['key' => 'tracking.google_adsense_client','label' => 'admin.set.tracking.adsense_client','type' => 'text', 'hint' => 'admin.set.tracking.adsense_client_hint','maxlen' => 32,
-         'validate' => fn($v) => $v === '' || preg_match('/^ca-pub-[0-9]+$/', $v) ? null : 'Format attendu : ca-pub-XXXXXXXXXXXXXXXX'],
-        ['key' => 'tracking.adsense_auto_ads',     'label' => 'admin.set.tracking.adsense_auto', 'type' => 'checkbox','hint'=> 'admin.set.tracking.adsense_auto_hint'],
+        /* Champs AdSense retirés : la candidature a été refusée, et laisser
+           l'identifiant renseigné ferait charger des scripts Google inutiles
+           sur chaque page — au détriment du temps d'affichage et de la vie
+           privée des visiteurs. Les régies sont désormais gérées dans
+           Admin > Régies publicitaires. */
         ['key' => 'tracking.facebook_pixel_id',    'label' => 'admin.set.tracking.fb_pixel',     'type' => 'text', 'hint' => 'admin.set.tracking.fb_pixel_hint',      'maxlen' => 32],
         ['key' => 'tracking.matomo_url',           'label' => 'admin.set.tracking.matomo_url',   'type' => 'url',  'hint' => 'admin.set.tracking.matomo_url_hint'],
         ['key' => 'tracking.matomo_site_id',       'label' => 'admin.set.tracking.matomo_site',  'type' => 'number','hint'=> 'admin.set.tracking.matomo_site_hint'],

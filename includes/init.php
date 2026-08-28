@@ -47,7 +47,7 @@ if (!defined('WT_PERIOD_DASHBOARD_DAYS')) {
 // L'URL latest.json est configurable via la BDD (clé config 'update.feed_url')
 // pour permettre de changer de canal (stable/beta) sans redéployer.
 if (!defined('WT_VERSION')) {
-    define('WT_VERSION', '9.25.0');
+    define('WT_VERSION', '9.27.0');
     define('WT_VERSION_CHANNEL', 'stable');  // stable | beta | dev
     define('WT_UPDATE_FEED_DEFAULT', 'https://gitbsam.github.io/wintaskly/latest.json');
 }
@@ -175,42 +175,6 @@ if (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') {
     header('Strict-Transport-Security: max-age=31536000; includeSubDomains');
 }
 
-// Content-Security-Policy : protection XSS forte.
-// On autorise :
-//   - les scripts inline (used dans header.php pour le theme bootstrap)
-//   - 'unsafe-inline' sur style aussi car Tailwind+CSS inline présents
-//   - cdnjs et fonts.googleapis pour les fonts/icônes optionnelles
-//   - les images depuis n'importe où en https (avatars hash-color etc.)
-//   - les régies publicitaires et la mesure d'audience réellement utilisées
-//     par le site (Google AdSense, Google Analytics/gtag, Adsterra). Sans
-//     ces domaines, le navigateur bloque purement et simplement leurs
-//     scripts : aucune pub ne s'affiche et aucune visite n'est mesurée.
-//     AdSense et Analytics chargent en cascade d'autres sous-domaines et
-//     ouvrent des connexions XHR/beacon + des iframes : script-src seul ne
-//     suffit pas, d'où les ajouts sur connect-src, img-src et frame-src.
-// Si tu veux durcir, retire 'unsafe-inline' et passe à des nonces.
-$_cspAds = "https://pagead2.googlesyndication.com https://*.googlesyndication.com "
-         . "https://partner.googleadservices.com https://*.googleadservices.com "
-         . "https://tpc.googlesyndication.com https://adservice.google.com "
-         . "https://fundingchoicesmessages.google.com https://*.fundingchoicesmessages.google.com "
-         . "https://*.adsterranet.com https://*.adsterratools.com https://*.highperformanceformat.com";
-$_cspAnalytics = "https://www.googletagmanager.com https://www.google-analytics.com "
-               . "https://*.google-analytics.com https://*.analytics.google.com";
-
-header(
-    "Content-Security-Policy: "
-    . "default-src 'self'; "
-    . "script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com "
-        . $_cspAds . " " . $_cspAnalytics . "; "
-    . "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; "
-    . "font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com data:; "
-    . "img-src 'self' data: https:; "
-    . "connect-src 'self' " . $_cspAds . " " . $_cspAnalytics . "; "
-    . "frame-src 'self' https:; "
-    . "object-src 'none'; "
-    . "base-uri 'self'; "
-    . "form-action 'self'"
-);
 
 // ----------------------------------------------------------------------
 // 3) Session sécurisée
@@ -250,6 +214,105 @@ if (
 // 4) Inclusions internes
 // ----------------------------------------------------------------------
 require __DIR__ . '/db.php';
+
+/* ⚠️ Ce bloc doit rester APRÈS le chargement de db.php.
+   Il lit les domaines des régies en base ; placé avant, la requête
+   échouait systématiquement et AUCUN domaine n'était autorisé — les
+   scripts publicitaires étaient donc tous bloqués, silencieusement. */
+// Content-Security-Policy : protection XSS forte.
+// On autorise :
+//   - les scripts inline (used dans header.php pour le theme bootstrap)
+//   - 'unsafe-inline' sur style aussi car Tailwind+CSS inline présents
+//   - cdnjs et fonts.googleapis pour les fonts/icônes optionnelles
+//   - les images depuis n'importe où en https (avatars hash-color etc.)
+//   - les régies publicitaires et la mesure d'audience réellement utilisées
+//     par le site (Google AdSense, Google Analytics/gtag, Adsterra). Sans
+//     ces domaines, le navigateur bloque purement et simplement leurs
+//     scripts : aucune pub ne s'affiche et aucune visite n'est mesurée.
+//     AdSense et Analytics chargent en cascade d'autres sous-domaines et
+//     ouvrent des connexions XHR/beacon + des iframes : script-src seul ne
+//     suffit pas, d'où les ajouts sur connect-src, img-src et frame-src.
+// Si tu veux durcir, retire 'unsafe-inline' et passe à des nonces.
+/* Domaines des régies, lus depuis la table `ad_networks`.
+ *
+ * Ils étaient écrits en dur ici : ajouter une régie imposait de modifier le
+ * code. Et en cas d'oubli, le navigateur BLOQUE SILENCIEUSEMENT ses scripts
+ * — aucune erreur visible, juste des emplacements vides et zéro revenu.
+ *
+ * Google AdSense a été retiré : la candidature ayant été refusée, garder
+ * ses domaines autorisés élargirait la surface d'attaque pour rien.
+ *
+ * Le résultat est mis en cache une minute : cet en-tête est calculé à
+ * CHAQUE page, une requête systématique serait du gaspillage. */
+$_cspFromDb = static function (): array {
+    static $cache = null;
+    if ($cache !== null) { return $cache; }
+
+    $out = ['script' => [], 'connect' => [], 'frame' => []];
+    try {
+        $res = db()->query(
+            "SELECT script_domains, connect_domains, frame_domains
+               FROM ad_networks WHERE active = 1"
+        );
+        while ($res && ($r = $res->fetch_assoc())) {
+            $script = preg_split('/[\s,]+/', trim((string) $r['script_domains'])) ?: [];
+            $out['script'] = array_merge($out['script'], $script);
+
+            /* connect_domains vide reprend script_domains : la plupart des
+               régies mesurent l'affichage par une requête en arrière-plan
+               vers le même domaine. Sans cette autorisation, les scripts se
+               chargent mais les impressions ne sont jamais comptées — donc
+               jamais payées. */
+            $conn = trim((string) $r['connect_domains']);
+            $out['connect'] = array_merge($out['connect'],
+                $conn !== '' ? (preg_split('/[\s,]+/', $conn) ?: []) : $script);
+
+            $frame = trim((string) $r['frame_domains']);
+            if ($frame !== '') {
+                $out['frame'] = array_merge($out['frame'], preg_split('/[\s,]+/', $frame) ?: []);
+            }
+        }
+    } catch (Throwable $e) {
+        /* Table absente (migration non appliquée) : on n'autorise rien
+           plutôt que de laisser passer. Les pubs ne s'afficheront pas, mais
+           le site reste sûr et fonctionnel. */
+        error_log('[Wintaskly CSP] ad_networks indisponible : ' . $e->getMessage());
+    }
+
+    foreach ($out as $k => $v) {
+        /* Filtrage strict : seules des origines https bien formées sont
+           reprises. Une valeur mal saisie en administration ne doit pas
+           pouvoir injecter une directive arbitraire dans l'en-tête. */
+        $out[$k] = array_values(array_unique(array_filter($v, static fn($d) =>
+            $d !== '' && preg_match('#^https://[A-Za-z0-9.*_-]+(:\d+)?$#', $d) === 1
+        )));
+    }
+    return $cache = $out;
+};
+
+$_csp      = $_cspFromDb();
+$_cspAds   = implode(' ', $_csp['script']);
+$_cspConn  = implode(' ', $_csp['connect']);
+$_cspFrame = implode(' ', $_csp['frame']);
+
+$_cspAnalytics = "https://www.googletagmanager.com https://www.google-analytics.com "
+               . "https://*.google-analytics.com https://*.analytics.google.com";
+
+header(
+    "Content-Security-Policy: "
+    . "default-src 'self'; "
+    . "script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com "
+        . $_cspAds . " " . $_cspAnalytics . "; "
+    . "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; "
+    . "font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com data:; "
+    . "img-src 'self' data: https:; "
+    . "connect-src 'self' " . $_cspConn . " " . $_cspAnalytics . "; "
+    . "frame-src 'self' https:; "
+    . "object-src 'none'; "
+    . "base-uri 'self'; "
+    . "form-action 'self'"
+);
+
 require __DIR__ . '/crypto.php';
 require __DIR__ . '/i18n.php';
 require __DIR__ . '/auth.php';

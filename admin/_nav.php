@@ -143,6 +143,15 @@ $base = rtrim($GLOBALS['WT_CONFIG']['base_url'] ?? '', '/');
       <?= e(t('admin.ptc')) ?>
     </a>
 
+    <a href="<?= $base ?>/admin/ad-networks.php" class="<?= $adminActive==='ads' ? 'is-active' : '' ?>" style="--idx:3">
+      <span class="wt-admin-v2__nav-ico" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/>
+        </svg>
+      </span>
+      <?= e(t('admin.adnet.title')) ?>
+    </a>
+
     <a href="<?= $base ?>/admin/campaigns.php" class="<?= $adminActive==='campaigns' ? 'is-active' : '' ?>" style="--idx:3">
       <span class="wt-admin-v2__nav-ico" aria-hidden="true">
         <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
