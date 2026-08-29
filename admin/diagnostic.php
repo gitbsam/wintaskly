@@ -28,6 +28,12 @@ $expectedTables = [
     'auth_tokens', 'messages', 'notifications', 'support_tickets',
     'support_messages', 'cron_runs', 'update_checks', 'applied_migrations',
     'admin_actions',
+    /* Publicité. `ad_networks` mérite une mention particulière : si elle
+       manque, init.php n'autorise aucun domaine de régie dans la CSP et
+       le navigateur bloque tous les scripts publicitaires SANS message
+       d'erreur. Symptôme : des emplacements vides et zéro revenu, sans
+       aucune piste. Sa présence se vérifie donc ici. */
+    'ad_networks', 'ad_zones', 'ad_banners',
 ];
 
 /* Note : certains noms de tables prêtent à confusion —

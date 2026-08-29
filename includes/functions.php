@@ -507,8 +507,119 @@ if (!function_exists('wt_ad_zone')) {
             }
         }
 
-        // Priorité 4 : rien (comportement sûr existant)
+        // Priorité 4 : visuel maison intégré au site. Aucun fichier à
+        // téléverser, aucune requête externe, aucun cookie — l'emplacement
+        // reste occupé au lieu de laisser un trou dans la page.
+        if ($zone['size_key'] !== null) {
+            return wt_ad_house_default($zone['size_key']);
+        }
+
+        // Priorité 5 : zone sans format déclaré → rien (comportement sûr)
         return '';
+    }
+
+    /**
+     * Visuel maison de repli, dessiné en SVG dans la page.
+     *
+     * POURQUOI IL EXISTE
+     * ------------------
+     * Un emplacement publicitaire vide n'est pas neutre : il laisse un
+     * espace blanc au milieu de la page, et surtout il ne rapporte rien.
+     * Or il y a deux situations très courantes où aucun code de régie ne
+     * peut être servi :
+     *
+     *   1. Le visiteur a refusé les cookies publicitaires. Les scripts des
+     *      régies déposent des identifiants sur son appareil : les servir
+     *      sans accord serait illégal (art. 82 de la loi Informatique et
+     *      Libertés). On ne peut donc pas afficher Adsterra ici — mais on
+     *      peut afficher une promotion de notre propre service, qui ne lit
+     *      ni n'écrit rien sur l'appareil.
+     *
+     *   2. La zone n'a pas encore de code, ou la régie est en attente de
+     *      validation.
+     *
+     * Dans les deux cas, ce visuel prend la place : il est servi depuis
+     * notre domaine, ne dépose aucun cookie, ne fait aucune requête vers
+     * l'extérieur, et renvoie vers l'inscription. C'est de la publicité
+     * non personnalisée au sens strict — le seul type qui puisse s'afficher
+     * sans consentement.
+     *
+     * @param  string $sizeKey Format IAB de la zone (ex: '728x90')
+     * @return string          Bloc HTML complet, ou '' si format inconnu
+     */
+    function wt_ad_house_default(string $sizeKey): string
+    {
+        // Dimensions connues. Un format non listé ne rend rien plutôt que
+        // de produire un visuel déformé.
+        $sizes = [
+            '728x90'  => [728, 90],
+            '468x60'  => [468, 60],
+            '300x250' => [300, 250],
+            '336x280' => [336, 280],
+            '320x100' => [320, 100],
+            '160x600' => [160, 600],
+        ];
+        if (!isset($sizes[$sizeKey])) {
+            return '';
+        }
+        [$w, $h] = $sizes[$sizeKey];
+
+        $title = (string) t('ad.house.title');
+        $sub   = (string) t('ad.house.sub');
+        $cta   = (string) t('ad.house.cta');
+
+        // Les formats hauts (250px et plus) laissent la place à trois
+        // lignes empilées ; les bandeaux plats n'en tiennent qu'une seule
+        // avec le bouton à droite.
+        $tall = $h >= 200;
+
+        // Un identifiant unique par rendu : deux zones sur la même page ne
+        // doivent pas partager l'id du dégradé, sinon la seconde hérite du
+        // dégradé de la première (les ids SVG sont globaux au document).
+        $gid = 'wtag' . substr(md5($sizeKey . random_int(0, PHP_INT_MAX)), 0, 8);
+
+        $body = '';
+        if ($tall) {
+            $body = '<text x="' . ($w / 2) . '" y="' . ($h * 0.38) . '" text-anchor="middle"'
+                  . ' font-family="system-ui,sans-serif" font-size="' . (int) round($w * 0.075) . '"'
+                  . ' font-weight="700" fill="#0a0e1a">' . e($title) . '</text>'
+                  . '<text x="' . ($w / 2) . '" y="' . ($h * 0.55) . '" text-anchor="middle"'
+                  . ' font-family="system-ui,sans-serif" font-size="' . (int) round($w * 0.045) . '"'
+                  . ' fill="#1a1f2e">' . e($sub) . '</text>'
+                  . '<rect x="' . ($w * 0.2) . '" y="' . ($h * 0.68) . '" width="' . ($w * 0.6) . '"'
+                  . ' height="' . ($h * 0.14) . '" rx="' . ($h * 0.07) . '" fill="#0a0e1a"/>'
+                  . '<text x="' . ($w / 2) . '" y="' . ($h * 0.775) . '" text-anchor="middle"'
+                  . ' font-family="system-ui,sans-serif" font-size="' . (int) round($w * 0.042) . '"'
+                  . ' font-weight="700" fill="#ffcc33">' . e($cta) . '</text>';
+        } else {
+            $body = '<text x="' . ($h * 0.28) . '" y="' . ($h * 0.44) . '"'
+                  . ' font-family="system-ui,sans-serif" font-size="' . (int) round($h * 0.28) . '"'
+                  . ' font-weight="700" fill="#0a0e1a">' . e($title) . '</text>'
+                  . '<text x="' . ($h * 0.28) . '" y="' . ($h * 0.74) . '"'
+                  . ' font-family="system-ui,sans-serif" font-size="' . (int) round($h * 0.19) . '"'
+                  . ' fill="#1a1f2e">' . e($sub) . '</text>'
+                  . '<rect x="' . ($w - $h * 2.4) . '" y="' . ($h * 0.28) . '" width="' . ($h * 2.1) . '"'
+                  . ' height="' . ($h * 0.44) . '" rx="' . ($h * 0.22) . '" fill="#0a0e1a"/>'
+                  . '<text x="' . ($w - $h * 1.35) . '" y="' . ($h * 0.585) . '" text-anchor="middle"'
+                  . ' font-family="system-ui,sans-serif" font-size="' . (int) round($h * 0.2) . '"'
+                  . ' font-weight="700" fill="#ffcc33">' . e($cta) . '</text>';
+        }
+
+        $svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' . $w . '" height="' . $h . '"'
+             . ' viewBox="0 0 ' . $w . ' ' . $h . '" role="img" aria-label="' . e($title) . '">'
+             . '<defs><linearGradient id="' . $gid . '" x1="0" y1="0" x2="1" y2="1">'
+             . '<stop offset="0" stop-color="#ff9933"/><stop offset="1" stop-color="#ffcc33"/>'
+             . '</linearGradient></defs>'
+             . '<rect width="' . $w . '" height="' . $h . '" rx="8" fill="url(#' . $gid . ')"/>'
+             . $body
+             . '</svg>';
+
+        return '<div class="wt-ad-scale">'
+             . '<div class="wt-ad-label">' . e(t('ad.title.pub')) . '</div>'
+             . '<div class="wt-ad-scale__inner">'
+             . '<a href="' . e(wt_url('/auth/signup.php')) . '" class="wt-ad-house">'
+             . $svg
+             . '</a></div></div>';
     }
 
     /**
@@ -779,6 +890,85 @@ if (!function_exists('wt_analytics_allowed')) {
     }
 }
 
+if (!function_exists('wt_ad_code_blocked_hosts')) {
+    /**
+     * Domaines appelés par un code publicitaire que la politique de
+     * sécurité (CSP) n'autorise PAS.
+     *
+     * POURQUOI
+     * --------
+     * C'est la panne la plus coûteuse du système publicitaire, parce
+     * qu'elle est parfaitement silencieuse : on colle un code de régie
+     * dans un emplacement, on enregistre, tout semble correct — mais si
+     * le domaine du script n'est pas autorisé, le navigateur le bloque
+     * sans rien afficher. Pas d'erreur en page, pas de log serveur : juste
+     * un emplacement vide et zéro revenu, sans la moindre piste.
+     *
+     * Le cas courant : la régie existe dans `ad_networks` mais n'a pas été
+     * activée. Cette fonction permet à l'administration de le signaler
+     * avant que la perte de revenus ne s'installe.
+     *
+     * @param  string   $code Code collé dans l'emplacement
+     * @return string[]       Domaines appelés mais non autorisés
+     */
+    function wt_ad_code_blocked_hosts(string $code): array
+    {
+        // Domaines appelés par le code : src="//host/…" ou https://host/…
+        if (!preg_match_all('#(?:https?:)?//([A-Za-z0-9.-]+)#i', $code, $m)) {
+            return [];
+        }
+        $hosts = array_values(array_unique(array_map('strtolower', $m[1])));
+        if ($hosts === []) {
+            return [];
+        }
+
+        // Motifs autorisés par les régies ACTIVES uniquement : c'est ce que
+        // init.php envoie réellement dans l'en-tête CSP.
+        $patterns = [];
+        try {
+            $res = db()->query("SELECT script_domains FROM ad_networks WHERE active = 1");
+            while ($res && ($r = $res->fetch_assoc())) {
+                foreach (preg_split('/[\s,]+/', trim((string) $r['script_domains'])) ?: [] as $d) {
+                    $d = strtolower(trim($d));
+                    if ($d !== '') {
+                        $patterns[] = preg_replace('#^https?://#', '', $d);
+                    }
+                }
+            }
+        } catch (Throwable $e) {
+            /* Table absente : on ne peut rien affirmer. Retourner la liste
+               complète serait alarmiste et faux ; le diagnostic signale
+               déjà la table manquante. */
+            error_log('[Wintaskly ad_code_check] ' . $e->getMessage());
+            return [];
+        }
+
+        // Le site s'autorise lui-même ('self' dans la CSP)
+        $self = strtolower((string) parse_url((string) wt_url('/'), PHP_URL_HOST));
+
+        $blocked = [];
+        foreach ($hosts as $host) {
+            if ($self !== '' && $host === $self) {
+                continue;
+            }
+            $ok = false;
+            foreach ($patterns as $p) {
+                // 'exemple.com' couvre l'hôte exact ;
+                // '*.exemple.com' couvre ses sous-domaines.
+                if ($p === $host) { $ok = true; break; }
+                if (str_starts_with($p, '*.')) {
+                    $suffix = substr($p, 1);            // '.exemple.com'
+                    if (str_ends_with($host, $suffix)) { $ok = true; break; }
+                }
+            }
+            if (!$ok) {
+                $blocked[] = $host;
+            }
+        }
+        return $blocked;
+    }
+}
+
 if (!function_exists('wt_adsense_allowed')) {
     /**
      * AdSense est-il autorisé sur la page courante ?
@@ -921,57 +1111,6 @@ if (!function_exists('wt_ads_body_scripts')) {
             return '';
         }
         return "\n<!-- Wintaskly ads (body) -->\n" . $code . "\n";
-    }
-}
-
-if (!function_exists('wt_ad_banner_auto')) {
-    /**
-     * Bannière publicitaire AUTO-RESPONSIVE : affiche le bon format selon
-     * la largeur de l'écran (728x90 desktop, 468x60 tablette, 300x250
-     * mobile). Les 3 codes sont rendus, le CSS n'en montre qu'un seul à la
-     * fois selon les media queries (.wt-ad-auto__728 / __468 / __300).
-     *
-     * Les codes proviennent de 3 zones ad_zones dédiées :
-     *   - 'ads.banner_728' (Bannière 728x90)
-     *   - 'ads.banner_468' (Bannière 468x60)
-     *   - 'ads.banner_300' (Bannière 300x250)
-     *
-     * IMPORTANT : Adsterra recommande de ne pas charger le même code deux
-     * fois sur une page. Ici les 3 codes sont DIFFÉRENTS (formats distincts),
-     * donc c'est conforme. En revanche, n'appelle wt_ad_banner_auto() qu'UNE
-     * fois par page pour éviter de dupliquer un même format.
-     *
-     * @return string Le bloc HTML des 3 bannières (CSS gère l'affichage)
-     */
-    function wt_ad_banner_auto(): string
-    {
-        $b728 = trim((string) cfg('ads.banner_728', ''));
-        $b468 = trim((string) cfg('ads.banner_468', ''));
-        $b300 = trim((string) cfg('ads.banner_300', ''));
-
-        // Rien de configuré → rien à afficher
-        if ($b728 === '' && $b468 === '' && $b300 === '') {
-            return '';
-        }
-
-        $html = '<div class="wt-ad-auto">';
-        if ($b728 !== '') {
-            $html .= '<div class="wt-ad-auto__fmt wt-ad-auto__728">'
-                   . '<div class="wt-ad-scale"><div class="wt-ad-scale__inner">' . $b728 . '</div></div>'
-                   . '</div>';
-        }
-        if ($b468 !== '') {
-            $html .= '<div class="wt-ad-auto__fmt wt-ad-auto__468">'
-                   . '<div class="wt-ad-scale"><div class="wt-ad-scale__inner">' . $b468 . '</div></div>'
-                   . '</div>';
-        }
-        if ($b300 !== '') {
-            $html .= '<div class="wt-ad-auto__fmt wt-ad-auto__300">'
-                   . '<div class="wt-ad-scale"><div class="wt-ad-scale__inner">' . $b300 . '</div></div>'
-                   . '</div>';
-        }
-        $html .= '</div>';
-        return $html;
     }
 }
 

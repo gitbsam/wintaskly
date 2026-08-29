@@ -1448,6 +1448,14 @@
     closeBanner();
     closeAllModals();
     document.dispatchEvent(new CustomEvent('wt:consent', { detail: { value } }));
+
+    /* Le cookie est écrit ici, côté navigateur — mais c'est PHP qui décide
+       d'afficher ou non les codes des régies, et il a déjà rendu la page.
+       Sans rechargement, le visiteur accepte les cookies publicitaires et
+       ne voit… rien changer : les emplacements restent sur le visuel
+       maison jusqu'à sa prochaine navigation. On recharge donc, après une
+       courte pause pour laisser l'animation de fermeture se terminer. */
+    setTimeout(function () { window.location.reload(); }, 350);
   }
   function closeBanner() {
     const el = document.getElementById('wt-cookie-banner');

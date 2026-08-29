@@ -299,6 +299,76 @@ CREATE TABLE IF NOT EXISTS `ad_zones` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- ---------------------------------------------------------------------
+-- RÉGIES PUBLICITAIRES
+-- ---------------------------------------------------------------------
+-- Les domaines autorisés par la politique de sécurité de contenu (CSP)
+-- étaient écrits en dur dans includes/init.php. Conséquence : en cas
+-- d'oubli, le navigateur BLOQUE SILENCIEUSEMENT les scripts de la régie —
+-- aucune erreur visible, juste des emplacements vides et zéro revenu.
+--
+-- Cette table sort les régies du code : ajouter un partenaire devient une
+-- ligne en administration (/admin/ad-networks.php).
+--
+--   • script_domains  : d'où les scripts peuvent être chargés (script-src)
+--   • connect_domains : vers où ils peuvent ouvrir des connexions
+--     (connect-src). Beaucoup de régies mesurent l'affichage par une
+--     requête en arrière-plan : sans cette autorisation, les scripts se
+--     chargent mais les impressions ne sont jamais comptées — donc pas
+--     payées. Laisser vide reprend automatiquement script_domains.
+--   • frame_domains   : pour les régies qui servent en iframe (frame-src)
+--
+-- ⚠️ Une régie active dont on n'utilise pas les scripts n'apporte rien et
+-- élargit la surface d'attaque : n'activez que celles où vous avez un
+-- compte. C'est pourquoi elles sont créées INACTIVES.
+--
+-- Google AdSense n'y figure pas : la candidature a été refusée.
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `ad_networks` (
+  `id`              INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `k`               VARCHAR(40)  NOT NULL COMMENT 'Identifiant court : adsterra, propellerads…',
+  `name`            VARCHAR(120) NOT NULL,
+  `site_url`        VARCHAR(255) NULL COMMENT 'Espace éditeur de la régie',
+  `script_domains`  TEXT         NULL COMMENT 'Domaines autorisés pour script-src, séparés par espace ou virgule',
+  `connect_domains` TEXT         NULL COMMENT 'Domaines pour connect-src. Vide = identique à script_domains',
+  `frame_domains`   TEXT         NULL COMMENT 'Domaines pour frame-src, si la régie utilise des iframes',
+  `notes`           TEXT         NULL,
+  `active`          TINYINT(1)   NOT NULL DEFAULT 1,
+  `sort_order`      SMALLINT     NOT NULL DEFAULT 100,
+  `created_at`      DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uniq_k` (`k`),
+  KEY `idx_active` (`active`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT IGNORE INTO `ad_networks`
+  (`k`, `name`, `site_url`, `script_domains`, `connect_domains`, `frame_domains`, `active`, `sort_order`, `notes`)
+VALUES
+  ('adsterra', 'Adsterra', 'https://adsterra.com',
+   'https://*.adsterranet.com https://*.adsterratools.com https://*.highperformanceformat.com https://*.profitableratecpm.com',
+   '', 'https://*.adsterranet.com https://*.highperformanceformat.com',
+   0, 10, 'Accepte largement les sites de micro-tâches. Formats bannière, popunder, social bar.'),
+
+  ('propellerads', 'PropellerAds', 'https://propellerads.com',
+   'https://*.propellerads.com https://*.propellerpush.com https://*.propu.sh',
+   '', 'https://*.propellerads.com',
+   0, 20, 'Push et interstitiel. Valider le format avant activation : certains sont intrusifs.'),
+
+  ('hilltopads', 'HilltopAds', 'https://hilltopads.com',
+   'https://*.hilltopads.net https://*.hilltopads.com',
+   '', 'https://*.hilltopads.net',
+   0, 30, 'Bannières et vidéo.'),
+
+  ('adcash', 'Adcash', 'https://adcash.com',
+   'https://*.adcash.com https://*.adcashmachine.com',
+   '', 'https://*.adcash.com',
+   0, 40, 'Bannières et interstitiels, couverture internationale.'),
+
+  ('monetag', 'Monetag', 'https://monetag.com',
+   'https://*.monetag.com https://*.wpuhrbjq.com',
+   '', 'https://*.monetag.com',
+   0, 50, 'Anciennement PropellerAds Publisher.');
+
+-- ---------------------------------------------------------------------
 -- PTC (Paid-To-Click)
 -- ---------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `ptc_ads` (
@@ -1583,3 +1653,293 @@ INSERT IGNORE INTO `config` (`k`, `v`) VALUES
  ('bingo.free_cards','1'),('bingo.card_price_coins','5000'),('bingo.draw_count','14'),
  ('bingo.number_max','99'),('bingo.jackpot_base','30000'),('bingo.jackpot_growth_pct','25'),
  ('bingo.jackpot_carryover','1'),('bingo.test_mode','1'),('bingo.coming_soon','1'),('bingo.launch_at','');
+
+
+-- =====================================================================
+-- V9 — RATTRAPAGE DE SCHÉMA
+-- =====================================================================
+-- POURQUOI CETTE SECTION EXISTE
+--
+-- schema.sql est censé décrire l'état COMPLET de la base : une
+-- installation neuve doit pouvoir démarrer avec ce seul fichier. Ce
+-- n'était plus le cas. Huit tables et dix-neuf colonnes n'existaient que
+-- dans des migrations séparées, et une installation neuve se retrouvait
+-- avec une base incomplète — sans aucun message d'erreur à l'import.
+--
+-- Les conséquences étaient graves et invisibles à l'installation :
+--   • users.twofa_* absentes → api/auth_login.php plante en erreur
+--     fatale dès la PREMIÈRE tentative de connexion. Le site était
+--     inutilisable, personne ne pouvait se connecter.
+--   • ad_networks absente → aucun domaine de régie autorisé dans la
+--     politique de sécurité : tous les scripts publicitaires bloqués en
+--     silence, zéro revenu, aucune piste.
+--   • campaigns, campaign_visits, campaign_pageviews absentes → toute la
+--     partie acquisition en erreur.
+--   • user_payout_addresses absente → les adresses de retrait de
+--     confiance ne fonctionnent pas.
+--   • postback_log absente → aucune traçabilité des callbacks régies.
+--   • *_health (fail_streak, last_check_at, last_http_code) absentes →
+--     la surveillance des partenaires ne remonte rien.
+--
+-- Tout ici est idempotent : chaque table utilise IF NOT EXISTS, chaque
+-- colonne est précédée d'un test d'existence. Ce fichier peut donc être
+-- ré-exécuté sur une base déjà à jour sans le moindre effet.
+--
+-- NOTE sur users.tfa_email_enabled / tfa_sms_enabled / phone_e164 plus
+-- haut dans ce fichier : ces colonnes sont un ANCIEN jeu, remplacé par
+-- twofa_*. Aucun code ne les lit. Elles sont conservées pour ne pas
+-- casser les bases existantes, mais ne doivent plus être utilisées.
+-- =====================================================================
+
+-- ---------------------------------------------------------------------
+-- Tables manquantes
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `campaigns` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `code` varchar(24) NOT NULL,
+  `year` smallint(5) unsigned NOT NULL,
+  `name` varchar(120) NOT NULL,
+  `site_name` varchar(120) DEFAULT NULL,
+  `site_url` varchar(255) DEFAULT NULL,
+  `placement` varchar(120) DEFAULT NULL COMMENT 'Emplacement acheté : bannière page d''accueil, encart latéral…',
+  `expected_clicks` int(10) unsigned NOT NULL DEFAULT 0,
+  `expected_seconds` int(10) unsigned NOT NULL DEFAULT 0 COMMENT 'Temps de visionnage annoncé, en secondes',
+  `budget_eur` decimal(10,2) NOT NULL DEFAULT 0.00,
+  `reward_coins` decimal(18,4) NOT NULL DEFAULT 0.0000,
+  `status` enum('draft','active','paused','cancelled','ended') NOT NULL DEFAULT 'draft',
+  `starts_at` datetime DEFAULT NULL,
+  `ends_at` datetime DEFAULT NULL,
+  `notes` text DEFAULT NULL,
+  `created_at` datetime NOT NULL DEFAULT current_timestamp(),
+  `updated_at` datetime DEFAULT NULL ON UPDATE current_timestamp(),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uniq_code` (`code`),
+  KEY `idx_year_status` (`year`,`status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `campaign_visits` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `campaign_id` int(10) unsigned DEFAULT NULL COMMENT 'NULL si le code de l''URL est inconnu',
+  `visitor_key` char(32) NOT NULL COMMENT 'Identifiant anonyme déposé en cookie',
+  `ip_hash` char(64) DEFAULT NULL,
+  `country` char(2) DEFAULT NULL,
+  `user_agent` varchar(255) DEFAULT NULL,
+  `referer` varchar(255) DEFAULT NULL,
+  `pages_viewed` int(10) unsigned NOT NULL DEFAULT 1,
+  `total_seconds` int(10) unsigned NOT NULL DEFAULT 0,
+  `first_seen_at` datetime NOT NULL DEFAULT current_timestamp(),
+  `last_seen_at` datetime NOT NULL DEFAULT current_timestamp(),
+  `converted_user_id` int(10) unsigned DEFAULT NULL,
+  `converted_at` datetime DEFAULT NULL,
+  `rewarded_at` datetime DEFAULT NULL COMMENT 'Prime versée : garantit l''unicité',
+  `reward_coins` decimal(18,4) NOT NULL DEFAULT 0.0000,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uniq_visitor_campaign` (`visitor_key`,`campaign_id`),
+  KEY `idx_campaign` (`campaign_id`),
+  KEY `idx_converted` (`converted_user_id`),
+  KEY `idx_seen` (`last_seen_at`),
+  CONSTRAINT `fk_cv_campaign` FOREIGN KEY (`campaign_id`) REFERENCES `campaigns` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `fk_cv_user` FOREIGN KEY (`converted_user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `campaign_pageviews` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `visit_id` bigint(20) unsigned NOT NULL,
+  `path` varchar(190) NOT NULL,
+  `seconds` int(10) unsigned NOT NULL DEFAULT 0,
+  `viewed_at` datetime NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `idx_visit` (`visit_id`),
+  CONSTRAINT `fk_cpv_visit` FOREIGN KEY (`visit_id`) REFERENCES `campaign_visits` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `postback_log` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `provider` varchar(32) NOT NULL,
+  `result` varchar(32) NOT NULL COMMENT 'OK, BAD_SIGNATURE, INVALID_IP…',
+  `detail` varchar(190) DEFAULT NULL,
+  `ip` varbinary(16) DEFAULT NULL,
+  `created_at` datetime NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `idx_alert` (`provider`,`result`,`created_at`),
+  KEY `idx_created` (`created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `user_2fa_codes` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` int(10) unsigned NOT NULL,
+  `method` enum('email','sms') NOT NULL,
+  `code_hash` varchar(255) NOT NULL,
+  `attempts` tinyint(3) unsigned NOT NULL DEFAULT 0,
+  `expires_at` datetime NOT NULL,
+  `used_at` datetime DEFAULT NULL,
+  `created_at` datetime NOT NULL DEFAULT current_timestamp(),
+  `ip` varbinary(16) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_user_method` (`user_id`,`method`,`used_at`),
+  KEY `idx_expires` (`expires_at`),
+  CONSTRAINT `fk_2fa_codes_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+CREATE TABLE IF NOT EXISTS `user_backup_codes` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` int(10) unsigned NOT NULL,
+  `code_hash` varchar(255) NOT NULL,
+  `used_at` datetime DEFAULT NULL,
+  `created_at` datetime NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `idx_user_used` (`user_id`,`used_at`),
+  CONSTRAINT `fk_backup_codes_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+CREATE TABLE IF NOT EXISTS `user_payout_addresses` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` int(10) unsigned NOT NULL,
+  `method_id` int(10) unsigned NOT NULL,
+  `label` varchar(60) DEFAULT NULL,
+  `address` varchar(255) NOT NULL,
+  `confirmed_at` datetime DEFAULT NULL,
+  `last_used_at` datetime DEFAULT NULL,
+  `created_at` datetime NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uniq_user_method_addr` (`user_id`,`method_id`,`address`),
+  KEY `idx_user` (`user_id`),
+  KEY `idx_confirmed` (`user_id`,`confirmed_at`),
+  CONSTRAINT `fk_upa_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ---------------------------------------------------------------------
+-- Colonnes manquantes (ajout conditionnel)
+-- ---------------------------------------------------------------------
+SET @sql := IF(
+  (SELECT COUNT(*) FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'ad_zones' AND COLUMN_NAME = 'fail_streak') = 0,
+  'ALTER TABLE `ad_zones` ADD COLUMN `fail_streak` smallint(5) unsigned NOT NULL DEFAULT 0',
+  'SELECT 1');
+PREPARE s FROM @sql; EXECUTE s; DEALLOCATE PREPARE s;
+
+SET @sql := IF(
+  (SELECT COUNT(*) FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'ad_zones' AND COLUMN_NAME = 'last_check_at') = 0,
+  'ALTER TABLE `ad_zones` ADD COLUMN `last_check_at` datetime NULL',
+  'SELECT 1');
+PREPARE s FROM @sql; EXECUTE s; DEALLOCATE PREPARE s;
+
+SET @sql := IF(
+  (SELECT COUNT(*) FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'ad_zones' AND COLUMN_NAME = 'last_http_code') = 0,
+  'ALTER TABLE `ad_zones` ADD COLUMN `last_http_code` smallint(5) unsigned NOT NULL DEFAULT 0',
+  'SELECT 1');
+PREPARE s FROM @sql; EXECUTE s; DEALLOCATE PREPARE s;
+
+SET @sql := IF(
+  (SELECT COUNT(*) FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'blog_posts' AND COLUMN_NAME = 'cover_image') = 0,
+  'ALTER TABLE `blog_posts` ADD COLUMN `cover_image` varchar(190) NULL',
+  'SELECT 1');
+PREPARE s FROM @sql; EXECUTE s; DEALLOCATE PREPARE s;
+
+SET @sql := IF(
+  (SELECT COUNT(*) FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'blog_posts' AND COLUMN_NAME = 'cover_prompt') = 0,
+  'ALTER TABLE `blog_posts` ADD COLUMN `cover_prompt` text NULL',
+  'SELECT 1');
+PREPARE s FROM @sql; EXECUTE s; DEALLOCATE PREPARE s;
+
+SET @sql := IF(
+  (SELECT COUNT(*) FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'offerwalls' AND COLUMN_NAME = 'fail_streak') = 0,
+  'ALTER TABLE `offerwalls` ADD COLUMN `fail_streak` smallint(5) unsigned NOT NULL DEFAULT 0',
+  'SELECT 1');
+PREPARE s FROM @sql; EXECUTE s; DEALLOCATE PREPARE s;
+
+SET @sql := IF(
+  (SELECT COUNT(*) FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'offerwalls' AND COLUMN_NAME = 'last_check_at') = 0,
+  'ALTER TABLE `offerwalls` ADD COLUMN `last_check_at` datetime NULL',
+  'SELECT 1');
+PREPARE s FROM @sql; EXECUTE s; DEALLOCATE PREPARE s;
+
+SET @sql := IF(
+  (SELECT COUNT(*) FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'offerwalls' AND COLUMN_NAME = 'last_http_code') = 0,
+  'ALTER TABLE `offerwalls` ADD COLUMN `last_http_code` smallint(5) unsigned NOT NULL DEFAULT 0',
+  'SELECT 1');
+PREPARE s FROM @sql; EXECUTE s; DEALLOCATE PREPARE s;
+
+SET @sql := IF(
+  (SELECT COUNT(*) FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'ptc_ads' AND COLUMN_NAME = 'fail_streak') = 0,
+  'ALTER TABLE `ptc_ads` ADD COLUMN `fail_streak` smallint(5) unsigned NOT NULL DEFAULT 0',
+  'SELECT 1');
+PREPARE s FROM @sql; EXECUTE s; DEALLOCATE PREPARE s;
+
+SET @sql := IF(
+  (SELECT COUNT(*) FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'ptc_ads' AND COLUMN_NAME = 'last_check_at') = 0,
+  'ALTER TABLE `ptc_ads` ADD COLUMN `last_check_at` datetime NULL',
+  'SELECT 1');
+PREPARE s FROM @sql; EXECUTE s; DEALLOCATE PREPARE s;
+
+SET @sql := IF(
+  (SELECT COUNT(*) FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'ptc_ads' AND COLUMN_NAME = 'last_http_code') = 0,
+  'ALTER TABLE `ptc_ads` ADD COLUMN `last_http_code` smallint(5) unsigned NOT NULL DEFAULT 0',
+  'SELECT 1');
+PREPARE s FROM @sql; EXECUTE s; DEALLOCATE PREPARE s;
+
+SET @sql := IF(
+  (SELECT COUNT(*) FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'shortlinks' AND COLUMN_NAME = 'fail_streak') = 0,
+  'ALTER TABLE `shortlinks` ADD COLUMN `fail_streak` smallint(5) unsigned NOT NULL DEFAULT 0',
+  'SELECT 1');
+PREPARE s FROM @sql; EXECUTE s; DEALLOCATE PREPARE s;
+
+SET @sql := IF(
+  (SELECT COUNT(*) FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'shortlinks' AND COLUMN_NAME = 'last_check_at') = 0,
+  'ALTER TABLE `shortlinks` ADD COLUMN `last_check_at` datetime NULL',
+  'SELECT 1');
+PREPARE s FROM @sql; EXECUTE s; DEALLOCATE PREPARE s;
+
+SET @sql := IF(
+  (SELECT COUNT(*) FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'shortlinks' AND COLUMN_NAME = 'last_http_code') = 0,
+  'ALTER TABLE `shortlinks` ADD COLUMN `last_http_code` smallint(5) unsigned NOT NULL DEFAULT 0',
+  'SELECT 1');
+PREPARE s FROM @sql; EXECUTE s; DEALLOCATE PREPARE s;
+
+SET @sql := IF(
+  (SELECT COUNT(*) FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'users' AND COLUMN_NAME = 'twofa_email_enabled') = 0,
+  'ALTER TABLE `users` ADD COLUMN `twofa_email_enabled` tinyint(1) NOT NULL DEFAULT 0',
+  'SELECT 1');
+PREPARE s FROM @sql; EXECUTE s; DEALLOCATE PREPARE s;
+
+SET @sql := IF(
+  (SELECT COUNT(*) FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'users' AND COLUMN_NAME = 'twofa_phone') = 0,
+  'ALTER TABLE `users` ADD COLUMN `twofa_phone` varchar(32) NULL',
+  'SELECT 1');
+PREPARE s FROM @sql; EXECUTE s; DEALLOCATE PREPARE s;
+
+SET @sql := IF(
+  (SELECT COUNT(*) FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'users' AND COLUMN_NAME = 'twofa_phone_verified_at') = 0,
+  'ALTER TABLE `users` ADD COLUMN `twofa_phone_verified_at` datetime NULL',
+  'SELECT 1');
+PREPARE s FROM @sql; EXECUTE s; DEALLOCATE PREPARE s;
+
+SET @sql := IF(
+  (SELECT COUNT(*) FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'users' AND COLUMN_NAME = 'twofa_preferred') = 0,
+  'ALTER TABLE `users` ADD COLUMN `twofa_preferred` enum(''totp'',''email'',''sms'') NULL',
+  'SELECT 1');
+PREPARE s FROM @sql; EXECUTE s; DEALLOCATE PREPARE s;
+
+SET @sql := IF(
+  (SELECT COUNT(*) FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'users' AND COLUMN_NAME = 'twofa_sms_enabled') = 0,
+  'ALTER TABLE `users` ADD COLUMN `twofa_sms_enabled` tinyint(1) NOT NULL DEFAULT 0',
+  'SELECT 1');
+PREPARE s FROM @sql; EXECUTE s; DEALLOCATE PREPARE s;

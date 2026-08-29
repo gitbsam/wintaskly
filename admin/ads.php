@@ -35,14 +35,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && csrf_check($_POST['_csrf'] ?? null)
             $notice = t('admin.ads.saved');
         }
     } elseif ($action === 'save_adsterra') {
-        // Popunder (head) + Social Bar (body) + bannières auto-responsive
+        // Popunder (head) + Social Bar (body). Les trois champs de
+        // « bannière auto-responsive » (ads.banner_728/468/300) ont été
+        // retirés en 9.28.0 : aucune page n'appelait wt_ad_banner_auto(),
+        // les codes saisis là ne s'affichaient donc nulle part. Les
+        // bannières se gèrent zone par zone, plus bas dans cette page.
         wt_config_set('ads.head_enabled', !empty($_POST['head_enabled']) ? '1' : '0');
         wt_config_set('ads.head_code', (string)($_POST['head_code'] ?? ''));
         wt_config_set('ads.body_enabled', !empty($_POST['body_enabled']) ? '1' : '0');
         wt_config_set('ads.body_code', (string)($_POST['body_code'] ?? ''));
-        wt_config_set('ads.banner_728', (string)($_POST['banner_728'] ?? ''));
-        wt_config_set('ads.banner_468', (string)($_POST['banner_468'] ?? ''));
-        wt_config_set('ads.banner_300', (string)($_POST['banner_300'] ?? ''));
         $notice = t('admin.ads.saved');
     } elseif ($action === 'save_adsterra_api') {
         // Sauvegarde du token API + domain ID pour le dashboard de revenus.
@@ -86,14 +87,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && csrf_check($_POST['_csrf'] ?? null)
 $adsenseClient = (string) cfg('ads.adsense_client', '');
 $adsenseAuto   = (string) cfg('ads.adsense_auto', '0') === '1';
 
-// Adsterra : popunder (head), social bar (body), bannières auto-responsive
+// Adsterra : popunder (head) et social bar (body), scripts globaux
 $headEnabled = (string) cfg('ads.head_enabled', '0') === '1';
 $headCode    = (string) cfg('ads.head_code', '');
 $bodyEnabled = (string) cfg('ads.body_enabled', '0') === '1';
 $bodyCode    = (string) cfg('ads.body_code', '');
-$banner728   = (string) cfg('ads.banner_728', '');
-$banner468   = (string) cfg('ads.banner_468', '');
-$banner300   = (string) cfg('ads.banner_300', '');
 
 // API Publisher Adsterra (dashboard revenus)
 $adsterraToken    = (string) cfg('ads.adsterra_api_token', '');
@@ -221,26 +219,6 @@ include __DIR__ . '/../header.php';
                       placeholder="&lt;script src=&quot;...&quot;&gt;&lt;/script&gt;"><?= e($bodyCode) ?></textarea>
           </div>
 
-          <!-- Bannières auto-responsive -->
-          <h3 style="margin:1rem 0 .5rem"><?= e(t('admin.ads.banners_title')) ?></h3>
-          <p class="wt-muted" style="font-size:.85rem;margin-bottom:1rem"><?= e(t('admin.ads.banners_hint')) ?></p>
-
-          <div style="margin-bottom:1rem">
-            <label style="display:block;margin-bottom:.3rem"><strong><?= e(t('admin.ads.banner_728_label')) ?></strong></label>
-            <textarea class="wt-input wt-mono" name="banner_728" rows="2"
-                      placeholder="728x90"><?= e($banner728) ?></textarea>
-          </div>
-          <div style="margin-bottom:1rem">
-            <label style="display:block;margin-bottom:.3rem"><strong><?= e(t('admin.ads.banner_468_label')) ?></strong></label>
-            <textarea class="wt-input wt-mono" name="banner_468" rows="2"
-                      placeholder="468x60"><?= e($banner468) ?></textarea>
-          </div>
-          <div style="margin-bottom:1rem">
-            <label style="display:block;margin-bottom:.3rem"><strong><?= e(t('admin.ads.banner_300_label')) ?></strong></label>
-            <textarea class="wt-input wt-mono" name="banner_300" rows="2"
-                      placeholder="300x250"><?= e($banner300) ?></textarea>
-          </div>
-
           <button class="wt-btn wt-btn--primary"><?= e(t('common.save')) ?></button>
         </form>
 
@@ -352,6 +330,9 @@ include __DIR__ . '/../header.php';
       <section class="wt-card wt-card--padded">
         <h2 style="margin-top:0">🎯 <?= e(t('admin.ads.zones_title')) ?></h2>
         <p class="wt-muted" style="font-size:.9rem"><?= e(t('admin.ads.zones_lead')) ?></p>
+        <div class="wt-alert wt-alert--info" style="font-size:.85rem;margin-bottom:1rem">
+          🍪 <?= e(t('admin.ads.zones_consent_note')) ?>
+        </div>
 
         <form method="post">
           <input type="hidden" name="_csrf" value="<?= e(csrf_token()) ?>">
@@ -361,6 +342,9 @@ include __DIR__ . '/../header.php';
             $k = $z['k'];
             // Détecte si la zone contient encore le placeholder de démo
             $isPlaceholder = (trim(preg_replace('/<!--.*?-->/s', '', (string)$z['code'])) === '');
+            /* Domaines appelés par le code mais absents de la CSP : le
+               navigateur les bloquera en silence (voir la fonction). */
+            $blockedHosts = $isPlaceholder ? [] : wt_ad_code_blocked_hosts((string)$z['code']);
           ?>
             <div style="border:1px solid var(--wt-border, #2a3252);border-radius:12px;padding:1rem;margin-bottom:1rem">
               <div style="display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap;margin-bottom:.5rem">
@@ -387,6 +371,11 @@ include __DIR__ . '/../header.php';
               <textarea name="zones[<?= e($k) ?>][code]" rows="3"
                         class="wt-input wt-mono" style="font-size:.8rem"
                         placeholder="<?= e(t('admin.ads.zone_placeholder')) ?>"><?= e((string)$z['code']) ?></textarea>
+              <?php if ($blockedHosts !== []): ?>
+                <div class="wt-alert wt-alert--warn" style="margin-top:.6rem;font-size:.82rem">
+                  ⚠️ <?= e(sprintf((string) t('admin.ads.zone_csp_blocked'), implode(', ', $blockedHosts))) ?>
+                </div>
+              <?php endif; ?>
             </div>
           <?php endforeach; ?>
 

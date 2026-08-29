@@ -1384,6 +1384,11 @@ html.light .wt-icon-moon { display: none; }
 }
 .wt-alert--err { border-color: var(--wt-danger); color: var(--wt-danger); }
 .wt-alert--ok  { border-color: var(--wt-success); color: var(--wt-success); }
+/* --warn et --warning étaient employés dans plusieurs pages sans avoir
+   jamais été définis : les avertissements s'affichaient donc avec le
+   style neutre, indistinguables d'une simple note. */
+.wt-alert--warn,
+.wt-alert--warning { border-color: #f59e0b; color: #f59e0b; }
 
 .wt-table {
   width: 100%; border-collapse: collapse; font-size: .92rem;
@@ -13060,9 +13065,10 @@ a.wt-dash-v2__kpi-cta:hover {
 }
 
 /* Image bannière */
-.wt-ad-house img {
+.wt-ad-house img,
+.wt-ad-house svg {
   display: block;
-  max-width: none;
+  max-width: none;   /* la mise à l'échelle est gérée par --ad-scale */
   height: auto;
   border: 0;
 }
@@ -13085,33 +13091,6 @@ a.wt-dash-v2__kpi-cta:hover {
   max-width: none !important;
 }
 
-/* =====================================================================
-   PUBLICITÉS — bannière auto-responsive (choisit le format selon l'écran)
-   =====================================================================
-   wt_ad_banner_auto() rend les 3 formats (728/468/300). Le CSS n'en
-   affiche qu'UN seul selon la largeur, pour ne jamais déborder :
-     - ≥ 768px  → 728x90 (desktop/tablette large)
-     - 480–767px → 468x60 (tablette/grand mobile)
-     - < 480px  → 300x250 (mobile)
-   Chaque format reste en plus protégé par le scale (.wt-ad-scale).
-   ===================================================================== */
-.wt-ad-auto { width: 100%; display: flex; justify-content: center; }
-.wt-ad-auto__fmt { display: none; }  /* masqués par défaut */
-
-/* Mobile (< 480px) : 300x250 */
-.wt-ad-auto__300 { display: block; }
-
-/* Tablette / grand mobile (480–767px) : 468x60 */
-@media (min-width: 480px) {
-  .wt-ad-auto__300 { display: none; }
-  .wt-ad-auto__468 { display: block; }
-}
-
-/* Desktop / tablette large (≥ 768px) : 728x90 */
-@media (min-width: 768px) {
-  .wt-ad-auto__468 { display: none; }
-  .wt-ad-auto__728 { display: block; }
-}
 
 /* Repli : si un format manque, on tombe sur le plus proche disponible.
    (géré côté PHP : seuls les formats configurés sont rendus) */
