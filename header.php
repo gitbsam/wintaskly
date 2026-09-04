@@ -314,7 +314,17 @@ echo wt_schema_render();
 <meta name="wt-base"    content="<?= e($_base) ?>">
 <meta name="wt-theme"   content="<?= e($_theme) ?>">
 <meta name="wt-authed"  content="<?= $_u ? '1' : '0' ?>">
-<meta name='admaven-placement' content=BqTwGrjgG>
+<?php
+/* Balises <meta> / <script> propres à certaines pages, gérées dans
+   /admin/ads.php. Toute la logique (lecture du fichier, correspondance
+   des motifs de page, consentement) vit dans includes/ad_tags.php :
+   header.php se contente d'imprimer le résultat.
+
+   ⚠️ Le chemin du fichier de règles se calcule là-bas. Ici, __DIR__ est
+   déjà la racine du site : un dirname() de plus pointerait au-dessus de
+   l'installation et la fonctionnalité serait silencieusement inactive. */
+echo wt_ad_tags_render();
+?>
 
 <script>
   // Anti-FOUC : applique la classe de thème immédiatement

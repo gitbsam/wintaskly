@@ -20,6 +20,17 @@ $db          = db();
 $notice      = null;
 $error       = null;
 
+/* Balises <meta>/<script> injectées dans le <head>, page par page.
+   Lecture, écriture atomique et correspondance des motifs : voir
+   includes/ad_tags.php. */
+$rules = wt_ad_tags_load();
+
+/* Pages proposées à la sélection, groupées par section. La liste vit
+   dans includes/ad_tags.php, au plus près de la fonction qui compare les
+   motifs : une liste qui dérive du comparateur produirait des motifs qui
+   ne correspondent à aucune page, sans que rien ne le signale. */
+$pageGroups = wt_ad_tags_available_pages();
+
 /* ====================== ACTIONS POST ====================== */
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && csrf_check($_POST['_csrf'] ?? null)) {
     $action = (string)($_POST['action'] ?? '');
@@ -77,11 +88,92 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && csrf_check($_POST['_csrf'] ?? null)
             $stmt->close();
             $notice = t('admin.ads.zones_saved');
         }
+    } elseif ($action === 'save_rule') {
+        $id            = (string) ($_POST['rule_id'] ?? '');
+        $selectedPages = is_array($_POST['pages'] ?? null) ? array_map('strval', $_POST['pages']) : [];
+        $tagContent    = trim((string) ($_POST['tag_content'] ?? ''));
+        $label         = trim((string) ($_POST['label'] ?? ''));
+        $isActive      = !empty($_POST['is_active']);
+        $needsConsent  = !empty($_POST['needs_consent']);
+
+        // Le champ écrit directement dans le <head> : on refuse tout ce
+        // qui n'est ni <meta> ni <script>.
+        $invalid = wt_ad_tags_validate($tagContent);
+
+        if ($selectedPages === []) {
+            $error = t('admin.adtags.err_nopage');
+        } elseif ($invalid !== '') {
+            $error = t($invalid);
+        } else {
+            if ($id !== '') {
+                foreach ($rules as $i => $r) {
+                    if ($r['id'] === $id) {
+                        $rules[$i]['label']         = $label;
+                        $rules[$i]['pages']         = $selectedPages;
+                        $rules[$i]['tag_content']   = $tagContent;
+                        $rules[$i]['active']        = $isActive;
+                        $rules[$i]['needs_consent'] = $needsConsent;
+                        break;
+                    }
+                }
+            } else {
+                $rules[] = [
+                    'id'            => uniqid('tag_'),
+                    'label'         => $label,
+                    'pages'         => $selectedPages,
+                    'tag_content'   => $tagContent,
+                    'active'        => $isActive,
+                    'needs_consent' => $needsConsent,
+                ];
+            }
+
+            // Une écriture qui échoue doit se voir : sur hébergement
+            // mutualisé, un dossier en lecture seule est un cas réel, et
+            // l'administrateur croirait avoir enregistré.
+            if (wt_ad_tags_save($rules)) {
+                wt_admin_log('ad_tags.save', ['id' => $id !== '' ? $id : 'new']);
+                $notice = t('admin.ads.saved');
+            } else {
+                $error = t('admin.adtags.err_write');
+            }
+        }
+    } elseif ($action === 'delete_rule') {
+        $id    = (string) ($_POST['rule_id'] ?? '');
+        $rules = array_values(array_filter($rules, static fn($r) => $r['id'] !== $id));
+        if (wt_ad_tags_save($rules)) {
+            wt_admin_log('ad_tags.delete', ['id' => $id]);
+            $notice = t('admin.adtags.deleted');
+        } else {
+            $error = t('admin.adtags.err_write');
+        }
+    } elseif ($action === 'toggle_rule') {
+        $id = (string) ($_POST['rule_id'] ?? '');
+        foreach ($rules as $i => $r) {
+            if ($r['id'] === $id) {
+                $rules[$i]['active'] = !$r['active'];
+                break;
+            }
+        }
+        if (wt_ad_tags_save($rules)) {
+            wt_admin_log('ad_tags.toggle', ['id' => $id]);
+            $notice = t('admin.ads.saved');
+        } else {
+            $error = t('admin.adtags.err_write');
+        }
     } else {
         // Action POST non reconnue : on le signale au lieu d'ignorer en silence
         $error = t('admin.ads.unknown_action');
     }
 }
+
+// Mode édition : récupérer la règle si on clique sur "Modifier"
+$editRule = null;
+if (isset($_GET['edit'])) {
+    foreach ($rules as $r) {
+        if ($r['id'] === $_GET['edit']) { $editRule = $r; break; }
+    }
+}
+$editPages = $editRule['pages'] ?? [];
 
 /* ====================== LECTURE ÉTAT ====================== */
 $adsenseClient = (string) cfg('ads.adsense_client', '');
@@ -323,6 +415,141 @@ include __DIR__ . '/../header.php';
               <p class="wt-muted" style="margin-top:1rem"><?= e(t('admin.ads.stats_empty')) ?></p>
             <?php endif; ?>
           <?php endif; ?>
+        <?php endif; ?>
+      </section>
+
+      <!-- ============ BALISES <head> PAR PAGE ============ -->
+      <section class="wt-card wt-card--padded" style="margin-bottom:2rem">
+        <h2 style="margin-top:0">🎯 <?= e(t('admin.adtags.title')) ?></h2>
+        <p class="wt-muted" style="font-size:.9rem"><?= e(t('admin.adtags.lead')) ?></p>
+
+        <!-- Formulaire d'ajout / modification -->
+        <form method="post" class="wt-form" style="margin-bottom:1.5rem;padding:1rem;border:1px solid var(--wt-border);border-radius:var(--wt-radius-md)">
+          <input type="hidden" name="_csrf" value="<?= e(csrf_token()) ?>">
+          <input type="hidden" name="action" value="save_rule">
+          <input type="hidden" name="rule_id" value="<?= e($editRule['id'] ?? '') ?>">
+
+          <div style="margin-bottom:1rem">
+            <label style="display:block;margin-bottom:.3rem"><strong><?= e(t('admin.adtags.label_name')) ?></strong></label>
+            <input type="text" class="wt-input" name="label" maxlength="80"
+                   placeholder="<?= e(t('admin.adtags.label_name_ph')) ?>"
+                   value="<?= e($editRule['label'] ?? '') ?>">
+          </div>
+
+          <!-- Pages ciblées -->
+          <div style="margin-bottom:1rem">
+            <label style="display:block;margin-bottom:.5rem"><strong><?= e(t('admin.adtags.pages')) ?></strong></label>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:.7rem;padding:.8rem;border:1px solid var(--wt-border);border-radius:var(--wt-radius-md);background:var(--wt-bg-soft)">
+              <?php foreach ($pageGroups as $groupName => $groupPages): ?>
+                <fieldset style="border:1px solid var(--wt-border);border-radius:var(--wt-radius-md);padding:.6rem .8rem;margin:0">
+                  <legend style="font-size:.8rem;font-weight:700;padding:0 .3rem"><?= e((string) $groupName) ?></legend>
+                  <?php foreach ($groupPages as $routeKey => $pageName): ?>
+                    <label style="display:flex;align-items:center;gap:.4rem;cursor:pointer;font-size:.85rem;padding:.15rem 0">
+                      <input type="checkbox" name="pages[]" value="<?= e($routeKey) ?>"
+                             <?= in_array($routeKey, (array) $editPages, true) ? 'checked' : '' ?>
+                             style="width:16px;height:16px;flex:none">
+                      <span><?= e((string) $pageName) ?> <small class="wt-muted"><?= e($routeKey) ?></small></span>
+                    </label>
+                  <?php endforeach; ?>
+                </fieldset>
+              <?php endforeach; ?>
+            </div>
+            <small class="wt-muted"><?= e(t('admin.adtags.pages_hint')) ?></small>
+          </div>
+
+          <!-- Balise -->
+          <div style="margin-bottom:.8rem">
+            <label style="display:block;margin-bottom:.3rem"><strong><?= e(t('admin.adtags.code')) ?></strong></label>
+            <textarea class="wt-input wt-mono" name="tag_content" rows="3" required
+                      placeholder="<?= e('<meta name="exemple-verification" content="…">') ?>"><?= e($editRule['tag_content'] ?? '') ?></textarea>
+            <small class="wt-muted"><?= e(t('admin.adtags.code_hint')) ?></small>
+          </div>
+
+          <div style="margin-bottom:.6rem;display:flex;align-items:center;gap:.5rem">
+            <input type="checkbox" id="is_active" name="is_active" value="1"
+                   <?= ($editRule['active'] ?? true) ? 'checked' : '' ?> style="width:18px;height:18px">
+            <label for="is_active" style="cursor:pointer"><strong><?= e(t('admin.adtags.activate')) ?></strong></label>
+          </div>
+
+          <div style="margin-bottom:1rem;display:flex;align-items:flex-start;gap:.5rem">
+            <input type="checkbox" id="needs_consent" name="needs_consent" value="1"
+                   <?= !empty($editRule['needs_consent']) ? 'checked' : '' ?> style="width:18px;height:18px;margin-top:.15rem">
+            <label for="needs_consent" style="cursor:pointer">
+              <strong><?= e(t('admin.adtags.consent')) ?></strong><br>
+              <small class="wt-muted"><?= e(t('admin.adtags.consent_hint')) ?></small>
+            </label>
+          </div>
+
+          <div style="display:flex;gap:.5rem">
+            <button class="wt-btn wt-btn--primary"><?= e($editRule ? t('admin.adtags.update') : t('admin.adtags.add')) ?></button>
+            <?php if ($editRule): ?>
+              <a href="?" class="wt-btn wt-btn--ghost"><?= e(t('common.cancel')) ?></a>
+            <?php endif; ?>
+          </div>
+        </form>
+
+        <!-- Liste -->
+        <h3 style="font-size:1.1rem;margin-bottom:.8rem"><?= e(t('admin.adtags.configured')) ?></h3>
+        <?php if ($rules !== []): ?>
+          <div style="overflow-x:auto">
+            <table class="wt-table" style="width:100%;font-size:.85rem">
+              <thead>
+                <tr>
+                  <th style="width:60px"><?= e(t('admin.adtags.col_status')) ?></th>
+                  <th><?= e(t('admin.adtags.col_pages')) ?></th>
+                  <th><?= e(t('admin.adtags.col_code')) ?></th>
+                  <th style="text-align:right;width:150px"><?= e(t('common.actions')) ?></th>
+                </tr>
+              </thead>
+              <tbody>
+                <?php foreach ($rules as $r):
+                  /* Une balise <script> dont le domaine n'est pas déclaré dans
+                     ad_networks sera bloquée par la CSP, sans message : on le
+                     signale ici plutôt que de laisser chercher. */
+                  $tagBlocked = wt_ad_code_blocked_hosts((string) $r['tag_content']);
+                ?>
+                  <tr>
+                    <td style="text-align:center">
+                      <form method="post" style="display:inline">
+                        <input type="hidden" name="_csrf" value="<?= e(csrf_token()) ?>">
+                        <input type="hidden" name="action" value="toggle_rule">
+                        <input type="hidden" name="rule_id" value="<?= e($r['id']) ?>">
+                        <button type="submit" style="background:none;border:none;cursor:pointer;font-size:1.2rem"
+                                title="<?= e(t('admin.adtags.toggle')) ?>"><?= $r['active'] ? '🟢' : '🔴' ?></button>
+                      </form>
+                    </td>
+                    <td>
+                      <?php if (($r['label'] ?? '') !== ''): ?>
+                        <strong><?= e((string) $r['label']) ?></strong><br>
+                      <?php endif; ?>
+                      <code><?= e(implode(', ', $r['pages'])) ?></code>
+                      <?php if (!empty($r['needs_consent'])): ?>
+                        <br><small class="wt-muted">🍪 <?= e(t('admin.adtags.consent_badge')) ?></small>
+                      <?php endif; ?>
+                    </td>
+                    <td class="wt-mono" style="max-width:300px">
+                      <code style="display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><?= e((string) $r['tag_content']) ?></code>
+                      <?php if ($tagBlocked !== []): ?>
+                        <small style="color:#f59e0b">⚠️ <?= e(sprintf((string) t('admin.adtags.csp_blocked'), implode(', ', $tagBlocked))) ?></small>
+                      <?php endif; ?>
+                    </td>
+                    <td style="text-align:right;white-space:nowrap">
+                      <a href="?edit=<?= e($r['id']) ?>" class="wt-btn wt-btn--ghost" style="padding:2px 8px;font-size:.8rem"><?= e(t('common.edit')) ?></a>
+                      <form method="post" style="display:inline"
+                            onsubmit="return confirm('<?= e(t('admin.adtags.confirm_delete')) ?>');">
+                        <input type="hidden" name="_csrf" value="<?= e(csrf_token()) ?>">
+                        <input type="hidden" name="action" value="delete_rule">
+                        <input type="hidden" name="rule_id" value="<?= e($r['id']) ?>">
+                        <button type="submit" class="wt-btn wt-btn--ghost" style="padding:2px 8px;font-size:.8rem;color:#ef4444"><?= e(t('common.delete')) ?></button>
+                      </form>
+                    </td>
+                  </tr>
+                <?php endforeach; ?>
+              </tbody>
+            </table>
+          </div>
+        <?php else: ?>
+          <p class="wt-muted"><?= e(t('admin.adtags.empty')) ?></p>
         <?php endif; ?>
       </section>
 

@@ -890,6 +890,43 @@ if (!function_exists('wt_analytics_allowed')) {
     }
 }
 
+if (!function_exists('wt_admin_log')) {
+    /**
+     * Journalise une action d'administration dans `admin_actions`.
+     *
+     * La table a été conçue autour d'actions visant un utilisateur
+     * (target_id, NOT NULL). Les actions qui ne visent personne — un
+     * réglage global, une règle de balise — passent target_id à 0 : la
+     * colonne n'a pas de clé étrangère, la valeur est donc licite et se
+     * lit sans ambiguïté comme « aucune cible ».
+     *
+     * Journaliser ne doit jamais faire échouer l'action journalisée :
+     * toute erreur est capturée et écrite dans le log serveur.
+     *
+     * @param string               $action Verbe court (32 caractères max)
+     * @param array<string, mixed> $meta   Contexte, tronqué à 255 caractères
+     */
+    function wt_admin_log(string $action, array $meta = [], int $targetId = 0): void
+    {
+        try {
+            $adminId = (int) (current_user()['id'] ?? 0);
+            if ($adminId === 0) {
+                return;
+            }
+            $json = substr((string) json_encode($meta, JSON_UNESCAPED_UNICODE), 0, 255);
+            $stmt = db()->prepare(
+                "INSERT INTO admin_actions (admin_id, target_id, action, meta) VALUES (?, ?, ?, ?)"
+            );
+            $act = substr($action, 0, 32);
+            $stmt->bind_param('iiss', $adminId, $targetId, $act, $json);
+            $stmt->execute();
+            $stmt->close();
+        } catch (Throwable $e) {
+            error_log('[Wintaskly admin_log] ' . $e->getMessage());
+        }
+    }
+}
+
 if (!function_exists('wt_ad_code_blocked_hosts')) {
     /**
      * Domaines appelés par un code publicitaire que la politique de
