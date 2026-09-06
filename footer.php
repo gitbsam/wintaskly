@@ -315,6 +315,8 @@ window.WT_I18N = {
 <script src="<?= $_base ?>/media/wintaskly/js/wintaskly-ui.js?v=<?= e(WT_VERSION) ?>" defer></script>
 <script src="<?= $_base ?>/media/wintaskly/js/wintaskly.js?v=<?= e(WT_VERSION) ?>" defer></script>
 <script src="<?= $_base ?>/media/wintaskly/js/wt-ads-responsive.js?v=<?= e(WT_VERSION) ?>" defer></script>
+<script src="<?= $_base ?>/media/wintaskly/js/wt-ad-overlay.js?v=<?= e(WT_VERSION) ?>" defer></script>
+<script src="<?= $_base ?>/media/wintaskly/js/wt-slrun.js?v=<?= e(WT_VERSION) ?>" defer></script>
 
 <!-- =====================================================================
      PWA — Service Worker + Bannière d'installation
@@ -540,6 +542,34 @@ if (!empty($GLOBALS['__wt_ach_just_unlocked']) && is_array($GLOBALS['__wt_ach_ju
 }
 </style>
 <?php endif; ?>
+
+<?php
+/* Encart publicitaire flottant des pages de tâches.
+ *
+ * Rendu ici plutôt que dans chacune des dix pages de /tasks/ : un seul
+ * point d'entrée, donc aucun risque d'oubli quand une page s'ajoute.
+ *
+ * Les pages exclues sont celles où l'utilisateur est chronométré ou en
+ * train de valider une action : un panneau par-dessus le contenu y
+ * bloquerait un compte à rebours ou un bouton, et l'utilisateur
+ * perdrait le gain de sa tâche. Retirez une ligne pour l'y activer.
+ */
+$_overlayExcluded = [
+    '/tasks/ptc',                    // compte à rebours visible
+    '/tasks/faucet/verify.php',      // validation en cours
+    '/tasks/faucet/transition.php',  // page déjà dédiée à la publicité
+    '/tasks/shortlinks/gateway.php', // passerelle chronométrée
+];
+
+if (function_exists('wt_ad_overlay') && function_exists('wt_ad_tags_current_path')) {
+    $_path = wt_ad_tags_current_path();
+    $_onTasks = ($_path === '/tasks' || str_starts_with($_path, '/tasks/'));
+
+    if ($_onTasks && !in_array($_path, $_overlayExcluded, true)) {
+        echo wt_ad_overlay('tasks_overlay', 10000);
+    }
+}
+?>
 
 <?php
 // Scripts publicitaires globaux à charger une seule fois avant </body>

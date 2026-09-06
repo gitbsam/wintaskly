@@ -898,6 +898,147 @@ INSERT IGNORE INTO `ad_zones` (`k`,`label`,`code`,`active`) VALUES
  ('tasks_index_sidebar', 'Tâches — Colonne latérale',     '<!-- Insérer ici le code AdSense responsive -->', 1),
  ('tasks_index_mid',     'Tâches — Après la grille',      '<!-- Insérer ici le code AdSense responsive -->', 1);
 
+-- ---------------------------------------------------------------------
+-- SHORTLINKS LOCAUX (V9.42)
+--
+-- Configuration du raccourcisseur maison. Une ligne = une campagne :
+-- sa clé API, le rythme du parcours, sa recette pour 1000.
+--
+-- Volontairement séparée de `shortlinks`, qui décrit la tâche telle que
+-- l'utilisateur la voit et reste inchangée. L'administration crée
+-- d'abord la ligne ici, puis recopie la clé et l'URL d'API dans le
+-- formulaire habituel — Wintaskly devient alors son propre prestataire.
+--
+-- Les parcours individuels vivront dans une troisième table, à venir :
+-- une campagne a un seul jeu de réglages mais des dizaines de parcours
+-- simultanés.
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `shortlinks_local` (
+  `id`             INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `title`          VARCHAR(120) NOT NULL,
+  `is_local`       TINYINT(1)   NOT NULL DEFAULT 1
+                   COMMENT '1 = raccourcisseur Wintaskly, 0 = prestataire externe',
+  `api_key`        CHAR(32)     NOT NULL,
+  `api_active`     TINYINT(1)   NOT NULL DEFAULT 1,
+  `steps_count`    SMALLINT UNSIGNED NOT NULL DEFAULT 3
+                   COMMENT 'SMALLINT et non TINYINT : jusqu a 1000 etapes',
+  `step_seconds`   SMALLINT UNSIGNED NOT NULL DEFAULT 30,
+  `final_seconds`  SMALLINT UNSIGNED NOT NULL DEFAULT 20,
+  `run_minutes`    SMALLINT UNSIGNED NOT NULL DEFAULT 30
+                   COMMENT 'Delai avant abandon d un parcours commence',
+  `rate_amount`    DECIMAL(10,4) NOT NULL DEFAULT 0
+                   COMMENT 'Recette pour rate_per_views participations',
+  `rate_currency`  CHAR(3)      NOT NULL DEFAULT 'EUR',
+  `rate_per_views` INT UNSIGNED NOT NULL DEFAULT 1000,
+  `content_type`   ENUM('blog','url') NOT NULL DEFAULT 'blog',
+  `content_ref`    VARCHAR(255) NULL,
+  `created_at`     DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uniq_api_key` (`api_key`),
+  KEY `idx_active` (`api_active`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- ---------------------------------------------------------------------
+-- PARCOURS DU RACCOURCISSEUR LOCAL (V9.43)
+--
+-- Une ligne = un lien court individuel, à usage unique. Séparée de
+-- `shortlinks_local` qui ne porte que les réglages : une campagne a un
+-- seul jeu de réglages mais des dizaines de parcours simultanés.
+--
+-- Aucune ligne n'est jamais supprimée, même terminée. Le code ne peut
+-- alors jamais être réattribué, il reste la pièce justificative du
+-- paiement, et rejouer un code consommé devient traçable.
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `shortlink_local_runs` (
+  `id`              BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `local_id`        INT UNSIGNED NOT NULL,
+  `code`            VARBINARY(10) NOT NULL
+                    COMMENT 'VARBINARY : sensible a la casse, sinon aB3 = Ab3',
+  `user_id`         INT UNSIGNED NULL
+                    COMMENT 'Fixe a la premiere ouverture, puis impose',
+  `destination`     TEXT NOT NULL
+                    COMMENT 'URL de rappel recue. N est jamais emise avant la fin',
+  `step`            SMALLINT UNSIGNED NOT NULL DEFAULT 0,
+  `step_token`      CHAR(32) NOT NULL,
+  `step_started_at` DATETIME NULL,
+  `expires_at`      DATETIME NOT NULL,
+  `status`          ENUM('en_cours','termine','expire','rejete')
+                    NOT NULL DEFAULT 'en_cours',
+  `ip`              VARBINARY(16) NULL,
+  `created_at`      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `completed_at`    DATETIME NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uniq_code` (`code`),
+  KEY `idx_local`  (`local_id`),
+  KEY `idx_user`   (`user_id`, `status`),
+  KEY `idx_expiry` (`status`, `expires_at`),
+  CONSTRAINT `fk_slr_local` FOREIGN KEY (`local_id`)
+    REFERENCES `shortlinks_local`(`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- ---------------------------------------------------------------------
+-- REGISTRE DES RECETTES (V9.44)
+--
+-- Ce que les prestataires vous versent réellement, à opposer aux
+-- tarifs annoncés saisis dans shortlinks.provider_rate_amount.
+--
+-- Deux notions distinctes, volontairement séparées :
+--   - `declared_*` : ce que le tableau de bord du prestataire affiche
+--   - `received_*` : ce qui est arrivé sur votre compte
+-- Un prestataire peut annoncer des gains et ne jamais payer. Confondre
+-- les deux fausserait le calcul de marge dans le sens dangereux.
+--
+-- amount_eur est figé à la saisie. Sans ça, une recette de mars
+-- changerait de valeur au gré du cours de l'euro, et une comptabilité
+-- dont les montants passés bougent n'est pas une comptabilité.
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `revenue_entries` (
+  `id`             INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `source_kind`    ENUM('shortlink','offerwall','ptc','ads','other')
+                   NOT NULL DEFAULT 'shortlink',
+  `source_id`      INT UNSIGNED NULL
+                   COMMENT 'Ligne shortlinks/offerwalls concernee, NULL si global',
+  `provider`       VARCHAR(60) NOT NULL
+                   COMMENT 'Nom libre du prestataire, toujours renseigne',
+  `period_start`   DATE NOT NULL,
+  `period_end`     DATE NOT NULL,
+  `declared_amount` DECIMAL(12,4) NOT NULL DEFAULT 0,
+  `received_amount` DECIMAL(12,4) NOT NULL DEFAULT 0,
+  `currency`       CHAR(3) NOT NULL DEFAULT 'USD',
+  `eur_rate`       DECIMAL(16,8) NOT NULL DEFAULT 1
+                   COMMENT 'Valeur d une unite en EUR, figee a la saisie',
+  `received_eur`   DECIMAL(12,4) NOT NULL DEFAULT 0
+                   COMMENT 'received_amount x eur_rate, fige',
+  `status`         ENUM('attendu','recu','impaye') NOT NULL DEFAULT 'attendu',
+  `paid_at`        DATE NULL,
+  `reference`      VARCHAR(120) NULL COMMENT 'Reference du versement',
+  `notes`          TEXT NULL,
+  `created_at`     DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at`     DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+                   ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_period` (`period_start`, `period_end`),
+  KEY `idx_source` (`source_kind`, `source_id`),
+  KEY `idx_status` (`status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Encart flottant des pages de tâches (V9.36). Format 300x250 : c'est
+-- le seul qui tienne à l'aise dans un panneau centré sur mobile.
+INSERT IGNORE INTO `ad_zones` (`k`,`label`,`code`,`size_key`,`active`) VALUES
+ ('tasks_overlay', 'Tâches — Encart flottant (10 s)', '<!-- Insérer ici le code de la régie -->', '300x250', 1);
+
+-- Date du dernier alignement automatique de coins_per_unit (cron
+-- payment_methods_rates). NULL = jamais aligne : la tache applique alors
+-- le cours reel sans controle d'ecart, sinon les valeurs de depart
+-- resteraient bloquees par le garde-fou anti-flux-defectueux.
+SET @c := (SELECT COUNT(*) FROM information_schema.columns
+            WHERE table_schema = DATABASE() AND table_name = 'withdrawal_methods'
+              AND column_name = 'rate_updated_at');
+SET @s := IF(@c = 0,
+  'ALTER TABLE `withdrawal_methods` ADD COLUMN `rate_updated_at` DATETIME NULL',
+  'SELECT 1');
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+
 -- Format de repli par défaut (rotation automatique) selon le nom de la
 -- zone — modifiable librement ensuite via admin/banners.php. Les zones
 -- de type "sidebar"/"center"/gateway reçoivent un rectangle 300x250,
@@ -929,7 +1070,12 @@ VALUES
   ('faucetpay', 'FaucetPay',      'USD',   10000,   10000, 'E-mail FaucetPay', 'votre.email@exemple.com', 1),
   ('payeer',    'Payeer',         'USD',   10000,   20000, 'Compte Payeer',    'P1000000000',             2),
   ('btc',       'Bitcoin (BTC)',  'BTC', 5000000, 5000000, 'Adresse BTC',      'bc1q...',                 3),
-  ('ltc',       'Litecoin (LTC)', 'LTC',   50000,   50000, 'Adresse LTC',      'ltc1q...',                4);
+  ('ltc',       'Litecoin (LTC)', 'LTC',   50000,   50000, 'Adresse LTC',      'ltc1q...',                4),
+  -- Méthodes en euro : leur taux ne dépend d'aucun flux extérieur. Au
+  -- moins l'une d'elles doit rester active, sinon une panne du cache
+  -- des taux rendrait tout retrait impossible.
+  ('paypal',    'PayPal',         'EUR',   10000,   30000, 'E-mail PayPal',    'vous@exemple.com',        5),
+  ('sepa',      'Virement SEPA',  'EUR',   10000,  200000, 'IBAN',             'FR76 ...',                6);
 
 -- ---------- compte admin par défaut ----------
 -- SUPPRIMÉ depuis V8 : l'installeur web (/install/) crée désormais le compte

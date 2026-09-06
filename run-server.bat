@@ -31,7 +31,7 @@ if not exist "src\input.css" (
 echo.
 echo [4/4] Demarrage de Tailwind CSS (watch)...
 :: Lancer Tailwind CSS en mode watch dans une fenetre separee
-start "Tailwind CSS - Wintaskly" cmd /k "cd /d C:\Users\zawu\wintaskly\nouvelle_version_wintaskly && npx @tailwindcss/cli -i ./frontend/src/input.css -o ./media/wintaskly/css/tailwind.css --watch"
+start "Tailwind CSS - Wintaskly" cmd /k "cd /d C:\Users\zawu\Groupe TADJIDINE SASU\Wintaskly && npx @tailwindcss/cli -i ./frontend/src/input.css -o ./media/wintaskly/css/tailwind.css --watch"
 
 echo.
 echo Appuyez sur Ctrl+C ou fermez cette fenetre pour arreter le serveur.

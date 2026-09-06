@@ -13914,3 +13914,129 @@ a.wt-dash-v2__kpi-cta:hover {
 .wt-owadd-result p { margin: .4rem 0 0; }
 .wt-owadd-result code { font-size: .78rem; word-break: break-all; }
 .wt-owadd-tip { opacity: .75; font-size: .8rem; line-height: 1.55; }
+
+/* --- Relecture avant réutilisation d'une adresse de paiement --- */
+.wt-payaddr--reuse {
+  border: 1px solid var(--wt-warn, #d98324);
+  border-radius: var(--wt-radius-md, 10px);
+  padding: 1rem 1.1rem;
+  margin-bottom: 1.25rem;
+}
+.wt-payaddr__reuse-addr {
+  margin: .6rem 0;
+  word-break: break-all;
+}
+.wt-payaddr__reuse-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .6rem;
+  margin-top: .9rem;
+  align-items: center;
+}
+
+/* ==================================================================
+   Encart publicitaire flottant (wt-adpop)
+
+   Le cadre ne fixe aucune dimension : il épouse ce que la régie
+   injecte. Les seules contraintes sont des maxima exprimés en
+   pourcentage de la fenêtre, pour qu'un format large ne déborde
+   jamais sur un petit écran.
+   ================================================================== */
+.wt-adpop {
+  position: fixed;
+  inset: 0;
+  z-index: 9990;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+.wt-adpop[hidden] { display: none; }
+
+.wt-adpop__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(4, 8, 18, .62);
+  backdrop-filter: blur(2px);
+}
+
+.wt-adpop__box {
+  position: relative;
+  z-index: 1;
+  background: var(--wt-surface, #fff);
+  border-radius: var(--wt-radius-lg, 14px);
+  box-shadow: 0 18px 48px rgba(0, 0, 0, .38);
+  padding: 1.4rem .9rem .9rem;
+
+  /* Aucune largeur imposée : le contenu décide. */
+  max-width: min(96vw, 780px);
+  max-height: 88vh;
+  overflow: auto;
+  animation: wtAdpopIn .22s ease-out;
+}
+
+.wt-adpop__body {
+  display: flex;
+  justify-content: center;
+}
+/* Une création plus large que le cadre est réduite proportionnellement
+   plutôt que rognée ou génératrice de défilement horizontal. */
+.wt-adpop__body img,
+.wt-adpop__body iframe,
+.wt-adpop__body svg {
+  max-width: 100%;
+  height: auto;
+}
+
+.wt-adpop__close {
+  position: absolute;
+  top: .4rem;
+  right: .45rem;
+  width: 34px;
+  height: 34px;
+  line-height: 1;
+  font-size: 1.5rem;
+  border: 0;
+  border-radius: 50%;
+  cursor: pointer;
+  background: var(--wt-surface-2, #eef1f6);
+  color: var(--wt-text, #10151f);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.wt-adpop__close:hover { background: var(--wt-border, #d7dce5); }
+.wt-adpop__close:focus-visible { outline: 2px solid var(--wt-primary, #ff9933); outline-offset: 2px; }
+
+/* Bloque le défilement de la page pendant l'ouverture. */
+.wt-adpop-open, .wt-adpop-open body { overflow: hidden; }
+
+@keyframes wtAdpopIn {
+  from { opacity: 0; transform: translateY(10px) scale(.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .wt-adpop__box { animation: none; }
+}
+
+@media (max-width: 480px) {
+  .wt-adpop { padding: .5rem; }
+  .wt-adpop__box { padding: 1.3rem .5rem .6rem; max-height: 92vh; }
+}
+
+/* --- Parcours de lien court (wt-slrun) --- */
+.wt-slrun__head { margin-bottom: 1.2rem; }
+.wt-slrun__bar {
+  height: 6px; border-radius: 3px; margin-top: .7rem;
+  background: var(--wt-surface-2, #eef1f6); overflow: hidden;
+}
+.wt-slrun__bar span {
+  display: block; height: 100%;
+  background: var(--wt-primary, #ff9933);
+  transition: width .4s ease;
+}
+.wt-slrun__article { margin: 1.4rem 0; }
+.wt-slrun__body img { max-width: 100%; height: auto; }
+.wt-slrun__final { margin: 1.6rem 0; font-size: 1.05rem; }
+.wt-slrun__form { margin-top: 1.6rem; text-align: center; }
+.wt-slrun__timer { font-weight: 600; margin-bottom: .8rem; }

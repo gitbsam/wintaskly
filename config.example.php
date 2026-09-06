@@ -36,7 +36,7 @@ if ($_isLocal) {
     $_baseUrl = ($_isHttps ? 'https' : 'http') . '://' . $_host;
 } else {
     // ⚠️ EN PROD : remplace par TON vrai domaine final
-    $_baseUrl = 'https://wintaskly.com';
+    $_baseUrl = 'https://www.wintaskly.com';
 }
 
 return [

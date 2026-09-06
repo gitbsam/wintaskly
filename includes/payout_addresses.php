@@ -104,6 +104,39 @@ if (!function_exists('wt_payout_addresses')) {
         }
     }
 
+    /**
+     * Où cette adresse est-elle déjà enregistrée, chez cet utilisateur ?
+     *
+     * Sert à prévenir avant d'ajouter, pas à interdire : réutiliser le même
+     * e-mail FaucetPay pour BTC et pour TRX est un usage normal. On veut
+     * seulement que l'utilisateur relise l'adresse une fois de plus, parce
+     * qu'une faute de frappe recopiée reste une faute de frappe.
+     *
+     * @return array Lignes avec method_id, method_label et confirmed_at
+     */
+    function wt_payout_address_siblings(int $userId, string $address): array
+    {
+        $address = trim($address);
+        if ($userId <= 0 || $address === '') { return []; }
+        try {
+            $stmt = db()->prepare(
+                "SELECT a.id, a.method_id, a.confirmed_at, m.label AS method_label
+                   FROM user_payout_addresses a
+                   JOIN withdrawal_methods m ON m.id = a.method_id
+                  WHERE a.user_id = ? AND a.address = ?
+                  ORDER BY m.sort_order, m.id"
+            );
+            $stmt->bind_param('is', $userId, $address);
+            $stmt->execute();
+            $rows = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+            $stmt->close();
+            return $rows;
+        } catch (Throwable $e) {
+            error_log('[Wintaskly payout] ' . $e->getMessage());
+            return [];
+        }
+    }
+
     /** Marque une adresse comme confirmée (après vérification renforcée). */
     function wt_payout_address_confirm(int $userId, int $addressId): bool
     {

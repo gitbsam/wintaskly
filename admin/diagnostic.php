@@ -95,6 +95,40 @@ if (isset($existingTables['applied_migrations'])) {
 }
 
 // ============================================================
+// 3 bis) Droits d'écriture sur les fichiers générés
+//
+// Sur un hébergement mutualisé, PHP tourne souvent sous un compte qui
+// n'a pas les droits d'écriture partout. Les échecs sont silencieux :
+// le gestionnaire de balises <head> n'enregistre rien, le cache des
+// taux n'est jamais créé et les retraits en crypto se retrouvent
+// refusés. On vérifie donc ici, avant que le symptôme n'apparaisse.
+// ============================================================
+$writable = [];
+foreach ([
+    'includes/ad_tags_rules.json'      => 'Règles de balises <head> (/admin/ads.php)',
+    'includes/rates_cache.json'        => 'Cache des taux de change (retraits)',
+    'logs'                             => 'Journaux applicatifs',
+    'media/wintaskly/img/banners'      => 'Bannières téléversées (/admin/banners.php)',
+] as $rel => $why) {
+    $abs = dirname(__DIR__) . '/' . $rel;
+
+    /* Un fichier qui n'existe pas encore n'est pas un problème en soi :
+       ce qui compte est de pouvoir le créer, donc les droits du dossier
+       qui le contient. */
+    $target  = file_exists($abs) ? $abs : dirname($abs);
+    $exists  = file_exists($abs);
+    $canWrite = is_writable($target);
+
+    $writable[] = [
+        'path'   => $rel,
+        'why'    => $why,
+        'exists' => $exists,
+        'ok'     => $canWrite,
+        'tested' => $exists ? 'le fichier' : 'le dossier parent',
+    ];
+}
+
+// ============================================================
 // 4) Tentative de lecture du dernier error.log
 // ============================================================
 $errorLog = null;
@@ -243,6 +277,33 @@ include __DIR__ . '/../header.php';
       <!-- Migrations historique -->
       <?php if (!empty($appliedMigrations)): ?>
       <div class="wt-card wt-card--padded" style="margin-bottom:1.5rem">
+        <h2>✍️ Droits d'écriture</h2>
+        <table class="wt-admin-v2__table">
+          <thead>
+            <tr><th>Chemin</th><th>À quoi ça sert</th><th>Testé</th><th>État</th></tr>
+          </thead>
+          <tbody>
+            <?php foreach ($writable as $w): ?>
+              <tr>
+                <td><code><?= e($w['path']) ?></code></td>
+                <td><?= e($w['why']) ?></td>
+                <td><small class="wt-muted"><?= e($w['tested']) ?></small></td>
+                <td>
+                  <?php if ($w['ok']): ?>
+                    <span style="color:var(--wt-ok,#2e7d32)">✅ inscriptible</span>
+                  <?php else: ?>
+                    <span style="color:var(--wt-err,#c62828)">❌ lecture seule</span>
+                  <?php endif; ?>
+                </td>
+              </tr>
+            <?php endforeach; ?>
+          </tbody>
+        </table>
+        <p class="wt-muted" style="font-size:.85rem">
+          Chez LWS : gestionnaire de fichiers, clic droit sur l'élément →
+          Permissions → 755 pour un dossier, 644 pour un fichier.
+        </p>
+
         <h2>📜 Historique des migrations appliquées</h2>
         <table class="wt-table" style="margin-top:1rem">
           <thead><tr><th>Migration</th><th>Version</th><th>Appliquée le</th></tr></thead>

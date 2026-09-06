@@ -225,6 +225,14 @@ include __DIR__ . '/../header.php';
                   <small class="wt-field__hint">
                     <a href="<?= e(wt_url('/dashboard/payout-addresses.php')) ?>"><?= e(t('payout.manage_link')) ?></a>
                   </small>
+                  <?php /* Affiche seulement si la methode choisie n'a aucune
+                           adresse confirmee. Sans ce message, le champ
+                           disparaissait en silence et la demande echouait
+                           a l'envoi avec une erreur generique. */ ?>
+                  <div class="wt-alert wt-alert--warn" data-wd-no-address hidden>
+                    <?= e(t('payout.none_for_method')) ?>
+                    <a href="<?= e(wt_url('/dashboard/payout-addresses.php')) ?>"><?= e(t('payout.add_first')) ?></a>
+                  </div>
                 <?php else: ?>
                   <?php /* Aucune adresse confirmée : on n'affiche pas un
                            formulaire inutilisable, on explique quoi faire. */ ?>
@@ -254,8 +262,18 @@ include __DIR__ . '/../header.php';
             </strong>
           </div>
 
+          <?php
+            /* Le bouton est inerte tant qu'un retrait est impossible :
+               aucune méthode active, ou mode « adresse enregistrée
+               obligatoire » sans la moindre adresse confirmée. Sans ça
+               l'utilisateur saisit un montant, valide, et récupère une
+               erreur générique après coup. Le cas « des adresses, mais
+               aucune pour la méthode choisie » est traité par le script. */
+            $canSubmit = $methods && (!wt_payout_requires_saved() || $savedAddrs);
+          ?>
           <button type="submit" class="wt-btn wt-btn--primary wt-btn--lg wt-btn--block"
-                  <?= $methods ? '' : 'disabled' ?>>
+                  data-wd-submit
+                  <?= $canSubmit ? '' : 'disabled' ?>>
             ✈️ <?= e(t('wd.submit')) ?>
           </button>
         </form>
@@ -408,6 +426,8 @@ include __DIR__ . '/../header.php';
   var amountInput = form.querySelector('input[name="coins_amount"]');
   var payoutVal   = form.querySelector('[data-wd-payout-val]');
   var currencyEl  = form.querySelector('[data-wd-payout-currency]');
+  var noAddrEl    = form.querySelector('[data-wd-no-address]');
+  var submitBtn   = form.querySelector('[data-wd-submit]');
 
   function updatePayout() {
     var activeRadio = form.querySelector('input[name="method_id"]:checked');
@@ -425,7 +445,7 @@ include __DIR__ . '/../header.php';
        contourner ce filtre ne permet rien. */
     var addrSelect = form.querySelector('[data-wd-address-select]');
     if (addrSelect) {
-      var methodId = String(opt.value || '');
+      var methodId = String(activeRadio.value || '');
       var firstVisible = null;
       Array.prototype.forEach.call(addrSelect.options, function (o) {
         var match = o.getAttribute('data-method') === methodId;
@@ -440,20 +460,38 @@ include __DIR__ . '/../header.php';
         addrSelect.value = firstVisible.value;
       }
       addrSelect.parentElement.style.display = firstVisible ? '' : 'none';
+
+      /* Aucune adresse pour cette methode : on le dit, et on empeche
+         l'envoi. Le serveur refusait deja la demande, mais avec un
+         message generique arrivant apres la saisie du montant. */
+      if (noAddrEl)  { noAddrEl.hidden  = !!firstVisible; }
+      if (submitBtn) { submitBtn.disabled = !firstVisible; }
+      addrSelect.disabled = !firstVisible;
     }
     if (currencyEl) currencyEl.textContent = currency;
 
     if (amountInput && payoutVal) {
       var coins = parseFloat(amountInput.value) || 0;
-      var coinsPerEur = parseFloat(activeRadio.getAttribute('data-ratio')) || 10000;
-      
-      // 1. Assis sur la base 10 000 Coins = 1 EUR
+      /* coins_per_unit vaut des coins par EURO (10 000). On obtient donc
+         d'abord la valeur en euros, puis on divise par le prix d'une
+         unité de la devise pour avoir le montant à recevoir. */
+      var coinsPerEur = parseFloat(activeRadio.getAttribute('data-ratio'));
+      if (!isFinite(coinsPerEur) || coinsPerEur <= 0) {
+        payoutVal.textContent = '--';
+        return;
+      }
       var valueInEur = coins / coinsPerEur;
 
-      // 2. Pioche le taux dans la variable issue de $ratesToEur
-      var rate = parseFloat(currencyRates[currency]) || 1.0;
+      var rate = (currency === 'EUR') ? 1.0 : parseFloat(currencyRates[currency]);
 
-      // 3. Calcul final
+      /* Taux absent : le serveur rejette la demande dans ce cas précis.
+         Afficher un montant calculé avec un taux de 1 ferait croire à un
+         retrait de 4 BTC au lieu de 0,00007. On n'affiche rien. */
+      if (!isFinite(rate) || rate <= 0) {
+        payoutVal.textContent = '--';
+        return;
+      }
+
       var result = valueInEur / rate;
 
       var isFiat = ['USD', 'EUR', 'GBP', 'USDC'].includes(currency);

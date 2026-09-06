@@ -291,6 +291,24 @@ $base = rtrim($GLOBALS['WT_CONFIG']['base_url'] ?? '', '/');
       Bannières
     </a>
 
+    <a href="<?= $base ?>/admin/revenues.php" class="<?= $adminActive==='revenues' ? 'is-active' : '' ?>" style="--idx:4">
+      <span class="wt-admin-v2__nav-ico" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2" y="5" width="20" height="14" rx="2"/><circle cx="12" cy="12" r="3"/><path d="M6 12h.01M18 12h.01"/>
+        </svg>
+      </span>
+      Recettes
+    </a>
+
+    <a href="<?= $base ?>/admin/migrations.php" class="<?= $adminActive==='migrations' ? 'is-active' : '' ?>" style="--idx:4">
+      <span class="wt-admin-v2__nav-ico" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v6c0 1.7 3.6 3 8 3s8-1.3 8-3V5"/><path d="M4 11v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/>
+        </svg>
+      </span>
+      Migrations SQL
+    </a>
+
     <a href="<?= $base ?>/admin/visitors_analytics.php" class="<?= $adminActive==='visitors' ? 'is-active' : '' ?>" style="--idx:4">
       <span class="wt-admin-v2__nav-ico" aria-hidden="true">
         <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">

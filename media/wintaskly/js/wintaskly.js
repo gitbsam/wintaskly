@@ -2198,3 +2198,30 @@
     });
   });
 })();
+
+/* --- Boutons « Copier » de l'admin (clé et URL d'API) ---------------
+   Le presse-papiers moderne exige un contexte sécurisé ; sur une page
+   servie en HTTP, ou dans certains navigateurs mobiles, il est absent.
+   On retombe alors sur la sélection du champ, qui laisse l'utilisateur
+   faire Ctrl+C plutôt que de cliquer un bouton qui ne fait rien. */
+document.addEventListener('click', function (e) {
+  var btn = e.target.closest('[data-copy-btn]');
+  if (!btn) { return; }
+  var box = btn.parentElement && btn.parentElement.querySelector('[data-copy-src]');
+  if (!box) { return; }
+
+  var done = function () {
+    var old = btn.textContent;
+    btn.textContent = btn.getAttribute('data-copied') || '✓';
+    setTimeout(function () { btn.textContent = old; }, 1500);
+  };
+
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(box.value).then(done).catch(function () {
+      box.select();
+    });
+  } else {
+    box.select();
+    try { document.execCommand('copy'); done(); } catch (err) { /* selection seule */ }
+  }
+});

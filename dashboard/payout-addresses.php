@@ -27,6 +27,7 @@ $uid = (int) $u['id'];
 
 $notice = null;
 $error  = null;
+$pendingReuse = null;   /* Ajout en attente de relecture par l'utilisateur */
 
 /* Confirmation en attente : l'identifiant est mémorisé avant le passage par
    la vérification renforcée, et relu au retour. On ne le transmet pas par
@@ -44,12 +45,42 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && csrf_check((string) ($_POST['_csrf'
     $action = (string) ($_POST['action'] ?? '');
 
     if ($action === 'add') {
-        $res = wt_payout_address_add(
-            $uid,
-            (int) ($_POST['method_id'] ?? 0),
-            (string) ($_POST['address'] ?? ''),
-            (string) ($_POST['label'] ?? '')
-        );
+        $addMethodId = (int) ($_POST['method_id'] ?? 0);
+        $addAddress  = trim((string) ($_POST['address'] ?? ''));
+        $addLabel    = trim((string) ($_POST['label'] ?? ''));
+
+        /* Adresse déjà connue chez cet utilisateur ? On ne refuse pas : le
+           même e-mail FaucetPay sert légitimement à plusieurs devises. On
+           demande une relecture, une seule fois, puis on laisse passer.
+           Le second envoi porte reuse_ack=1 et saute ce contrôle. */
+        $siblings = ($addAddress !== '' && empty($_POST['reuse_ack']))
+            ? wt_payout_address_siblings($uid, $addAddress)
+            : [];
+
+        $sameMethod = false;
+        foreach ($siblings as $sib) {
+            if ((int) $sib['method_id'] === $addMethodId) { $sameMethod = true; break; }
+        }
+
+        if ($sameMethod) {
+            /* Déjà enregistrée sur CETTE méthode : rien à ajouter. On le dit
+               sans en faire une erreur — l'entrée existante est juste
+               au-dessus dans la liste. */
+            $notice = t('payout.reuse_same_method');
+            $res    = ['ok' => false, 'id' => null, 'error' => null];
+        } elseif ($siblings) {
+            /* Connue sur une autre méthode : on affiche le panneau de
+               relecture et on n'écrit rien pour l'instant. */
+            $pendingReuse = [
+                'method_id' => $addMethodId,
+                'address'   => $addAddress,
+                'label'     => $addLabel,
+                'siblings'  => $siblings,
+            ];
+            $res = ['ok' => false, 'id' => null, 'error' => null];
+        } else {
+            $res = wt_payout_address_add($uid, $addMethodId, $addAddress, $addLabel);
+        }
         if (!empty($res['ok'])) {
             /* On enchaîne directement sur la vérification : laisser une
                adresse non confirmée dans la liste sans expliquer l'étape
@@ -58,7 +89,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && csrf_check((string) ($_POST['_csrf'
             header('Location: ' . wt_url('/dashboard/verify-action.php?a=payout_addr'));
             exit;
         }
-        $error = t('payout.err_' . ($res['error'] ?? 'db'));
+        if (!empty($res['error'])) {
+            $error = t('payout.err_' . $res['error']);
+        }
     }
 
     if ($action === 'confirm') {
@@ -98,6 +131,52 @@ include __DIR__ . '/../header.php';
 
       <?php if ($notice): ?><div class="wt-alert wt-alert--success"><?= e($notice) ?></div><?php endif; ?>
       <?php if ($error): ?><div class="wt-alert wt-alert--error"><?= e($error) ?></div><?php endif; ?>
+
+      <?php if ($pendingReuse): ?>
+        <?php
+          /* Relecture avant réutilisation. On montre l'adresse en entier et
+             les méthodes qui l'utilisent déjà : c'est ce qui permet de
+             repérer une faute de frappe recopiée. Les deux boutons sont
+             des envois normaux, donc la page fonctionne sans JavaScript. */
+          $reuseMethodLabel = '';
+          foreach ($methods as $m) {
+              if ((int) $m['id'] === (int) $pendingReuse['method_id']) {
+                  $reuseMethodLabel = (string) $m['label'];
+                  break;
+              }
+          }
+          $reuseUsedOn = implode(', ', array_column($pendingReuse['siblings'], 'method_label'));
+        ?>
+        <section class="wt-payaddr wt-payaddr--reuse">
+          <h2 class="wt-payaddr__h"><?= e(t('payout.reuse_title')) ?></h2>
+
+          <p><?= e(t('payout.reuse_known', ['methods' => $reuseUsedOn])) ?></p>
+
+          <p class="wt-payaddr__reuse-addr">
+            <code class="wt-payaddr__addr"><?= e($pendingReuse['address']) ?></code>
+          </p>
+
+          <p><?= e(t('payout.reuse_question', ['method' => $reuseMethodLabel])) ?></p>
+          <p class="wt-muted"><?= e(t('payout.reuse_warn')) ?></p>
+
+          <div class="wt-payaddr__reuse-actions">
+            <form method="post" style="display:inline">
+              <input type="hidden" name="_csrf" value="<?= e(csrf_token()) ?>">
+              <input type="hidden" name="action" value="add">
+              <input type="hidden" name="reuse_ack" value="1">
+              <input type="hidden" name="method_id" value="<?= (int) $pendingReuse['method_id'] ?>">
+              <input type="hidden" name="address" value="<?= e($pendingReuse['address']) ?>">
+              <input type="hidden" name="label" value="<?= e($pendingReuse['label']) ?>">
+              <button class="wt-btn wt-btn--primary" type="submit">
+                <?= e(t('payout.reuse_yes')) ?>
+              </button>
+            </form>
+            <a class="wt-btn wt-btn--ghost" href="<?= e(wt_url('/dashboard/payout-addresses.php')) ?>">
+              <?= e(t('payout.reuse_no')) ?>
+            </a>
+          </div>
+        </section>
+      <?php endif; ?>
 
       <section class="wt-payaddr">
         <h2 class="wt-payaddr__h"><?= e(t('payout.my_addresses')) ?></h2>

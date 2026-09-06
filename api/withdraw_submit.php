@@ -140,10 +140,22 @@ try {
     // rates_cache.json). Si le taux est absent/nul (cache pas encore généré,
     // devise inconnue du cache), on rejette proprement plutôt que de planter
     // en division par zéro/null (bug critique corrigé ici).
+    /* coins_per_unit vaut des COINS PAR EURO — 10 000 dans toutes les
+       méthodes. La division par le taux fait ensuite la conversion vers
+       la devise de retrait :
+           coins / 10 000        = montant en euros
+           puis / prix_en_EUR    = montant dans la devise
+       Vérifié sur un paiement réel : 41 581 coins ont donné
+       0,00007277 BTC, soit (41581 / 10000) / 57141,72.
+
+       Le chiffre « 1 BTC = 571 417 200 coins » visible dans l'admin est
+       un affichage calculé (10 000 x prix), pas la valeur stockée : le
+       confondre avec coins_per_unit conduirait à payer 41 581 coins
+       4,15 BTC au lieu de 0,00007277. */
     $rateForCurrency = ($currency === 'EUR')
         ? 1.0
         : (float) ($rates[$currency] ?? 0);
-    if ($rateForCurrency <= 0) {
+    if ($rateForCurrency <= 0 || $ratio <= 0) {
         $db->rollback();
         header('Location: ' . wt_url('/dashboard/withdraw.php?err=server'));
         exit;

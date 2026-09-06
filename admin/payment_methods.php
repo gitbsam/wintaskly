@@ -56,10 +56,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && csrf_check($_POST['_csrf'] ?? null)
                     $used
                 );
             } else {
+                /* Les adresses des utilisateurs n'ont pas de clé étrangère
+                   vers withdrawal_methods : sans ce nettoyage elles
+                   resteraient en base, invisibles (la liste fait une
+                   jointure sur la méthode) tout en comptant dans le
+                   plafond de 10 adresses. L'utilisateur verrait
+                   « nombre maximum atteint » avec trois adresses à
+                   l'écran. */
+                $stmt = $db->prepare("DELETE FROM user_payout_addresses WHERE method_id = ?");
+                $stmt->bind_param('i', $id);
+                $stmt->execute();
+                $orphans = $stmt->affected_rows;
+                $stmt->close();
+
                 $stmt = $db->prepare("DELETE FROM withdrawal_methods WHERE id = ?");
                 $stmt->bind_param('i', $id);
                 $stmt->execute();
                 $stmt->close();
+
+                wt_admin_log('payment_method_delete',
+                    ['method_id' => $id, 'addresses_removed' => $orphans], $id);
+
                 $notice = t('admin.deleted');
                 $success = true;
             }
@@ -113,17 +130,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && csrf_check($_POST['_csrf'] ?? null)
         $currency = strtoupper(trim($_POST['currency'] ?? 'EUR'));
         $rateInEur = (float)($ratesToEur[$currency] ?? 1.0);
 
-        // 2. Si c'est une crypto, on écrase l'input de l'admin pour lier 1 crypto au prix réel en coins
-        // Formule : 10 000 coins * prix de la crypto en EUR = nombre de coins pour 1 unité de cette crypto
-        $isCrypto = !in_array($currency, ['EUR', 'USD', 'USDC', 'USDT']);
-
-        if ($isCrypto) {
-            // Ex: BTC à 57 000 EUR -> coins_per_unit deviendra 570 000 000
-            $coins_per_unit = $coinsUnit * $rateInEur;
-        } else {
-            // Pour l'USD ou l'EUR, on garde ce que l'administrateur a configuré (ex: 10000)
-            $coins_per_unit = $coinsUnit;
-        }
+        /* 2. coins_per_unit reste tel que l'administrateur le saisit.
+         *
+         * ATTENTION — ce bloc multipliait auparavant la valeur par le
+         * cours pour les cryptos (10 000 x 57 141 = 571 417 200 pour le
+         * bitcoin). C'était incompatible avec la formule de paiement de
+         * api/withdraw_submit.php :
+         *
+         *     payout = (coins / coins_per_unit) / cours
+         *
+         * qui traite coins_per_unit comme des COINS PAR EURO et applique
+         * le cours elle-même. Multiplier ici revenait à l'appliquer deux
+         * fois : un retrait réel de 41 581 coins serait passé de
+         * 0,00007277 BTC à 0,0000000013 BTC, soit 57 140 fois moins.
+         *
+         * Le bug était latent parce que $rateInEur retombe sur 1.0 quand
+         * le cache des taux manque — la multiplication était alors sans
+         * effet. Il se serait déclenché au premier enregistrement d'une
+         * méthode crypto avec un cache présent.
+         *
+         * Le cours n'a pas besoin d'être figé ici : withdraw_submit.php
+         * lit rates_cache.json à chaque retrait, et la tâche cron
+         * rates_refresh le tient à jour. Les montants suivent donc le
+         * marché sans qu'on touche à coins_per_unit.
+         */
+        $coins_per_unit = $coinsUnit;
 
         // ---- Credentials API : merge avec l'existant ----
         // Politique de sécurité :

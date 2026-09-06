@@ -47,7 +47,7 @@ if (!defined('WT_PERIOD_DASHBOARD_DAYS')) {
 // L'URL latest.json est configurable via la BDD (clé config 'update.feed_url')
 // pour permettre de changer de canal (stable/beta) sans redéployer.
 if (!defined('WT_VERSION')) {
-    define('WT_VERSION', '9.30.0');
+    define('WT_VERSION', '9.44.1');
     define('WT_VERSION_CHANNEL', 'stable');  // stable | beta | dev
     define('WT_UPDATE_FEED_DEFAULT', 'https://gitbsam.github.io/wintaskly/latest.json');
 }
@@ -131,6 +131,36 @@ $GLOBALS['WT_CONFIG'] = require $configFile;
 // 3) Sécurité PHP
 // ----------------------------------------------------------------------
 ini_set('display_errors', !empty($GLOBALS['WT_CONFIG']['debug']) ? '1' : '0');
+
+// ----------------------------------------------------------------------
+// 1 bis) Un seul domaine fait autorité
+//
+// base_url est figée dans config.php (protection contre l'injection
+// d'en-tête Host). Toutes les URL produites par wt_url() portent donc cet
+// hôte-là. Or la CSP autorise 'self', c'est-à-dire l'hôte réellement
+// visité : arriver sur l'autre variante du domaine fait servir la page
+// depuis un hôte et ses feuilles de style depuis l'autre, et le
+// navigateur les bloque. Le site s'affiche alors sans aucun style, sans
+// message, avec seulement des erreurs dans la console.
+//
+// On redirige donc vers l'hôte canonique. Cela règle aussi le contenu
+// dupliqué côté référencement, et fixe la portée des cookies de session.
+//
+// Uniquement sur GET et HEAD : une redirection sur un POST fait perdre le
+// corps de la requête à certains clients, ce qui casserait les postbacks
+// des régies et des offerwalls s'ils visent la mauvaise variante.
+if (in_array($_SERVER['REQUEST_METHOD'] ?? 'GET', ['GET', 'HEAD'], true)) {
+    $wtCanonical = parse_url((string) ($GLOBALS['WT_CONFIG']['base_url'] ?? ''), PHP_URL_HOST);
+    $wtHost      = strtolower((string) ($_SERVER['HTTP_HOST'] ?? ''));
+    $wtHost      = explode(':', $wtHost)[0];
+
+    if ($wtCanonical && $wtHost && strtolower($wtCanonical) !== $wtHost) {
+        $wtTarget = rtrim((string) $GLOBALS['WT_CONFIG']['base_url'], '/')
+                  . (string) ($_SERVER['REQUEST_URI'] ?? '/');
+        header('Location: ' . $wtTarget, true, 301);
+        exit;
+    }
+}
 ini_set('log_errors', '1');
 error_reporting(E_ALL);
 
@@ -319,6 +349,7 @@ require __DIR__ . '/auth.php';
 require __DIR__ . '/auth_extra.php';
 require __DIR__ . '/functions.php';
 require __DIR__ . '/ad_tags.php';
+require __DIR__ . '/shortlink_local.php';
 require __DIR__ . '/mailer.php';
 require __DIR__ . '/messaging.php';
 require __DIR__ . '/leaderboard.php';

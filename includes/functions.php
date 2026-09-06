@@ -292,6 +292,25 @@ if (!function_exists('wt_shortlink_create_via_api')) {
             return null;
         }
 
+        /* Notre propre API : appel direct, sans réseau.
+         *
+         * Sur un hébergement mutualisé, un aller-retour HTTP du serveur
+         * vers lui-même échoue souvent — pare-feu sortant, résolution DNS
+         * interne, ou boucle bloquée. Puisque le code est dans le même
+         * processus, on appelle la fonction plutôt que de sortir sur le
+         * réseau : plus rapide, et insensible à la configuration LWS. */
+        $ourHost = parse_url((string) ($GLOBALS['WT_CONFIG']['base_url'] ?? ''), PHP_URL_HOST);
+        $epHost  = parse_url($apiEndpoint, PHP_URL_HOST);
+        if ($ourHost && $epHost && strcasecmp($ourHost, $epHost) === 0
+            && function_exists('wt_sl_local_by_key')) {
+            $local = wt_sl_local_by_key($apiToken);
+            if ($local === null) {
+                error_log('[Wintaskly shortlink_api] cle locale inconnue ou desactivee');
+                return null;
+            }
+            return wt_sl_run_create($local, $destUrl);
+        }
+
         // Détection du format de la régie d'après l'endpoint.
         //   - Ad-Maven : paramètre api_token + title obligatoire, réponse
         //     { type, message: { desturl } }
@@ -547,6 +566,74 @@ if (!function_exists('wt_ad_zone')) {
      * @param  string $sizeKey Format IAB de la zone (ex: '728x90')
      * @return string          Bloc HTML complet, ou '' si format inconnu
      */
+    /**
+     * Encart flottant affiché par-dessus la page, après un délai.
+     *
+     * Rendu une seule fois par page, depuis footer.php. Le HTML est
+     * toujours écrit mais reste invisible : c'est le script qui décide
+     * de l'afficher, après le délai, et seulement si l'emplacement a
+     * réellement du contenu. Un encart vide ne doit jamais s'ouvrir —
+     * l'utilisateur aurait un cadre gris à fermer pour rien.
+     *
+     * Le cadre ne fixe aucune dimension : il s'adapte à ce que la régie
+     * injecte. Les limites sont posées en pourcentage de l'écran, donc
+     * un 300x250 reste petit et un 728x90 ne déborde pas sur mobile.
+     *
+     * @param  string $zoneKey Clé de la zone (ex: 'tasks_overlay')
+     * @param  int    $delayMs Délai avant apparition, en millisecondes
+     * @return string          HTML complet, ou '' si la zone est vide
+     */
+    function wt_ad_overlay(string $zoneKey, int $delayMs = 10000): string
+    {
+        /* Un encart flottant interrompt la lecture : il doit rapporter
+           quelque chose. Le visuel maison, lui, invite à s'inscrire — or
+           les pages de tâches ne sont vues que par des membres déjà
+           inscrits. On exige donc du vrai contenu : un code de régie, ou
+           une bannière téléversée. Sinon, aucun encart.
+
+           wt_ad_zone() sert quand même à produire le HTML, pour garder un
+           seul chemin de rendu (consentement, règle AdSense, rotation). */
+        $zones = $GLOBALS['__wt_ad_zones_cache'] ?? null;
+        if ($zones === null) {
+            wt_ad_zone($zoneKey);                    // amorce le cache
+            $zones = $GLOBALS['__wt_ad_zones_cache'] ?? [];
+        }
+        $zone = $zones[$zoneKey] ?? null;
+        if ($zone === null) {
+            return '';
+        }
+        $realCode = trim(preg_replace('/<!--.*?-->/s', '', (string) $zone['code'])) !== '';
+        $hasBanner = $zone['banner_id'] !== null
+                  || ($zone['size_key'] !== null && wt_ad_banners_by_size($zone['size_key']));
+
+        /* Le code de régie ne compte que si le visiteur a accepté la
+           publicité : sinon wt_ad_zone() retomberait sur le visuel maison
+           et on ouvrirait un panneau « inscrivez-vous » devant un membre
+           déjà inscrit. Une bannière téléversée, elle, reste valable —
+           elle vient de notre domaine et ne dépose aucun cookie. */
+        $servable = ($realCode && wt_consent_allows('ads')) || $hasBanner;
+        if (!$servable) {
+            return '';
+        }
+
+        $inner = wt_ad_zone($zoneKey);
+        if ($inner === '') {
+            return '';
+        }
+
+        $delayMs = max(0, $delayMs);
+        $label   = e((string) t('ad.overlay.close'));
+        $title   = e((string) t('ad.title.pub'));
+
+        return '<div class="wt-adpop" data-ad-overlay data-delay="' . $delayMs . '" hidden>'
+             . '<div class="wt-adpop__backdrop" data-adpop-dismiss></div>'
+             . '<div class="wt-adpop__box" role="dialog" aria-modal="true" aria-label="' . $title . '">'
+             . '<button type="button" class="wt-adpop__close" data-adpop-dismiss'
+             . ' aria-label="' . $label . '" title="' . $label . '">&times;</button>'
+             . '<div class="wt-adpop__body">' . $inner . '</div>'
+             . '</div></div>';
+    }
+
     function wt_ad_house_default(string $sizeKey): string
     {
         // Dimensions connues. Un format non listé ne rend rien plutôt que
