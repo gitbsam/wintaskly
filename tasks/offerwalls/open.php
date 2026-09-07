@@ -115,7 +115,22 @@ include __DIR__ . '/../../header.php';
 ?>
 
 <main class="wt-main wt-ow-v2 wt-ow-v2--open">
+  <?php
+  /* Trois emplacements. La colonne laterale n'a de sens qu'au-dela de
+     1400 px : en dessous elle volerait de la place a l'iframe, qui est
+     le seul contenu utile de cette page. Le CSS s'en charge, mais on
+     evite quand meme de charger le code de la regie pour rien en le
+     rendant dans un conteneur masque plutot qu'absent — la regie
+     compterait sinon des impressions jamais vues. */
+  $_adTop  = wt_ad_zone('offerwall_top');
+  $_adBot  = wt_ad_zone('offerwall_bottom');
+  $_adSide = wt_ad_zone('offerwall_side');
+  ?>
   <div class="wt-ow-v2__wrap wt-ow-v2__wrap--full">
+
+    <?php if ($_adTop !== ''): ?>
+      <div class="wt-ad-zone wt-ow-ad wt-ow-ad--top"><?= $_adTop ?></div>
+    <?php endif; ?>
 
     <!-- ====== HEADER avec logo + nom + back ====== -->
     <header class="wt-ow-v2__open-head" data-reveal>
@@ -167,7 +182,17 @@ include __DIR__ . '/../../header.php';
               onload="this.previousElementSibling.style.display='none'"></iframe>
     </div>
 
+    <?php if ($_adBot !== ''): ?>
+      <div class="wt-ad-zone wt-ow-ad wt-ow-ad--bottom"><?= $_adBot ?></div>
+    <?php endif; ?>
+
   </div>
+
+  <?php /* Colonne laterale : positionnee en fixe par le CSS, elle ne
+           decale rien et disparait sous 1400 px. */ ?>
+  <?php if ($_adSide !== ''): ?>
+    <aside class="wt-ow-ad-side"><?= $_adSide ?></aside>
+  <?php endif; ?>
 </main>
 
 <?php include __DIR__ . '/../../footer.php'; ?>

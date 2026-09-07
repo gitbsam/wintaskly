@@ -167,3 +167,22 @@ INSERT IGNORE INTO `withdrawal_methods`
 VALUES
   ('paypal', 'PayPal',        'EUR', 10000,  30000, 'E-mail PayPal', 'vous@exemple.com', 5),
   ('sepa',   'Virement SEPA', 'EUR', 10000, 200000, 'IBAN',          'FR76 ...',         6);
+
+-- ---------------------------------------------------------------------
+-- 9) Nouvelles zones publicitaires (V9.59)
+-- ---------------------------------------------------------------------
+INSERT IGNORE INTO `ad_zones` (`k`,`label`,`code`,`size_key`,`active`) VALUES
+ ('achievements_inline', 'Succès — Intercalée (toutes les 6 cartes)', '<!-- Insérer ici le code de la régie -->', '300x250', 1),
+ ('bingo_bottom',        'Bingo — Bas de page',                       '<!-- Insérer ici le code de la régie -->', '728x90',  1),
+ ('offerwall_top',       'Offerwall — Haut de page',                  '<!-- Insérer ici le code de la régie -->', '728x90',  1),
+ ('offerwall_bottom',    'Offerwall — Bas de page',                   '<!-- Insérer ici le code de la régie -->', '728x90',  1),
+ ('offerwall_side',      'Offerwall — Colonne latérale (grands écrans)','<!-- Insérer ici le code de la régie -->', '160x600', 1);
+
+-- ---------------------------------------------------------------------
+-- 10) Rappel
+--
+-- Si les fichiers de contenu ont ete importes AVANT la version 9.59.2,
+-- les articles sont ranges dans la mauvaise categorie : appliquez
+-- sql/migration_reparer_categories_blog.sql, puis reimportez
+-- seed_blog_actualites_brouillon.sql.
+-- ---------------------------------------------------------------------

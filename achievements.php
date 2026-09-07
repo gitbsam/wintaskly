@@ -60,6 +60,19 @@ include __DIR__ . '/header.php';
 
     <!-- Grille des badges -->
     <div class="wt-ach-grid" data-reveal>
+      <?php
+      /* Encart intercalé toutes les 6 cartes.
+       *
+       * Rendu une seule fois avant la boucle : wt_ad_zone() interroge la
+       * base et le cache des bannières. L'appeler à chaque insertion
+       * multiplierait ce travail sans rien changer au résultat, puisque
+       * c'est la même zone.
+       *
+       * L'encart occupe une cellule de la grille comme une carte. Un
+       * bloc hors grille casserait l'alignement des colonnes. */
+      $_adInline = wt_ad_zone('achievements_inline');
+      $_i = 0;
+      ?>
       <?php foreach ($list as $item):
         $a        = $item['ach'];
         $unlocked = $item['unlocked'];
@@ -103,6 +116,17 @@ include __DIR__ . '/header.php';
             <div class="wt-ach-card__badge-check">✓</div>
           <?php endif; ?>
         </article>
+        <?php
+          /* Après la 6e, la 12e, la 18e carte… Jamais après la dernière :
+             l'encart de bas de page suit immédiatement, deux publicités
+             collées font fuir plus qu'elles ne rapportent. */
+          $_i++;
+          if ($_adInline !== '' && $_i % 6 === 0 && $_i < count($list)):
+        ?>
+          <div class="wt-ach-grid__ad">
+            <?= $_adInline ?>
+          </div>
+        <?php endif; ?>
       <?php endforeach; ?>
     </div>
 

@@ -242,7 +242,7 @@ include __DIR__ . '/../header.php';
     <?php endif; ?>
 
     <!-- ====== FORMULAIRE DE DÉPÔT ====== -->
-    <section class="wt-testi-v2__form-section" data-reveal>
+    <section class="wt-testi-v2__form-section" id="deposer" data-reveal>
       <header class="wt-testi-v2__form-head">
         <span class="wt-eyebrow">✍️ <?= e(t('testi.write_eyebrow')) ?></span>
         <h2 class="wt-section__title"><?= e(t('testi.write')) ?></h2>

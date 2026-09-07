@@ -1039,6 +1039,21 @@ SET @s := IF(@p IS NOT NULL AND @p < 8,
   'SELECT 1');
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 
+-- Nouvelles zones publicitaires (V9.59).
+--
+-- achievements_inline : intercalee toutes les 6 cartes de succes. Format
+--   300x250 et non 160x300 : la grille a des colonnes de 280 px minimum,
+--   un 160 de large y flotterait avec du vide de chaque cote. Le 300x250
+--   remplit la colonne, dispose d'un visuel de repli et reste le format
+--   le plus vendu du marche.
+-- bingo_bottom / offerwall_* : emplacements classiques.
+INSERT IGNORE INTO `ad_zones` (`k`,`label`,`code`,`size_key`,`active`) VALUES
+ ('achievements_inline', 'Succès — Intercalée (toutes les 6 cartes)', '<!-- Insérer ici le code de la régie -->', '300x250', 1),
+ ('bingo_bottom',        'Bingo — Bas de page',                       '<!-- Insérer ici le code de la régie -->', '728x90',  1),
+ ('offerwall_top',       'Offerwall — Haut de page',                  '<!-- Insérer ici le code de la régie -->', '728x90',  1),
+ ('offerwall_bottom',    'Offerwall — Bas de page',                   '<!-- Insérer ici le code de la régie -->', '728x90',  1),
+ ('offerwall_side',      'Offerwall — Colonne latérale (grands écrans)','<!-- Insérer ici le code de la régie -->', '160x600', 1);
+
 -- Encart flottant des pages de tâches (V9.36). Format 300x250 : c'est
 -- le seul qui tienne à l'aise dans un panneau centré sur mobile.
 INSERT IGNORE INTO `ad_zones` (`k`,`label`,`code`,`size_key`,`active`) VALUES

@@ -328,7 +328,13 @@ include __DIR__ . '/../../header.php';
       <p class="wt-task-how__tip">💡 <?= e(t('bingo.how_tip')) ?></p>
     </section>
 
-  </div>
+      <?php $_adBottom = wt_ad_zone('bingo_bottom'); if ($_adBottom !== ''): ?>
+      <div class="wt-ad-zone wt-ad-zone--bottom" style="margin-top:1.5rem;text-align:center">
+        <?= $_adBottom ?>
+      </div>
+    <?php endif; ?>
+
+</div>
 </main>
 
 <script>

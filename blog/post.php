@@ -15,7 +15,30 @@ require __DIR__ . '/../includes/init.php';
 
 $slug = isset($_GET['slug']) ? preg_replace('/[^a-z0-9-]/', '', (string)$_GET['slug']) : '';
 
-$post = $slug !== '' ? wt_blog_post($slug) : null;
+/* Prévisualisation par l'administration.
+ *
+ * Un article programmé ou en brouillon reste invisible du public :
+ * wt_blog_post() filtre sur le statut et la date. L'administrateur doit
+ * pouvoir le relire avant parution — c'est le seul moment où une erreur
+ * se corrige encore, et le bouton « Prévisualiser » de /admin/blog.php
+ * menait jusqu'ici à une 404.
+ *
+ * Le rôle est lu en base et non en session : $_SESSION['role'] n'est posé
+ * qu'au login, et une session ouverte avant ce déploiement n'en a pas.
+ * current_user() met son résultat en cache statique, et header.php
+ * l'appelle de toute façon : le coût est nul. */
+$wtMe      = function_exists('current_user') ? current_user() : null;
+$wtIsAdmin = $wtMe !== null && (($wtMe['role'] ?? 'user') === 'admin');
+
+$post = $slug !== '' ? wt_blog_post($slug, $wtIsAdmin) : null;
+
+/* L'article est-il déjà visible du public, ou seulement de l'admin ? */
+$wtPreview = false;
+if ($post && $wtIsAdmin) {
+    $wtPreview = ((string) ($post['status'] ?? '') !== 'published')
+              || (!empty($post['published_at'])
+                  && strtotime((string) $post['published_at'] . ' UTC') > time());
+}
 
 // Article introuvable → 404
 if (!$post || !wt_blog_enabled()) {

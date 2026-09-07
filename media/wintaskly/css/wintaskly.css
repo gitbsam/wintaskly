@@ -14104,3 +14104,83 @@ a.wt-dash-v2__kpi-cta:hover {
   /* Un bouton pleine largeur est bien plus facile a viser au pouce. */
   .wt-slrun__form .wt-btn { width: 100%; }
 }
+
+/* ==================================================================
+   Emplacements publicitaires ajoutes en 9.59
+   ================================================================== */
+
+/* --- Succes : encart intercale dans la grille -------------------
+   L'encart occupe une cellule comme une carte, sinon il casserait
+   l'alignement des colonnes. */
+.wt-ach-grid__ad {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 260px;
+  padding: .5rem;
+  border-radius: var(--wt-radius-md, 10px);
+  background: var(--wt-bg-soft, rgba(255,255,255,.03));
+}
+.wt-ach-grid__ad > * { max-width: 100%; }
+
+/* --- Offerwall : haut et bas ------------------------------------ */
+.wt-ow-ad {
+  display: flex;
+  justify-content: center;
+  overflow: hidden;          /* un 728 de large ne deborde pas sur mobile */
+}
+.wt-ow-ad--top    { margin: 0 0 1rem; }
+.wt-ow-ad--bottom { margin: 1.25rem 0 0; }
+.wt-ow-ad img,
+.wt-ow-ad iframe { max-width: 100%; height: auto; }
+
+/* --- Offerwall : colonne laterale -------------------------------
+   Masquee par defaut. Elle n'apparait qu'au-dela de 1400 px, la ou
+   l'espace a droite du contenu est reellement perdu : plus tot, elle
+   volerait de la place a l'iframe, seul contenu utile de la page.
+   Position fixe, donc aucun decalage du reste. */
+.wt-ow-ad-side { display: none; }
+
+@media (min-width: 1400px) {
+  .wt-ow-ad-side {
+    display: block;
+    position: fixed;
+    top: 50%;
+    right: 1rem;
+    transform: translateY(-50%);
+    width: 160px;
+    z-index: 20;
+  }
+  .wt-ow-ad-side img,
+  .wt-ow-ad-side iframe { max-width: 160px; height: auto; }
+}
+
+/* Un ecran large mais peu haut ne peut pas afficher 600 px de hauteur
+   sans recouvrir le contenu. */
+@media (min-width: 1400px) and (max-height: 700px) {
+  .wt-ow-ad-side { display: none; }
+}
+
+/* --- Invitation a temoigner (tableau de bord) ------------------- */
+.wt-testify-cta {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding: 1rem 1.15rem;
+  margin-bottom: 1.25rem;
+  border-radius: var(--wt-radius-lg, 14px);
+  border: 1px solid var(--wt-primary, #ff9933);
+  background: color-mix(in srgb, var(--wt-primary, #ff9933) 8%, transparent);
+}
+.wt-testify-cta__icon { font-size: 1.8rem; line-height: 1; flex: none; }
+.wt-testify-cta__body { flex: 1 1 260px; min-width: 0; }
+.wt-testify-cta__title { margin: 0 0 .2rem; font-size: 1.05rem; }
+.wt-testify-cta__text  { margin: 0; font-size: .9rem; opacity: .85; }
+.wt-testify-cta__btn   { flex: none; }
+
+@media (max-width: 560px) {
+  /* Sur mobile le bouton passe pleine largeur : c'est l'action de la
+     carte, elle ne doit pas se retrouver coincee dans un coin. */
+  .wt-testify-cta__btn { width: 100%; }
+}

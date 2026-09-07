@@ -140,6 +140,26 @@ include __DIR__ . '/../header.php';
       </header>
 
       <?php
+      /* Invitation a temoigner.
+         Placee haut dans la page, juste apres l'en-tete : c'est le moment
+         ou l'utilisateur vient de constater son solde, et ou le premier
+         paiement recu est encore frais. Plus bas, elle serait invisible.
+         Elle disparait d'elle-meme des que l'avis est depose. */
+      if (function_exists('wt_user_can_testify') && wt_user_can_testify((int) $u['id'])): ?>
+        <section class="wt-testify-cta" data-reveal>
+          <span class="wt-testify-cta__icon" aria-hidden="true">🎉</span>
+          <div class="wt-testify-cta__body">
+            <h2 class="wt-testify-cta__title"><?= e(t('dash.testify.title')) ?></h2>
+            <p class="wt-testify-cta__text"><?= e(t('dash.testify.text')) ?></p>
+          </div>
+          <a class="wt-btn wt-btn--primary wt-testify-cta__btn"
+             href="<?= e(wt_url('/testimonials/#deposer')) ?>">
+            <?= e(t('dash.testify.cta')) ?>
+          </a>
+        </section>
+      <?php endif; ?>
+
+      <?php
       /* ============ BONUS QUOTIDIEN ============
          Widget de réclamation du bonus journalier. Affiché seulement si
          le système est activé en admin. Tout l'état (peut réclamer ?

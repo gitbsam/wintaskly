@@ -630,6 +630,47 @@ if (!function_exists('wt_ad_zone')) {
         return $out;
     }
 
+    /**
+     * L'utilisateur peut-il être invité à laisser un témoignage ?
+     *
+     * Deux conditions, et l'ordre compte :
+     *   - au moins un retrait effectivement payé. Un témoignage écrit
+     *     avant d'avoir été payé ne vaut rien : c'est précisément le
+     *     paiement que le lecteur cherche à vérifier ;
+     *   - aucun témoignage déjà déposé, quel qu'en soit le statut. Relancer
+     *     quelqu'un dont l'avis est en attente de modération, ou a été
+     *     refusé, est le meilleur moyen de l'agacer.
+     *
+     * @return bool
+     */
+    function wt_user_can_testify(int $userId): bool
+    {
+        if ($userId <= 0) { return false; }
+        try {
+            $st = db()->prepare(
+                "SELECT COUNT(*) c FROM withdrawals
+                  WHERE user_id = ? AND status = 'completed'"
+            );
+            $st->bind_param('i', $userId);
+            $st->execute();
+            $paye = (int) ($st->get_result()->fetch_assoc()['c'] ?? 0);
+            $st->close();
+            if ($paye < 1) { return false; }
+
+            $st = db()->prepare("SELECT COUNT(*) c FROM testimonials WHERE user_id = ?");
+            $st->bind_param('i', $userId);
+            $st->execute();
+            $deja = (int) ($st->get_result()->fetch_assoc()['c'] ?? 0);
+            $st->close();
+            return $deja === 0;
+        } catch (Throwable $e) {
+            /* Table absente ou requête en échec : on n'invite pas. Une
+               invitation affichée à tort est plus gênante qu'absente. */
+            error_log('[Wintaskly testify] ' . $e->getMessage());
+            return false;
+        }
+    }
+
     function wt_ad_overlay(string $zoneKey, int $delayMs = 10000): string
     {
         /* Un encart flottant interrompt la lecture : il doit rapporter
