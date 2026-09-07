@@ -467,29 +467,84 @@ final class WtMailer
                 /* Code de connexion à usage unique. Le code est affiché en
                    gros dans le corps du message : c'est l'information que
                    l'utilisateur cherche, il ne doit pas avoir à la chercher. */
-                $subject = function_exists('t') ? t('mail.twofa.subject') : 'Votre code de connexion';
-                $title   = function_exists('t') ? t('mail.twofa.title')   : 'Code de connexion';
+                /* Le motif change les libellés. Un code demandé pour
+                   ajouter une adresse de paiement doit le dire : c'est
+                   l'étape classique d'une prise de contrôle de compte, et
+                   un courriel intitulé « code de connexion » priverait
+                   l'utilisateur du seul signal qui l'alerterait. */
+                $purpose = (string) ($vars['purpose'] ?? 'login');
+                $suffix  = ($purpose === 'payout_addr') ? '.payout' : '';
+                $subject = function_exists('t') ? t('mail.twofa.subject' . $suffix) : 'Votre code Wintaskly';
+                $title   = function_exists('t') ? t('mail.twofa.title' . $suffix)   : 'Code de vérification';
                 $code    = (string) ($vars['code'] ?? '');
                 $mins    = (int) ($vars['minutes'] ?? 10);
-                $body    = '<p style="margin:0 0 12px">'
-                         . (function_exists('t') ? e(t('mail.twofa.intro')) : 'Voici votre code de connexion :')
-                         . '</p><p style="font-size:30px;font-weight:800;letter-spacing:6px;'
-                         . 'text-align:center;margin:18px 0;font-family:monospace">'
-                         . htmlspecialchars($code, ENT_QUOTES, 'UTF-8') . '</p>'
-                         . '<p style="margin:12px 0 0;font-size:14px">'
-                         . sprintf(function_exists('t') ? e(t('mail.twofa.ttl')) : 'Ce code expire dans %d minutes.', $mins)
-                         . '</p>';
+                /* Texte brut, pas de HTML.
+                 *
+                 * renderShell() échappe systématiquement le corps du
+                 * message — c'est la bonne règle, puisqu'il peut contenir
+                 * des données venant de l'utilisateur. Construire du HTML
+                 * ici le faisait donc apparaître tel quel dans la boîte de
+                 * réception : les balises <p style="..."> s'affichaient
+                 * comme du texte, et les apostrophes ressortaient en
+                 * &#039; à cause du double échappement.
+                 *
+                 * Le code n'a pas à être mis en forme ici : renderShell
+                 * possède déjà son encadré dédié, alimenté par la clé
+                 * 'code' passée plus bas. C'est lui qu'on voyait
+                 * correctement affiché sous le bloc illisible. */
+                $body    = (function_exists('t') ? t('mail.twofa.intro' . $suffix) : 'Voici votre code à usage unique :')
+                         . ' '
+                         . sprintf(
+                             function_exists('t') ? t('mail.twofa.ttl') : 'Ce code expire dans %d minutes.',
+                             $mins
+                           );
                 $cta     = '';
-                $notice  = function_exists('t') ? t('mail.twofa.notice')
-                           : "Si vous n'êtes pas à l'origine de cette connexion, changez votre mot de passe immédiatement.";
+                $notice  = function_exists('t') ? t('mail.twofa.notice' . $suffix)
+                           : "Si vous n'êtes pas à l'origine de cette demande, changez votre mot de passe immédiatement.";
                 $accent  = '#2563eb';
                 break;
 
             case 'security_alert':
             default:
                 $subject = function_exists('t') ? t('mail.alert.subject') : 'Alerte de sécurité Wintaskly';
-                $title   = function_exists('t') ? t('mail.alert.title')   : 'Connexion détectée';
-                $body    = (string)($vars['body'] ?? 'Une activité notable a été détectée sur votre compte.');
+
+                /* Le titre reprend l'événement quand l'appelant en fournit
+                   un : « Nouvelle connexion à votre compte » est nettement
+                   plus parlant que « Activité notable ». */
+                $title   = trim((string) ($vars['event'] ?? ''));
+                if ($title === '') {
+                    $title = function_exists('t') ? t('mail.alert.title') : 'Connexion détectée';
+                }
+
+                /* includes/twofa.php envoie l'alerte de connexion avec
+                   'event', 'when' et 'ip' mais sans 'body'. Le message
+                   retombait donc sur un texte générique et l'utilisateur
+                   recevait « une activité notable a été détectée » — sans
+                   la date ni l'adresse IP, c'est-à-dire sans le seul
+                   élément qui lui permette de savoir si c'était lui.
+
+                   On reconstruit donc le corps à partir de ce qui est
+                   fourni. En texte brut : renderShell() échappe le corps. */
+                $body = trim((string) ($vars['body'] ?? ''));
+                if ($body === '') {
+                    $when = trim((string) ($vars['when'] ?? ''));
+                    $ipTx = trim((string) ($vars['ip'] ?? ''));
+                    if ($when !== '') {
+                        $body = sprintf(
+                            function_exists('t') ? t('auth.alert_login_body')
+                                                 : 'Une connexion a été effectuée le %s.',
+                            $when
+                        );
+                        if ($ipTx !== '') {
+                            $body .= ' ' . (function_exists('t')
+                                ? t('mail.alert.from_ip', ['ip' => $ipTx])
+                                : 'Adresse IP : ' . $ipTx . '.');
+                        }
+                    } else {
+                        $body = function_exists('t') ? t('mail.alert.body_generic')
+                              : 'Une activité notable a été détectée sur votre compte.';
+                    }
+                }
                 $cta     = function_exists('t') ? t('mail.alert.cta')     : 'Vérifier mon compte';
                 $notice  = function_exists('t') ? t('mail.alert.notice')  : 'Si vous êtes à l\'origine de cette action, vous pouvez ignorer ce message.';
                 $accent  = '#dc2626';

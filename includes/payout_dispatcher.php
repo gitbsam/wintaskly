@@ -137,35 +137,49 @@ function wt_payout_faucetpay(array $withdrawal, array $method, array $creds): ar
         ];
     }
 
-    // 1) Mapping des multiplicateurs selon la plus petite unité (Satoshi, Cents, Sun, Wei, etc.)
-    $multipliers = [
-        // Cryptos (8, 6, 18 décimales)
-        'BTC'  => 100000000,
-        'BCH'  => 100000000,
-        'LTC'  => 100000000,
-        'DOGE' => 100000000,
-        'TRX'  => 1000000,
-        'XRP'  => 1000000,
-        'ETH'  => 1000000000000000000,
+    /* Conversion du montant.
+     *
+     * FaucetPay exprime TOUTES ses devises dans la meme unite : le
+     * cent-millionieme, qu'ils appellent « satoshi » quelle que soit la
+     * monnaie. Leur documentation le dit pour le solde (« balance in
+     * satoshis (10^8) ») et leurs bibliotheques le confirment pour
+     * l'envoi : send(amount="100000", crypto="trx") depose 0,001 TRX,
+     * soit 100 000 / 10^8.
+     *
+     * Le tableau precedent utilisait la plus petite unite de CHAQUE
+     * blockchain — le sun pour le tron (10^6), le wei pour l'ether
+     * (10^18), le cent pour le dollar (10^2). C'est la bonne unite sur
+     * la chaine, mais pas celle qu'attend FaucetPay. Consequences
+     * mesurees :
+     *
+     *   TRX, XRP  : montant divise par 100
+     *   USD, EUR, USDC : divise par 1 000 000
+     *   ETH       : multiplie par 10 milliards
+     *
+     * Un retrait reel de 9,63067591 TRX a ainsi ete credite
+     * 0,09630676 TRX. Un seul facteur s'applique donc, pour tout.
+     */
+    $unit     = 100000000;   // 10^8, pour toutes les devises
+    $currency = strtoupper((string) $withdrawal['payout_currency']);
+    $units    = (int) round(((float) $withdrawal['payout_amount']) * $unit);
 
-        // Stablecoins & Monnaies Fiduciaires (2 décimales / Cents)
-        'USD'  => 100,
-        'USDC' => 100, // Note : Sur la blockchain USDC a parfois 6 décimales (1000000), mais FaucetPay le traite souvent à 2 ou 8 selon leur API. 100 ou 100000000 fonctionne selon leur doc de réception. Si l'API attend des dollars classiques, laissez 100.
-        'EUR'  => 100,
-        'EURO' => 100, // Sécurité si écrit en toutes lettres dans votre BDD
-
-        // Valeur de secours par défaut (8 décimales standard)
-        'DEFAULT' => 100000000 
-    ];
-
-    $currencyElement = strtoupper((string) $withdrawal['payout_currency']);
-    $multiplier = $multipliers[$currencyElement] ?? $multipliers['DEFAULT'];
+    /* Un arrondi a zero signifie un montant sous la plus petite unite
+       representable. Mieux vaut refuser que d'envoyer zero et marquer le
+       retrait comme paye. */
+    if ($units <= 0) {
+        return [
+            'ok' => false,
+            'message' => 'Montant trop faible pour FaucetPay (arrondi a zero)',
+            'manual_required' => true,
+            'retry' => false,
+        ];
+    }
 
     $payload = [
         'api_key'  => (string) $creds['api_key'],
-        'amount'   => (string) round($withdrawal['payout_amount'] * $multiplier),
+        'amount'   => (string) $units,
         'to'       => (string) $withdrawal['payout_address'],
-        'currency' => strtoupper((string) $withdrawal['payout_currency']),
+        'currency' => $currency,
     ];
 
     $response = wt_payout_http_post(

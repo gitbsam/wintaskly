@@ -146,6 +146,43 @@ include __DIR__ . '/../header.php';
         </div>
       </header>
 
+      <?php
+      /* File d'articles programmés.
+       *
+       * Le blog publie un article par jour ouvré à partir d'une réserve
+       * chargée à l'avance. Quand elle s'épuise, rien ne le signale : le
+       * dernier article paraît, et le lendemain le blog cesse simplement
+       * de se mettre à jour. On s'en aperçoit des semaines plus tard.
+       *
+       * Trois niveaux pour ne pas crier au loup : information à dix jours
+       * ouvrés, avertissement à cinq, erreur quand la réserve est vide. */
+      $wtQueue = function_exists('wt_blog_queue_status') ? wt_blog_queue_status() : null;
+      if ($wtQueue !== null && $wtQueue['workdays_left'] <= 10):
+          $wtLeft = (int) $wtQueue['workdays_left'];
+          $wtKind = $wtLeft <= 0 ? 'error' : ($wtLeft <= 5 ? 'warn' : 'info');
+      ?>
+        <section class="wt-admin-v2__alerts" data-reveal>
+          <div class="wt-alert wt-alert--<?= e($wtKind) ?>">
+            <strong>
+              <?= $wtLeft <= 0
+                  ? e(t('admin.blogq.empty_title'))
+                  : e(t('admin.blogq.low_title', ['n' => $wtLeft])) ?>
+            </strong>
+            <p style="margin:.4rem 0 0;font-size:.9rem">
+              <?= $wtLeft <= 0
+                  ? e(t('admin.blogq.empty_body'))
+                  : e(t('admin.blogq.low_body', [
+                        'date' => wt_format_datetime((string) $wtQueue['last_date'], 'd/m/Y'),
+                        'r'    => (int) $wtQueue['remaining'],
+                    ])) ?>
+            </p>
+            <p class="wt-muted" style="margin:.4rem 0 0;font-size:.85rem">
+              <?= e(t('admin.blogq.how')) ?>
+            </p>
+          </div>
+        </section>
+      <?php endif; ?>
+
       <!-- Alertes actionnables -->
       <?php if ($pendingWithdrawals + $openTickets + $pendingTestimonials > 0): ?>
         <section class="wt-admin-v2__alerts" data-reveal>

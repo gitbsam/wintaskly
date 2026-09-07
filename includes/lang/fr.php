@@ -19,6 +19,10 @@ return [
     'nav.admin'         => 'Admin',
 
     // ----- common -----------------------------------------------------------
+    'common.breadcrumb' => 'Fil d\'Ariane',
+    'common.csrf' => 'Session expirée. Rechargez la page et réessayez.',
+    'legal.privacy_data_campaign_label' => 'Campagnes',
+    'legal.privacy_data_campaign_text' => 'participation aux campagnes promotionnelles : identifiant de campagne, date de participation, récompense attribuée.',
     'common.coins'      => 'Coins',
     'common.level'      => 'Niveau',
     'common.back'       => 'Retour',
@@ -755,6 +759,11 @@ return [
     'sl.run.gone_replay' => 'Le parcours a été interrompu. Relancez la tâche depuis la liste.',
     'sl.run.gone_other' => 'Ce lien appartient à un autre compte.',
     'sl.run.back_tasks' => 'Revenir aux liens sponsorisés',
+    'admin.blogq.low_title' => 'Blog : il reste {n} jour(s) de publication',
+    'admin.blogq.low_body' => 'Le dernier article programmé paraît le {date}. Il en reste {r} en attente. Après cette date, le blog cessera de se mettre à jour.',
+    'admin.blogq.empty_title' => 'Blog : plus aucun article programmé',
+    'admin.blogq.empty_body' => 'La réserve est épuisée. Aucun nouvel article ne paraîtra tant que vous n\'en aurez pas chargé avec une date future.',
+    'admin.blogq.how' => 'Pour préparer le lot suivant : générez les dates avec scripts/blog_schedule.php, rédigez les articles, puis appliquez le fichier SQL depuis Migrations.',
     'admin.rev.title' => 'Recettes des prestataires',
     'admin.rev.lead' => 'Ce que vous encaissez réellement, à opposer aux tarifs annoncés.',
     'admin.rev.no_table' => 'Table revenue_entries absente. Réimportez sql/schema.sql, ou appliquez-le depuis /admin/migrations.php.',
@@ -1006,6 +1015,8 @@ return [
     'mail.reset.cta'      => 'Choisir un nouveau mot de passe',
     'mail.reset.notice'   => 'Ce lien expire dans 1 heure. Si vous n’êtes pas à l’origine de cette demande, ignorez ce message.',
 
+    'mail.alert.from_ip' => 'Adresse IP : {ip}.',
+    'mail.alert.body_generic' => 'Une activité notable a été détectée sur votre compte.',
     'mail.alert.subject'  => 'Alerte de sécurité Wintaskly',
     'mail.alert.title'    => 'Activité notable sur votre compte',
     'mail.alert.cta'      => 'Vérifier mon compte',
@@ -1252,6 +1263,11 @@ return [
     'pwa.install_text'           => 'Accédez au faucet en un geste depuis votre écran d\'accueil',
 
     // Double authentification multi-methodes
+    'mail.twofa.subject.payout' => 'Confirmez votre adresse de paiement Wintaskly',
+    'mail.twofa.title.payout' => 'Confirmation d\'adresse de paiement',
+    'mail.twofa.intro.payout' => 'Voici votre code à usage unique pour confirmer une adresse de paiement :',
+    'mail.twofa.ttl.payout' => 'Ce code expire dans %d minutes et ne peut servir qu\'une fois.',
+    'mail.twofa.notice.payout' => 'Si vous n\'avez pas demandé à ajouter une adresse de paiement, changez votre mot de passe immédiatement : quelqu\'un tente peut-être de détourner vos retraits.',
     'mail.twofa.subject'               => 'Votre code de connexion Wintaskly',
     'mail.twofa.title'                 => 'Code de connexion',
     'mail.twofa.intro'                 => 'Voici votre code de connexion à usage unique :',

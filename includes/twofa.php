@@ -241,7 +241,15 @@ if (!function_exists('wt_2fa_issue_code')) {
      *
      * @return array{ok:bool, error?:string, ttl?:int}
      */
-    function wt_2fa_issue_code(array $user, string $method): array
+    /**
+     * @param string $purpose Motif de la demande — 'login' par défaut,
+     *        'payout_addr' pour la confirmation d'une adresse de paiement.
+     *        Il change le libellé du courriel : dire « connexion » quand
+     *        il s'agit d'ajouter une adresse de paiement prive
+     *        l'utilisateur du seul signal qui lui permettrait de repérer
+     *        une prise de contrôle de son compte.
+     */
+    function wt_2fa_issue_code(array $user, string $method, string $purpose = 'login'): array
     {
         if (!in_array($method, ['email', 'sms'], true)) {
             return ['ok' => false, 'error' => 'method_unsupported'];
@@ -278,6 +286,7 @@ if (!function_exists('wt_2fa_issue_code')) {
                     'username' => (string) ($user['username'] ?? ''),
                     'code'     => $code,
                     'minutes'  => $ttl,
+                    'purpose'  => $purpose,
                 ]);
             } else {
                 wt_sms_send((string) $user['twofa_phone'],

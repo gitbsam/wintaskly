@@ -28,7 +28,7 @@ ErrorDocument 503 /error-500.html
   RewriteEngine On
 
   # Bloque l'accès direct aux dossiers sensibles
-  RewriteRule ^(includes|sql|node_modules|frontend|logs)(/|$) - [F,L]
+  RewriteRule ^(includes|sql|node_modules|frontend|logs|backups)(/|$) - [F,L]
 
   # Bloque les fichiers internes du dossier /install/ (préfixe _)
   RewriteRule ^install/_ - [F,L]

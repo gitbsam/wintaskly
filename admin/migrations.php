@@ -208,6 +208,16 @@ include __DIR__ . '/../header.php';
       <?php if ($error):  ?><div class="wt-alert wt-alert--error"><?= e($error) ?></div><?php endif; ?>
 
       <div class="wt-alert wt-alert--warn">
+        <strong>Les fichiers « seed » ne sont pas de simples ajouts.</strong>
+        Certains modifient des lignes existantes plutôt que d'en créer.
+        <code>seed_blog_schedule.sql</code>, par exemple, réécrit la date de
+        publication de huit articles à partir du jour de son exécution : le
+        relancer aujourd'hui renverrait des articles déjà parus dans le futur,
+        et ils disparaîtraient du blog. Ouvrez un fichier avant de l'appliquer
+        si vous ne savez pas ce qu'il contient.
+      </div>
+
+      <div class="wt-alert wt-alert--warn">
         <strong>Avant d'appliquer quoi que ce soit, sauvegardez la base.</strong>
         Une migration ne s'annule pas. Sur une installation déjà en service,
         la plupart de ces fichiers ont déjà tourné sans être enregistrés :

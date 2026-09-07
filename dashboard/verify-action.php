@@ -59,7 +59,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && csrf_check((string) ($_POST['_csrf'
         && in_array($method, $methods, true)) {
         /* Envoi d'un code à usage unique. wt_2fa_issue_code() applique
            son propre anti-abus (délai minimal entre deux envois). */
-        $res  = wt_2fa_issue_code($u, $method);
+        $res  = wt_2fa_issue_code($u, $method, $action);
         $sent = !empty($res['ok']) ? $method : null;
         if (!$sent) {
             $error = t('stepup.err_send');

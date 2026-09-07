@@ -1002,8 +1002,12 @@ CREATE TABLE IF NOT EXISTS `revenue_entries` (
                    COMMENT 'Nom libre du prestataire, toujours renseigne',
   `period_start`   DATE NOT NULL,
   `period_end`     DATE NOT NULL,
-  `declared_amount` DECIMAL(12,4) NOT NULL DEFAULT 0,
-  `received_amount` DECIMAL(12,4) NOT NULL DEFAULT 0,
+  -- 8 decimales, pas 4 : ces montants peuvent etre libelles en crypto.
+  -- 0.00007277 BTC arrondi a 4 decimales devient 0.0001, soit 37 % d'ecart.
+  -- La colonne received_eur, elle, reste en 4 decimales : l'euro n'en a
+  -- pas besoin de plus.
+  `declared_amount` DECIMAL(18,8) NOT NULL DEFAULT 0,
+  `received_amount` DECIMAL(18,8) NOT NULL DEFAULT 0,
   `currency`       CHAR(3) NOT NULL DEFAULT 'USD',
   `eur_rate`       DECIMAL(16,8) NOT NULL DEFAULT 1
                    COMMENT 'Valeur d une unite en EUR, figee a la saisie',
@@ -1021,6 +1025,19 @@ CREATE TABLE IF NOT EXISTS `revenue_entries` (
   KEY `idx_source` (`source_kind`, `source_id`),
   KEY `idx_status` (`status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Rattrapage V9.53 : elargir les montants de revenue_entries aux cryptos.
+-- Une table deja creee en DECIMAL(12,4) tronquerait 0.00007277 BTC a
+-- 0.0001. L'ALTER est conditionnel pour rester rejouable.
+SET @p := (SELECT numeric_scale FROM information_schema.columns
+            WHERE table_schema = DATABASE() AND table_name = 'revenue_entries'
+              AND column_name = 'received_amount');
+SET @s := IF(@p IS NOT NULL AND @p < 8,
+  'ALTER TABLE `revenue_entries`
+     MODIFY `declared_amount` DECIMAL(18,8) NOT NULL DEFAULT 0,
+     MODIFY `received_amount` DECIMAL(18,8) NOT NULL DEFAULT 0',
+  'SELECT 1');
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 
 -- Encart flottant des pages de tâches (V9.36). Format 300x250 : c'est
 -- le seul qui tienne à l'aise dans un panneau centré sur mobile.

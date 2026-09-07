@@ -246,14 +246,14 @@ include __DIR__ . '/../header.php';
           <div class="wt-admin-v2__form-grid">
             <div class="wt-field">
               <label class="wt-field__label" for="declared_amount"><?= e(t('admin.rev.f_declared')) ?></label>
-              <input class="wt-input" type="number" step="0.0001" min="0"
+              <input class="wt-input" type="number" step="0.00000001" min="0"
                      id="declared_amount" name="declared_amount"
                      value="<?= e((string) ($edit['declared_amount'] ?? '0')) ?>">
               <small class="wt-field__hint"><?= e(t('admin.rev.f_declared_hint')) ?></small>
             </div>
             <div class="wt-field">
               <label class="wt-field__label" for="received_amount"><?= e(t('admin.rev.f_received')) ?></label>
-              <input class="wt-input" type="number" step="0.0001" min="0"
+              <input class="wt-input" type="number" step="0.00000001" min="0"
                      id="received_amount" name="received_amount"
                      value="<?= e((string) ($edit['received_amount'] ?? '0')) ?>">
               <small class="wt-field__hint"><?= e(t('admin.rev.f_received_hint')) ?></small>

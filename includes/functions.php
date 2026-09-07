@@ -583,6 +583,53 @@ if (!function_exists('wt_ad_zone')) {
      * @param  int    $delayMs Délai avant apparition, en millisecondes
      * @return string          HTML complet, ou '' si la zone est vide
      */
+    /**
+     * État de la file d'articles programmés.
+     *
+     * Le blog publie un article par jour ouvré, et ces articles sont
+     * chargés à l'avance avec une date future. Rien n'avertit quand la
+     * réserve s'épuise : le dernier paraît, et le lendemain le blog
+     * cesse simplement de se mettre à jour. Personne ne le remarque
+     * avant plusieurs semaines.
+     *
+     * Cette fonction compte ce qui reste devant et estime la date du
+     * dernier article prévu.
+     *
+     * @return array{remaining:int, last_date:?string, workdays_left:int}
+     */
+    function wt_blog_queue_status(): array
+    {
+        $out = ['remaining' => 0, 'last_date' => null, 'workdays_left' => 0];
+        try {
+            $row = db_one(
+                "SELECT COUNT(*) c, MAX(published_at) m
+                   FROM blog_posts
+                  WHERE status = 'published' AND published_at > UTC_TIMESTAMP()"
+            );
+            if (!$row) { return $out; }
+            $out['remaining'] = (int) $row['c'];
+            $out['last_date'] = $row['m'] ?: null;
+
+            /* On compte les jours ouvrés d'ici au dernier article plutôt
+               que les jours calendaires : c'est le rythme réel de
+               publication, et c'est ce qui dit combien de temps il reste
+               pour préparer la suite. */
+            if ($out['last_date']) {
+                $end = new DateTimeImmutable((string) $out['last_date'], new DateTimeZone('UTC'));
+                $cur = new DateTimeImmutable('today', new DateTimeZone('UTC'));
+                $n   = 0;
+                while ($cur < $end && $n < 400) {
+                    $cur = $cur->modify('+1 day');
+                    if (!in_array((int) $cur->format('N'), [6, 7], true)) { $n++; }
+                }
+                $out['workdays_left'] = $n;
+            }
+        } catch (Throwable $e) {
+            error_log('[Wintaskly blog queue] ' . $e->getMessage());
+        }
+        return $out;
+    }
+
     function wt_ad_overlay(string $zoneKey, int $delayMs = 10000): string
     {
         /* Un encart flottant interrompt la lecture : il doit rapporter
@@ -1387,6 +1434,22 @@ function getBinancePrice(string $symbol): ?float {
  * Récupère les taux de change EUR depuis le cache local (ou Binance si expiré)
  */
 function get_cached_rates(): array {
+    /* cURL peut être absent d'une configuration PHP. Sans ce garde-fou,
+       l'appel provoque une erreur fatale : la page des méthodes de
+       paiement devient inaccessible, et la tâche cron échoue à chaque
+       passage. On préfère rendre le cache existant, même périmé, plutôt
+       que de casser la page — un cours ancien vaut mieux que pas de
+       page du tout, et withdraw_submit refuse déjà un taux nul. */
+    if (!function_exists('curl_init')) {
+        error_log('[Wintaskly rates] extension cURL absente');
+        $f = __DIR__ . '/rates_cache.json';
+        if (is_file($f)) {
+            $j = json_decode((string) @file_get_contents($f), true);
+            if (is_array($j)) { return $j['rates'] ?? $j; }
+        }
+        return [];
+    }
+
     $cacheFile = __DIR__ . '/rates_cache.json';
     $cacheLifetime = 600; // 10 minutes en secondes
 

@@ -15,6 +15,10 @@ return [
     'nav.logout'        => 'Logout',
     'nav.admin'         => 'Admin',
 
+    'common.breadcrumb' => 'Breadcrumb',
+    'common.csrf' => 'Your session expired. Reload the page and try again.',
+    'legal.privacy_data_campaign_label' => 'Campaigns',
+    'legal.privacy_data_campaign_text' => 'participation in promotional campaigns: campaign identifier, participation date, reward granted.',
     'common.coins'      => 'Coins',
     'common.level'      => 'Level',
     'common.back'       => 'Back',
@@ -742,6 +746,11 @@ return [
     'sl.run.gone_replay' => 'The journey was interrupted. Start the task again from the list.',
     'sl.run.gone_other' => 'This link belongs to another account.',
     'sl.run.back_tasks' => 'Back to sponsored links',
+    'admin.blogq.low_title' => 'Blog: {n} publishing day(s) left',
+    'admin.blogq.low_body' => 'The last scheduled article goes out on {date}. {r} are still queued. After that date, the blog stops updating.',
+    'admin.blogq.empty_title' => 'Blog: no scheduled articles left',
+    'admin.blogq.empty_body' => 'The queue is empty. Nothing new will appear until you load articles with a future date.',
+    'admin.blogq.how' => 'To prepare the next batch: generate dates with scripts/blog_schedule.php, write the articles, then apply the SQL file from Migrations.',
     'admin.rev.title' => 'Provider revenue',
     'admin.rev.lead' => 'What you actually receive, set against the advertised rates.',
     'admin.rev.no_table' => 'Table revenue_entries is missing. Re-import sql/schema.sql, or apply it from /admin/migrations.php.',
@@ -988,6 +997,8 @@ return [
     'mail.reset.cta'      => 'Choose a new password',
     'mail.reset.notice'   => 'This link expires in 1 hour. If you did not request this, ignore the message.',
 
+    'mail.alert.from_ip' => 'IP address: {ip}.',
+    'mail.alert.body_generic' => 'Notable activity was detected on your account.',
     'mail.alert.subject'  => 'Wintaskly security alert',
     'mail.alert.title'    => 'Notable activity on your account',
     'mail.alert.cta'      => 'Review my account',
@@ -1233,6 +1244,11 @@ return [
     'pwa.install_text'           => 'Reach the faucet in one tap from your home screen',
 
     // Double authentification multi-methodes
+    'mail.twofa.subject.payout' => 'Confirm your Wintaskly payout address',
+    'mail.twofa.title.payout' => 'Payout address confirmation',
+    'mail.twofa.intro.payout' => 'Here is your one-time code to confirm a payout address:',
+    'mail.twofa.ttl.payout' => 'This code expires in %d minutes and can only be used once.',
+    'mail.twofa.notice.payout' => 'If you did not ask to add a payout address, change your password immediately: someone may be trying to redirect your withdrawals.',
     'mail.twofa.subject'               => 'Your Wintaskly login code',
     'mail.twofa.title'                 => 'Login code',
     'mail.twofa.intro'                 => 'Here is your one-time login code:',
