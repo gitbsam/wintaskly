@@ -33,8 +33,8 @@ function wt_sl_gone(string $reasonKey): void
     $pageTitle = t('sl.run.gone_title');
     include __DIR__ . '/../../header.php';
     ?>
-    <main class="wt-main">
-      <section class="wt-section" style="max-width:640px;margin:3rem auto;text-align:center">
+    <main class="wt-main wt-slrun">
+      <section class="wt-slrun__wrap wt-slrun__wrap--narrow">
         <h1><?= e(t('sl.run.gone_title')) ?></h1>
         <p class="wt-muted"><?= e(t($reasonKey)) ?></p>
         <p style="margin-top:1.4rem">
@@ -133,7 +133,7 @@ $pageTitle = $isFinal ? t('sl.run.final_title') : t('sl.run.title');
 include __DIR__ . '/../../header.php';
 ?>
 <main class="wt-main wt-slrun">
-  <section class="wt-section" style="max-width:820px;margin:0 auto">
+  <section class="wt-slrun__wrap">
 
     <?php if ($message): ?>
       <div class="wt-alert wt-alert--warn"><?= e($message) ?></div>

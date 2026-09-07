@@ -60,10 +60,16 @@ $_crumbs[] = ['name' => (string) $post['title'], 'url' => wt_url('/blog/' . $pos
 wt_schema_add(wt_schema_breadcrumb($_crumbs));
 $metaDescription = $post['meta_description'] ?: ($post['excerpt'] ?: '');
 
-/* Couverture propre à l'article pour les partages sociaux.
-   Lue par header.php ; sans elle, les 58 articles partageraient tous
-   la même vignette générique. */
-$pageOgImage = wt_blog_cover((string) $post['slug'], 'cover');
+/* Visuel de partage propre à l'article, lu par header.php.
+   La variante « social » permet une image differente du hero : un
+   visuel qui porte un titre lisible marche mieux dans un fil, alors
+   qu'un hero pleine largeur convient mieux en haut de page. Sans
+   fichier -social, on retombe automatiquement sur le hero. */
+$pageOgImage = wt_blog_cover((string) $post['slug'], 'social');
+
+/* Un article en prévisualisation ne doit pas être indexé. Le drapeau
+   s'appelle $pageNoindex et il est lu par header.php. */
+if ($wtPreview) { $pageNoindex = true; }
 
 include __DIR__ . '/../header.php';
 ?>
@@ -87,6 +93,26 @@ include __DIR__ . '/../header.php';
 
     <!-- En-tête de l'article -->
     <header class="wt-article__header" data-reveal>
+      <?php if ($wtPreview): ?>
+        <?php
+          /* Bandeau de prévisualisation. Il doit être impossible de
+             confondre cet écran avec la page publiée : sans repère
+             visible, on relit un article en croyant qu'il est en ligne,
+             ou l'inverse. */
+          $_parution = !empty($post['published_at'])
+              ? wt_format_datetime((string) $post['published_at'], 'd/m/Y à H:i')
+              : null;
+        ?>
+        <div class="wt-alert wt-alert--warn" style="margin-bottom:1.2rem">
+          <strong><?= e(t('blog.preview_title')) ?></strong>
+          <p style="margin:.35rem 0 0;font-size:.9rem">
+            <?= $_parution
+                ? e(t('blog.preview_scheduled', ['date' => $_parution]))
+                : e(t('blog.preview_draft')) ?>
+          </p>
+        </div>
+      <?php endif; ?>
+
       <?php $_cover = wt_blog_cover((string) $post['slug'], 'cover'); ?>
       <?php if ($_cover): ?>
         <img class="wt-article__cover" src="<?= e($_cover) ?>"

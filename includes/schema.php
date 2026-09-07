@@ -168,13 +168,38 @@ if (!function_exists('wt_schema_blogposting')) {
                 'name'  => (string) $post['author_name'],
             ];
         }
-        // Image : celle de l'article si elle existe, sinon l'image OG du site
-        if (!empty($post['cover_image'])) {
-            $data['image'] = $base . '/media/wintaskly/img/blog/' . (string) $post['cover_image'];
-        } else {
-            $og = trim((string) cfg('seo.og_image_url', ''));
-            $data['image'] = $og !== '' ? $og : $base . '/media/wintaskly/img/og-image.png';
+        /* Image de l'article.
+         *
+         * On passe par wt_blog_cover(), la même fonction que la page et
+         * les balises Open Graph. Auparavant on lisait la colonne
+         * `cover_image`, restée vide sur les articles dont l'illustration
+         * a été déposée directement dans le dossier : Google recevait
+         * alors l'image générique du site alors que la page en affichait
+         * une autre. Deux sources de vérité pour une même illustration,
+         * c'est une divergence garantie.
+         *
+         * Google recommande de déclarer plusieurs proportions de la même
+         * image. On fournit donc le format large, et le carré s'il
+         * existe — utile pour Discover, qui recadre en 1:1. */
+        $images = [];
+        if (function_exists('wt_blog_cover') && !empty($post['slug'])) {
+            $slug = (string) $post['slug'];
+            foreach (['cover', 'square'] as $variant) {
+                $u = wt_blog_cover($slug, $variant);
+                if ($u) { $images[] = $u; }
+            }
         }
+        if (!$images && !empty($post['cover_image'])) {
+            $images[] = $base . '/media/wintaskly/img/blog/' . (string) $post['cover_image'];
+        }
+        if (!$images) {
+            $og = trim((string) cfg('seo.og_image_url', ''));
+            $images[] = $og !== '' ? $og : $base . '/media/wintaskly/img/og-image.png';
+        }
+        /* Une seule image : on la déclare telle quelle plutôt que dans un
+           tableau à un élément, ce qui reste la forme la plus courante et
+           la mieux comprise des outils de validation. */
+        $data['image'] = count($images) === 1 ? $images[0] : $images;
         if (!empty($post['reading_minutes'])) {
             $data['timeRequired'] = 'PT' . (int) $post['reading_minutes'] . 'M';
         }

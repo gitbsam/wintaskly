@@ -347,7 +347,27 @@ if (!function_exists('wt_blog_cover')) {
     {
         $slug = preg_replace('/[^a-z0-9-]/', '', strtolower($slug));
         if ($slug === '') { return null; }
-        $kind = $kind === 'thumb' ? 'thumb' : 'cover';
+        /* Trois usages, deux fichiers :
+             cover / thumb  -> <slug>-upload.<ext>   au format 1200x630
+             square         -> <slug>-square.<ext>   au format 1200x1200
+
+           Le carré n'est pas une coquetterie : Google recommande de
+           fournir plusieurs proportions de la même illustration pour les
+           données structurées, notamment pour Discover, qui recadre en
+           1:1 sur certaines surfaces. Il est facultatif — sans lui, seule
+           l'image large est déclarée. */
+        $kind = in_array($kind, ['thumb', 'square', 'social'], true) ? $kind : 'cover';
+
+        /* Trois variantes possibles, une seule obligatoire :
+             -upload   1200x630  hero de l'article et vignette de la liste
+             -social   1200x630  visuel de partage, si different du hero
+             -square   1200x1200 donnees structurees (Google Discover)
+
+           Seule -upload est requise. Une variante absente retombe sur
+           elle : on peut donc n'en fournir qu'une, ou les trois, sans
+           jamais casser une page. */
+        $suffixes = ['square' => '-square.', 'social' => '-social.'];
+        $suffix   = $suffixes[$kind] ?? '-upload.';
 
         static $root = null;
         if ($root === null) { $root = dirname(__DIR__); }
@@ -367,9 +387,16 @@ if (!function_exists('wt_blog_cover')) {
            Le paramètre $kind est conservé pour ne pas casser les appels
            existants, mais une seule image sert désormais aux deux usages :
            le format 1200×630 se réduit très bien en miniature. */
-        foreach (['png', 'jpg', 'jpeg', 'webp'] as $ext) {
-            $up = $dir . $slug . '-upload.' . $ext;
+        foreach (['jpg', 'jpeg', 'png', 'webp'] as $ext) {
+            $up = $dir . $slug . $suffix . $ext;
             if (is_file($root . $up)) { return wt_url($up); }
+        }
+
+        /* Repli du visuel de partage sur le hero. Le carre, lui, ne se
+           replie pas : declarer une image large comme etant carree
+           tromperait Google plutot que de l'aider. */
+        if ($kind === 'social') {
+            return wt_blog_cover($slug, 'cover');
         }
 
         return null;
