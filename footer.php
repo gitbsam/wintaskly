@@ -317,6 +317,8 @@ window.WT_I18N = {
 <script src="<?= $_base ?>/media/wintaskly/js/wt-ads-responsive.js?v=<?= e(WT_VERSION) ?>" defer></script>
 <script src="<?= $_base ?>/media/wintaskly/js/wt-ad-overlay.js?v=<?= e(WT_VERSION) ?>" defer></script>
 <script src="<?= $_base ?>/media/wintaskly/js/wt-slrun.js?v=<?= e(WT_VERSION) ?>" defer></script>
+<script src="<?= $_base ?>/media/wintaskly/js/wt-totop.js?v=<?= e(WT_VERSION) ?>" defer></script>
+<script src="<?= $_base ?>/media/wintaskly/js/wt-bingo-deadline.js?v=<?= e(WT_VERSION) ?>" defer></script>
 
 <!-- =====================================================================
      PWA — Service Worker + Bannière d'installation
@@ -570,6 +572,19 @@ if (function_exists('wt_ad_overlay') && function_exists('wt_ad_tags_current_path
     }
 }
 ?>
+
+<?php /* Bouton de remontee.
+         Un <button> et non un lien vers #top : un ancrage ajoute une
+         entree dans l'historique, et l'utilisateur qui fait « retour »
+         se retrouve renvoye en bas de page sans comprendre. */ ?>
+<button type="button" class="wt-totop" data-totop hidden
+        aria-label="<?= e(t('common.back_to_top')) ?>"
+        title="<?= e(t('common.back_to_top')) ?>">
+  <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor"
+       stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path d="M12 19V5M5 12l7-7 7 7"/>
+  </svg>
+</button>
 
 <?php
 // Scripts publicitaires globaux à charger une seule fois avant </body>

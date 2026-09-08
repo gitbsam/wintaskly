@@ -186,3 +186,10 @@ INSERT IGNORE INTO `ad_zones` (`k`,`label`,`code`,`size_key`,`active`) VALUES
 -- sql/migration_reparer_categories_blog.sql, puis reimportez
 -- seed_blog_actualites_brouillon.sql.
 -- ---------------------------------------------------------------------
+
+-- ---------------------------------------------------------------------
+-- 11) Zones de la page d'accueil (V9.60)
+-- ---------------------------------------------------------------------
+INSERT IGNORE INTO `ad_zones` (`k`,`label`,`code`,`size_key`,`active`) VALUES
+ ('home_blog_inline', 'Accueil — Dans les derniers articles (3e place)', '<!-- Insérer ici le code de la régie -->', '300x250', 1),
+ ('home_how_bottom',  'Accueil — Sous « Comment ça marche »',            '<!-- Insérer ici le code de la régie -->', '728x90',  1);

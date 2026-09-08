@@ -481,7 +481,8 @@ include __DIR__ . '/header.php';
    * éditorial en avant-dernière position, après dix blocs orientés gains,
    * envoyait le signal inverse — aux visiteurs comme aux évaluateurs. */
   $homeBlogPosts = (function_exists('wt_blog_enabled') && wt_blog_enabled())
-      ? wt_blog_posts(6, 0)
+      ? wt_blog_posts(7, 0)   /* 7 et non 6 : l'encart occupe une cellule,
+                                 il en faut une de plus pour garder la grille pleine */
       : [];
   // Catégories alimentées, pour offrir une entrée par thème
   $homeBlogCats = [];
@@ -500,7 +501,17 @@ include __DIR__ . '/header.php';
     </div>
 
     <div class="wt-home-blog__grid">
+      <?php
+      /* Encart intercalé en 3e position. Rendu une seule fois avant la
+         boucle : wt_ad_zone() interroge la base, l'appeler dans la
+         boucle referait ce travail pour rien. */
+      $_homeAd = wt_ad_zone('home_blog_inline');
+      $_n = 0;
+      ?>
       <?php foreach ($homeBlogPosts as $post): ?>
+        <?php if ($_homeAd !== '' && $_n === 2): ?>
+          <div class="wt-home-blog__ad"><?= $_homeAd ?></div>
+        <?php endif; $_n++; ?>
         <article class="wt-home-blog__card">
           <a href="<?= e(wt_url('/blog/' . $post['slug'])) ?>" class="wt-home-blog__link">
             <div class="wt-home-blog__cover">
@@ -1176,7 +1187,11 @@ include __DIR__ . '/header.php';
         </li>
       <?php endforeach; ?>
     </ul>
-  </section>
+  
+    <?php $_adHow = wt_ad_zone('home_how_bottom'); if ($_adHow !== ''): ?>
+      <div class="wt-how-v2__ad"><?= $_adHow ?></div>
+    <?php endif; ?>
+</section>
   <?php endif; ?>
 
   <!-- ===================== PARTENAIRES / ÉCOSYSTÈME (V8.26) ======

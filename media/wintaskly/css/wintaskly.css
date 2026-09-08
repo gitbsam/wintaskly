@@ -3551,12 +3551,24 @@ html.light .wt-icon-moon { display: none; }
   gap: 2.5rem 1.5rem;
   position: relative;
 }
+/* La section compte 4 etapes, la grille en declarait 3 : la quatrieme
+   passait a la ligne toute seule sur grand ecran. On passe par deux
+   paliers plutot qu'un seul — 4 colonnes des 768 px seraient trop
+   etroites pour le texte de chaque etape. */
 @media (min-width: 768px) {
   .wt-how-v2__timeline {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2rem 1.5rem;
+  }
+}
+
+@media (min-width: 1100px) {
+  .wt-how-v2__timeline {
+    grid-template-columns: repeat(4, 1fr);
     gap: 1.5rem;
   }
-  /* Ligne de connexion horizontale entre les 3 pastilles (desktop) */
+  /* Ligne de connexion horizontale entre les pastilles. Reservee au
+     palier 4 colonnes : sur deux rangees elle traverserait le vide. */
   .wt-how-v2__timeline::before {
     content: '';
     position: absolute;
@@ -14184,3 +14196,100 @@ a.wt-dash-v2__kpi-cta:hover {
      carte, elle ne doit pas se retrouver coincee dans un coin. */
   .wt-testify-cta__btn { width: 100%; }
 }
+
+/* --- Encarts de la page d'accueil (9.60) ------------------------ */
+.wt-home-blog__ad {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 260px;
+  padding: .5rem;
+  border-radius: var(--wt-radius-md, 10px);
+  background: var(--wt-bg-soft, rgba(255,255,255,.03));
+}
+.wt-home-blog__ad > * { max-width: 100%; }
+
+.wt-how-v2__ad {
+  display: flex;
+  justify-content: center;
+  margin-top: 2.5rem;
+  overflow: hidden;          /* un 728 ne deborde pas sur petit ecran */
+}
+.wt-how-v2__ad img,
+.wt-how-v2__ad iframe { max-width: 100%; height: auto; }
+
+/* --- Bouton de remontee ----------------------------------------- */
+.wt-totop {
+  position: fixed;
+  right: 1rem;
+  bottom: 1rem;
+  z-index: 60;
+  width: 46px;
+  height: 46px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--wt-border);
+  border-radius: 50%;
+  cursor: pointer;
+  background: var(--wt-surface, #12181f);
+  color: var(--wt-text, #e8edf5);
+  box-shadow: 0 6px 18px rgba(0,0,0,.28);
+  animation: wtTotopIn .18s ease-out;
+}
+.wt-totop[hidden] { display: none; }
+.wt-totop:hover { background: var(--wt-surface-2, #1a222c); }
+.wt-totop:focus-visible {
+  outline: 2px solid var(--wt-primary, #ff9933);
+  outline-offset: 2px;
+}
+
+@keyframes wtTotopIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .wt-totop { animation: none; }
+}
+
+/* Sur mobile, il remonte au-dessus de la barre de navigation basse
+   pour ne pas recouvrir un bouton de navigation. */
+@media (max-width: 768px) {
+  .wt-totop { bottom: 5rem; right: .8rem; }
+}
+
+/* --- Bingo : urgence du jour et regles ------------------------- */
+.wt-bingo-urgent {
+  display: flex;
+  align-items: flex-start;
+  gap: .9rem;
+  padding: .9rem 1.1rem;
+  margin: 1.25rem 0;
+  border-radius: var(--wt-radius-md, 10px);
+  border: 1px solid var(--wt-warn, #d98324);
+  background: color-mix(in srgb, var(--wt-warn, #d98324) 10%, transparent);
+}
+.wt-bingo-urgent__icon { font-size: 1.5rem; line-height: 1.2; flex: none; }
+.wt-bingo-urgent strong { display: block; margin-bottom: .2rem; }
+.wt-bingo-urgent__text { margin: 0; font-size: .9rem; opacity: .9; }
+.wt-bingo-urgent [data-bingo-countdown] {
+  font-variant-numeric: tabular-nums;   /* le compteur ne tressaute pas */
+  font-weight: 700;
+}
+/* Sous une heure, le bandeau passe en rouge. */
+.wt-bingo-urgent.is-soon {
+  border-color: var(--wt-err, #c62828);
+  background: color-mix(in srgb, var(--wt-err, #c62828) 12%, transparent);
+}
+.wt-bingo-urgent.is-over { opacity: .6; }
+
+.wt-bingo-rules {
+  margin: 1.5rem 0;
+  padding: .85rem 1.1rem;
+  border: 1px solid var(--wt-border);
+  border-radius: var(--wt-radius-md, 10px);
+  background: var(--wt-bg-soft, rgba(255,255,255,.03));
+}
+.wt-bingo-rules summary { cursor: pointer; font-weight: 600; }
+.wt-bingo-rules__list { margin: .8rem 0 0; padding-left: 1.3rem; }
+.wt-bingo-rules__list li { margin-bottom: .5rem; line-height: 1.55; }

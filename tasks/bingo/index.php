@@ -98,6 +98,47 @@ include __DIR__ . '/../../header.php';
       <?php endif; ?>
     </header>
 
+    <?php
+    /* Urgence du jour.
+     *
+     * Avec un seul carton, seuls les numeros du tirage DU JOUR sont
+     * cochables : passe minuit UTC, ils sont perdus definitivement. Rien
+     * ne le disait au joueur, qui decouvrait la regle en constatant que
+     * son carton ne se completerait jamais.
+     *
+     * On compte les numeros de ses cartons sortis aujourd'hui et encore
+     * non coches. C'est ce chiffre qui fait revenir, pas un rappel
+     * general : voir « 4 numeros vont etre perdus » agit, « pensez a
+     * jouer » non. */
+    $_aPerdre = 0;
+    if ($roundId && !empty($cards) && !empty($todayDrawn)) {
+        $_setJour = array_flip($todayDrawn);
+        foreach ($cards as $_c) {
+            if (($_c['status'] ?? '') !== 'active') { continue; }
+            $_m = array_flip($_c['marks'] ?? []);
+            foreach (array_map('intval', explode(',', (string) $_c['numbers'])) as $_n) {
+                if (isset($_setJour[$_n]) && !isset($_m[$_n])) { $_aPerdre++; }
+            }
+        }
+    }
+    if ($_aPerdre > 0):
+      /* Minuit UTC : c'est wt_bingo_today() qui fait foi, pas l'heure
+         locale du joueur. On donne l'horodatage au script, qui l'affiche
+         dans le fuseau du navigateur. */
+      $_finJour = strtotime(gmdate('Y-m-d') . ' 23:59:59 UTC');
+    ?>
+      <div class="wt-bingo-urgent" data-bingo-deadline="<?= (int) $_finJour ?>">
+        <span class="wt-bingo-urgent__icon" aria-hidden="true">⏳</span>
+        <div>
+          <strong><?= e(t('bingo.urgent_title', ['n' => $_aPerdre])) ?></strong>
+          <p class="wt-bingo-urgent__text">
+            <?= e(t('bingo.urgent_text')) ?>
+            <span data-bingo-countdown></span>
+          </p>
+        </div>
+      </div>
+    <?php endif; ?>
+
     <?php $_ad = wt_ad_zone('bingo_top'); if ($_ad !== ''): ?>
       <div class="wt-ad-zone wt-ad-zone--top" style="margin:1.5rem 0;text-align:center">
         <?= $_ad ?>
@@ -327,6 +368,23 @@ include __DIR__ . '/../../header.php';
       </div>
       <p class="wt-task-how__tip">💡 <?= e(t('bingo.how_tip')) ?></p>
     </section>
+
+    <?php /* Les regles, ecrites noir sur blanc.
+             Trois d'entre elles ne se devinent pas et se decouvrent au
+             pire moment : le cochage limite au jour meme, l'absence de
+             rattrapage, et le fait qu'un carton complet non reclame ne
+             rapporte rien. */ ?>
+    <details class="wt-bingo-rules">
+      <summary><?= e(t('bingo.rules_title')) ?></summary>
+      <ul class="wt-bingo-rules__list">
+        <li><?= e(t('bingo.rule_draw')) ?></li>
+        <li><strong><?= e(t('bingo.rule_today')) ?></strong></li>
+        <li><?= e(t('bingo.rule_multi')) ?></li>
+        <li><?= e(t('bingo.rule_end')) ?></li>
+        <li><strong><?= e(t('bingo.rule_claim')) ?></strong></li>
+        <li><?= e(t('bingo.rule_share')) ?></li>
+      </ul>
+    </details>
 
       <?php $_adBottom = wt_ad_zone('bingo_bottom'); if ($_adBottom !== ''): ?>
       <div class="wt-ad-zone wt-ad-zone--bottom" style="margin-top:1.5rem;text-align:center">
