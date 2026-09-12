@@ -47,7 +47,7 @@ if (!defined('WT_PERIOD_DASHBOARD_DAYS')) {
 // L'URL latest.json est configurable via la BDD (clé config 'update.feed_url')
 // pour permettre de changer de canal (stable/beta) sans redéployer.
 if (!defined('WT_VERSION')) {
-    define('WT_VERSION', '9.61.0');
+    define('WT_VERSION', '9.66.0');
     define('WT_VERSION_CHANNEL', 'stable');  // stable | beta | dev
     define('WT_UPDATE_FEED_DEFAULT', 'https://gitbsam.github.io/wintaskly/latest.json');
 }
@@ -350,6 +350,7 @@ require __DIR__ . '/auth_extra.php';
 require __DIR__ . '/functions.php';
 require __DIR__ . '/ad_tags.php';
 require __DIR__ . '/shortlink_local.php';
+require __DIR__ . '/instant.php';
 require __DIR__ . '/mailer.php';
 require __DIR__ . '/messaging.php';
 require __DIR__ . '/leaderboard.php';

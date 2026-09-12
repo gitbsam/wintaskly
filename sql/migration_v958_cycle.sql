@@ -193,3 +193,112 @@ INSERT IGNORE INTO `ad_zones` (`k`,`label`,`code`,`size_key`,`active`) VALUES
 INSERT IGNORE INTO `ad_zones` (`k`,`label`,`code`,`size_key`,`active`) VALUES
  ('home_blog_inline', 'Accueil — Dans les derniers articles (3e place)', '<!-- Insérer ici le code de la régie -->', '300x250', 1),
  ('home_how_bottom',  'Accueil — Sous « Comment ça marche »',            '<!-- Insérer ici le code de la régie -->', '728x90',  1);
+
+-- ---------------------------------------------------------------------
+-- 12) Plafonds quotidiens des liens sponsorises (V9.63)
+-- ---------------------------------------------------------------------
+INSERT IGNORE INTO `config` (`k`,`v`) VALUES
+ ('shortlink.max_daily_coins','0'),
+ ('shortlink.max_daily_per_link','0');
+
+-- ---------------------------------------------------------------------
+-- 13) Instant Gagnant (V9.66)
+-- ---------------------------------------------------------------------
+ALTER TABLE `transactions`
+  MODIFY `type` ENUM('faucet','shortlink','ptc','offerwall','referral','withdraw','admin','bonus','daily_bonus','achievement','bingo_buy','bingo_win','instant','instant_ticket') NOT NULL;
+
+-- ---------------------------------------------------------------------
+-- INSTANT GAGNANT (V9.66)
+--
+-- Deux voies d'acces, choisies par jeu :
+--   'ads'     : l'utilisateur suit un parcours publicitaire, comme pour
+--               un shortlink, et le gain se debloque au retour. Aucun
+--               clic n'est exige : les regies interdisent les clics
+--               incites et fermeraient le compte.
+--   'tickets' : l'utilisateur mise des tickets. Les tickets GAGNES ne
+--               posent aucun probleme. Les tickets ACHETES font entrer
+--               le jeu dans le champ des jeux d'argent (mise + hasard +
+--               gain) : la vente reste donc desactivee par defaut et
+--               protegee par un reglage distinct.
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `instant_games` (
+  `id`             INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `name`           VARCHAR(120) NOT NULL,
+  `mode`           ENUM('ads','tickets') NOT NULL DEFAULT 'ads',
+  `reward_coins`   DECIMAL(18,4) NOT NULL DEFAULT 0
+                   COMMENT 'Gain en coins si la partie est gagnante',
+  `win_permille`   SMALLINT UNSIGNED NOT NULL DEFAULT 100
+                   COMMENT 'Chance de gain pour 1000 parties. 100 = 10 %',
+  `ticket_options` VARCHAR(120) NOT NULL DEFAULT '1,2,5,10'
+                   COMMENT 'Mises proposees, separees par des virgules',
+  `cooldown_hours` SMALLINT UNSIGNED NOT NULL DEFAULT 24,
+  `daily_max`      SMALLINT UNSIGNED NOT NULL DEFAULT 1
+                   COMMENT 'Parties par jour et par utilisateur. 0 = illimite',
+  `active`         TINYINT(1) NOT NULL DEFAULT 0,
+  `test_mode`      TINYINT(1) NOT NULL DEFAULT 1
+                   COMMENT '1 = visible des seuls administrateurs',
+  `launch_at`      DATETIME NULL COMMENT 'Date de mise en ligne, NULL = aucune',
+  `sort_order`     SMALLINT UNSIGNED NOT NULL DEFAULT 0,
+  `created_at`     DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_active` (`active`, `test_mode`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Solde de tickets. Volontairement separe de users.coins : un ticket
+-- n'est pas une monnaie, il ne se convertit pas en euros et ne se
+-- retire pas. Les melanger rendrait cette distinction impossible a
+-- tenir, et c'est elle qui separe un jeu promotionnel d'une loterie.
+CREATE TABLE IF NOT EXISTS `user_tickets` (
+  `user_id`    INT UNSIGNED NOT NULL,
+  `balance`    INT UNSIGNED NOT NULL DEFAULT 0,
+  `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`user_id`),
+  CONSTRAINT `fk_ut_user` FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Journal des mouvements de tickets. Sans lui, impossible de prouver
+-- l'origine d'un ticket — or c'est exactement ce qui distingue un
+-- ticket gagne d'un ticket achete en cas de controle.
+CREATE TABLE IF NOT EXISTS `ticket_ledger` (
+  `id`         BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `user_id`    INT UNSIGNED NOT NULL,
+  `delta`      INT NOT NULL COMMENT 'Positif = credit, negatif = mise',
+  `origin`     ENUM('task','bonus','referral','admin','purchase','play','refund')
+               NOT NULL DEFAULT 'admin',
+  `note`       VARCHAR(190) NULL,
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_user` (`user_id`, `created_at`),
+  KEY `idx_origin` (`origin`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Une partie jouee. Conserve le resultat ET la mise : un litige sur un
+-- gain ne se tranche pas sans trace horodatee.
+CREATE TABLE IF NOT EXISTS `instant_plays` (
+  `id`           BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `game_id`      INT UNSIGNED NOT NULL,
+  `user_id`      INT UNSIGNED NOT NULL,
+  `mode`         ENUM('ads','tickets') NOT NULL,
+  `tickets_used` SMALLINT UNSIGNED NOT NULL DEFAULT 0,
+  `won`          TINYINT(1) NOT NULL DEFAULT 0,
+  `coins_won`    DECIMAL(18,4) NOT NULL DEFAULT 0,
+  `token`        CHAR(64) NULL COMMENT 'Jeton du parcours publicitaire',
+  `status`       ENUM('en_attente','valide','rejete','expire')
+                 NOT NULL DEFAULT 'valide',
+  `ip`           VARBINARY(16) NULL,
+  `created_at`   DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uniq_token` (`token`),
+  KEY `idx_user_day` (`user_id`, `created_at`),
+  KEY `idx_game` (`game_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Reglages globaux.
+-- instant.tickets_purchase_enabled reste a 0 : l'activer fait entrer le
+-- jeu dans le champ des jeux d'argent et suppose une autorisation.
+INSERT IGNORE INTO `config` (`k`,`v`) VALUES
+ ('instant.enabled','1'),
+ ('instant.ticket_label','Ticket'),
+ ('instant.tickets_purchase_enabled','0'),
+ ('instant.ads_seconds','45');
+

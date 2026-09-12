@@ -134,6 +134,20 @@ include __DIR__ . '/../../header.php';
     <?php endif; ?>
 
     <!-- ====== HEADER ====== -->
+    <?php
+    /* Message de plafond atteint. La passerelle redirige ici plutot que
+       de laisser l'utilisateur suivre un parcours qui ne sera pas paye. */
+    $_cap = (string) ($_GET['cap'] ?? '');
+    if ($_cap === 'coins' || $_cap === 'link'):
+    ?>
+      <div class="wt-alert wt-alert--warn" role="status" data-reveal>
+        <strong><?= e(t('shortlinks.cap_title')) ?></strong>
+        <p style="margin:.35rem 0 0;font-size:.9rem">
+          <?= e($_cap === 'coins' ? t('shortlinks.cap_coins') : t('shortlinks.cap_link')) ?>
+        </p>
+      </div>
+    <?php endif; ?>
+
     <header class="wt-sl-v2__header" data-reveal>
       <div class="wt-sl-v2__intro">
         <span class="wt-eyebrow">🔗 <?= e(t('shortlinks.eyebrow')) ?></span>

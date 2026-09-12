@@ -75,9 +75,47 @@ if (!function_exists('wt_sl_run_create')) {
             return null;
         }
 
+        /* La destination doit rester sur notre domaine.
+         *
+         * Ce controle existait deja dans /api, mais l'appel en boucle
+         * locale court-circuite l'API et entre ici directement : la
+         * protection ne couvrait donc qu'un des deux chemins. Un
+         * redirecteur ouvert sur wintaskly.com detruirait la reputation
+         * du domaine en quelques jours. */
+        $hoteDest = parse_url($destination, PHP_URL_HOST);
+        $hoteNous = parse_url((string) ($GLOBALS['WT_CONFIG']['base_url'] ?? ''), PHP_URL_HOST);
+        if (!$hoteDest || !$hoteNous || strcasecmp($hoteDest, $hoteNous) !== 0) {
+            error_log('[Wintaskly sl_local] destination hors domaine : ' . $destination);
+            return null;
+        }
+
         $localId = (int) $local['id'];
         $minutes = max(1, (int) ($local['run_minutes'] ?? 30));
         $ip      = wt_ip_bin();
+
+        /* Un seul parcours ouvert a la fois, par campagne.
+         *
+         * Meme raison que pour les jetons de tentative : sans cela, un
+         * appel repete a l'API laisse plusieurs codes valides en
+         * parallele, et chacun mene a un credit. On ferme donc les
+         * parcours encore ouverts de cette campagne avant d'en ouvrir un
+         * nouveau.
+         *
+         * On ferme aussi ceux dont le delai est depasse : rien d'autre
+         * ne le fait, et un parcours perime qui reste « en cours »
+         * fausserait ce comptage. */
+        try {
+            $st = db()->prepare(
+                "UPDATE shortlink_local_runs
+                    SET status = 'expire', completed_at = UTC_TIMESTAMP()
+                  WHERE local_id = ? AND status = 'en_cours'"
+            );
+            $st->bind_param('i', $localId);
+            $st->execute();
+            $st->close();
+        } catch (Throwable $e) {
+            error_log('[Wintaskly sl_local] ' . $e->getMessage());
+        }
 
         /* Reprise sur collision. À 62^10 combinaisons elle n'arrivera
            probablement jamais, mais une collision silencieuse créditerait

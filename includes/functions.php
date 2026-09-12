@@ -643,6 +643,73 @@ if (!function_exists('wt_ad_zone')) {
      *
      * @return bool
      */
+    /**
+     * Les plafonds quotidiens de shortlinks sont-ils atteints ?
+     *
+     * Deux limites indépendantes, désactivées quand elles valent 0 :
+     *   - shortlink.max_daily_coins    : total gagné dans la journée
+     *   - shortlink.max_daily_per_link : participations sur UN lien
+     *
+     * Le contrôle se fait en amont, avant que l'utilisateur ne suive le
+     * parcours. Le placer au moment du crédit le ferait travailler pour
+     * rien, ce qui est la meilleure façon de perdre quelqu'un.
+     *
+     * La journée est celle d'UTC, comme le reste du site : toute autre
+     * référence avantagerait certains fuseaux.
+     *
+     * @return string '' si tout va bien, sinon 'coins' ou 'link'
+     */
+    function wt_shortlink_cap_reached(int $userId, int $shortlinkId): string
+    {
+        if ($userId <= 0) { return ''; }
+
+        $maxCoins = (float) cfg('shortlink.max_daily_coins', 0);
+        $maxLink  = (int) cfg('shortlink.max_daily_per_link', 0);
+        if ($maxCoins <= 0 && $maxLink <= 0) { return ''; }
+
+        try {
+            if ($maxCoins > 0) {
+                /* On somme la récompense des tentatives validées du jour.
+                   reward_coins est lu sur le lien : c'est la valeur au
+                   moment de la lecture, pas celle du crédit. L'écart est
+                   sans conséquence ici — il s'agit d'un garde-fou, pas
+                   d'une comptabilité. */
+                $st = db()->prepare(
+                    "SELECT COALESCE(SUM(s.reward_coins), 0) total
+                       FROM shortlink_attempts a
+                       JOIN shortlinks s ON s.id = a.shortlink_id
+                      WHERE a.user_id = ? AND a.status = 'valide'
+                        AND DATE(a.completed_at) = UTC_DATE()"
+                );
+                $st->bind_param('i', $userId);
+                $st->execute();
+                $total = (float) ($st->get_result()->fetch_assoc()['total'] ?? 0);
+                $st->close();
+                if ($total >= $maxCoins) { return 'coins'; }
+            }
+
+            if ($maxLink > 0 && $shortlinkId > 0) {
+                $st = db()->prepare(
+                    "SELECT COUNT(*) c FROM shortlink_attempts
+                      WHERE user_id = ? AND shortlink_id = ? AND status = 'valide'
+                        AND DATE(completed_at) = UTC_DATE()"
+                );
+                $st->bind_param('ii', $userId, $shortlinkId);
+                $st->execute();
+                $n = (int) ($st->get_result()->fetch_assoc()['c'] ?? 0);
+                $st->close();
+                if ($n >= $maxLink) { return 'link'; }
+            }
+        } catch (Throwable $e) {
+            /* En cas d'échec on laisse passer : bloquer tout le monde
+               parce qu'une requête a échoué coûte plus cher que le
+               dépassement qu'on cherche à éviter. L'incident est
+               journalisé pour être vu. */
+            error_log('[Wintaskly shortlink cap] ' . $e->getMessage());
+        }
+        return '';
+    }
+
     function wt_user_can_testify(int $userId): bool
     {
         if ($userId <= 0) { return false; }

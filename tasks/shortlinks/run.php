@@ -17,6 +17,14 @@
 declare(strict_types=1);
 require __DIR__ . '/../../includes/init.php';
 
+/* Chemin logique de cette page.
+ *
+ * L'URL reelle est le code a 10 caracteres, different a chaque
+ * parcours : impossible a viser avec un motif. On declare donc un
+ * chemin stable, que le gestionnaire de balises <head> et l'encart
+ * flottant utilisent a la place. */
+$GLOBALS['WT_AD_PAGE_PATH'] = '/tasks/shortlinks/run';
+
 $code = (string) ($_GET['c'] ?? '');
 $run  = wt_sl_run_by_code($code);
 

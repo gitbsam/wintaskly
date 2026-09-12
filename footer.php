@@ -564,6 +564,9 @@ $_overlayExcluded = [
 ];
 
 if (function_exists('wt_ad_overlay') && function_exists('wt_ad_tags_current_path')) {
+    /* wt_ad_tags_current_path() rend le chemin logique quand la page en
+       declare un : le parcours du raccourcisseur maison, servi sous une
+       URL aleatoire, est donc reconnu comme /tasks/shortlinks/run. */
     $_path = wt_ad_tags_current_path();
     $_onTasks = ($_path === '/tasks' || str_starts_with($_path, '/tasks/'));
 

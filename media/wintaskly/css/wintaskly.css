@@ -1382,13 +1382,35 @@ html.light .wt-icon-moon { display: none; }
   padding: .8rem 1rem; margin-bottom: 1rem;
   background: var(--wt-bg-soft);
 }
-.wt-alert--err { border-color: var(--wt-danger); color: var(--wt-danger); }
-.wt-alert--ok  { border-color: var(--wt-success); color: var(--wt-success); }
-/* --warn et --warning étaient employés dans plusieurs pages sans avoir
-   jamais été définis : les avertissements s'affichaient donc avec le
-   style neutre, indistinguables d'une simple note. */
+/* Deux jeux de noms cohabitent dans le code : --err/--ok d'un cote,
+   --error/--success de l'autre. Seuls les premiers etaient definis.
+   Resultat : 92 bannieres de succes et d'erreur s'affichaient avec le
+   style neutre, indistinguables d'une simple note — sur des ecrans qui
+   annoncent un paiement effectue ou une operation refusee.
+
+   On declare les deux orthographes plutot que de renommer 92 appels :
+   une renomination massive introduirait plus de risques qu'elle n'en
+   retire. */
+.wt-alert--err,
+.wt-alert--error   { border-color: var(--wt-danger);  color: var(--wt-danger); }
+.wt-alert--ok,
+.wt-alert--success { border-color: var(--wt-success); color: var(--wt-success); }
 .wt-alert--warn,
-.wt-alert--warning { border-color: #f59e0b; color: #f59e0b; }
+.wt-alert--warning { border-color: var(--wt-warn);    color: var(--wt-warn); }
+.wt-alert--info    { border-color: var(--wt-accent, #60a5fa); }
+
+/* Barre laterale : la couleur du texte seule ne suffit pas a distinguer
+   deux etats pour une personne daltonienne, et une banniere longue perd
+   son indice colore des la deuxieme ligne. */
+.wt-alert--err, .wt-alert--error,
+.wt-alert--ok,  .wt-alert--success,
+.wt-alert--warn, .wt-alert--warning,
+.wt-alert--info { border-left-width: 4px; }
+
+/* Le titre en gras et le corps du message restent lisibles : on ne
+   colore que la bordure et l'intitule, pas le paragraphe entier. */
+.wt-alert p { color: var(--wt-text); margin: .35rem 0 0; }
+.wt-alert code { color: inherit; }
 
 .wt-table {
   width: 100%; border-collapse: collapse; font-size: .92rem;
@@ -1420,6 +1442,71 @@ html.light .wt-icon-moon { display: none; }
 }
 .wt-toast.is-visible {
   opacity: 1; transform: translateX(-50%) translateY(0);
+}
+
+/* Variantes de couleur.
+   Le JS emettait deja wt-toast--ok et wt-toast--err, mais aucune des
+   deux n'etait definie : un succes et une erreur s'affichaient a
+   l'identique. L'utilisateur ne pouvait pas savoir, d'un coup d'oeil,
+   si son action avait abouti.
+
+   On garde le fond du theme et on colore la bordure, le texte et une
+   barre laterale. Un fond entierement colore serait illisible en
+   theme clair comme en theme sombre selon la couleur. */
+.wt-toast {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  max-width: min(92vw, 440px);
+  border-left: 4px solid var(--wt-border);
+  text-align: left;
+  line-height: 1.4;
+}
+
+.wt-toast--ok {
+  border-color: var(--wt-success);
+  border-left-color: var(--wt-success);
+  color: var(--wt-success);
+}
+.wt-toast--err {
+  border-color: var(--wt-danger);
+  border-left-color: var(--wt-danger);
+  color: var(--wt-danger);
+}
+.wt-toast--warn {
+  border-color: var(--wt-warn);
+  border-left-color: var(--wt-warn);
+  color: var(--wt-warn);
+}
+.wt-toast--info {
+  border-color: var(--wt-accent, #60a5fa);
+  border-left-color: var(--wt-accent, #60a5fa);
+}
+
+/* Pictogramme, insere par le CSS : le JS n'a pas a s'en occuper, et
+   un message reste lisible meme si la police d'icones manque. */
+.wt-toast::before {
+  font-size: 1.05rem;
+  line-height: 1;
+  flex: none;
+}
+.wt-toast--ok::before   { content: '✓'; }
+.wt-toast--err::before  { content: '✕'; }
+.wt-toast--warn::before { content: '!'; font-weight: 800; }
+.wt-toast--info::before { content: 'i'; font-weight: 800; font-style: italic; }
+
+/* Un message long ne doit pas coller aux bords sur mobile. */
+@media (max-width: 480px) {
+  .wt-toast {
+    left: .8rem; right: .8rem;
+    transform: translateY(20px);
+    max-width: none;
+  }
+  .wt-toast.is-visible { transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wt-toast { transition: opacity .2s; }
 }
 
 /* ---------------------------------------------------------------------

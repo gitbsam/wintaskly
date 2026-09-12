@@ -180,7 +180,7 @@ CREATE TABLE IF NOT EXISTS `shortlink_cooldowns` (
 CREATE TABLE IF NOT EXISTS `transactions` (
   `id`         BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   `user_id`    INT UNSIGNED NOT NULL,
-  `type`       ENUM('faucet','shortlink','ptc','offerwall','referral','withdraw','admin','bonus','daily_bonus','achievement','bingo_buy','bingo_win') NOT NULL,
+  `type`       ENUM('faucet','shortlink','ptc','offerwall','referral','withdraw','admin','bonus','daily_bonus','achievement','bingo_buy','bingo_win','instant','instant_ticket') NOT NULL,
   `coins`      DECIMAL(18,4) NOT NULL DEFAULT 0,
   `xp`         INT NOT NULL DEFAULT 0,
   `meta`       VARCHAR(255) NULL,
@@ -714,7 +714,7 @@ ALTER TABLE `users`
 -- (troncature en chaîne vide) toutes les transactions Bingo — les gains du
 -- jackpot n'apparaissaient donc dans aucune statistique par type.
 ALTER TABLE `transactions`
-  MODIFY `type` ENUM('faucet','shortlink','ptc','offerwall','referral','withdraw','admin','bonus','daily_bonus','achievement','bingo_buy','bingo_win') NOT NULL;
+  MODIFY `type` ENUM('faucet','shortlink','ptc','offerwall','referral','withdraw','admin','bonus','daily_bonus','achievement','bingo_buy','bingo_win','instant','instant_ticket') NOT NULL;
 
 -- referral_earnings.source — extension pour 'ptc','offerwall' (V2 sur V1)
 ALTER TABLE `referral_earnings`
@@ -1038,6 +1038,129 @@ SET @s := IF(@p IS NOT NULL AND @p < 8,
      MODIFY `received_amount` DECIMAL(18,8) NOT NULL DEFAULT 0',
   'SELECT 1');
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+
+-- Plafonds quotidiens des liens sponsorises (V9.63).
+-- 0 = desactive. A calibrer une fois que le registre des recettes
+-- aura montre ce qu'une participation rapporte reellement.
+INSERT IGNORE INTO `config` (`k`,`v`) VALUES
+ ('shortlink.max_daily_coins','0'),
+ ('shortlink.max_daily_per_link','0');
+
+-- Rattrapage V9.66 : nouveaux types de transaction pour Instant Gagnant.
+-- MODIFY est idempotent : reappliquer la meme definition ne change rien.
+ALTER TABLE `transactions`
+  MODIFY `type` ENUM('faucet','shortlink','ptc','offerwall','referral','withdraw','admin','bonus','daily_bonus','achievement','bingo_buy','bingo_win','instant','instant_ticket') NOT NULL;
+
+-- ---------------------------------------------------------------------
+-- INSTANT GAGNANT (V9.66)
+--
+-- Deux voies d'acces, choisies par jeu :
+--   'ads'     : l'utilisateur suit un parcours publicitaire, comme pour
+--               un shortlink, et le gain se debloque au retour. Aucun
+--               clic n'est exige : les regies interdisent les clics
+--               incites et fermeraient le compte.
+--   'tickets' : l'utilisateur mise des tickets. Les tickets GAGNES ne
+--               posent aucun probleme. Les tickets ACHETES font entrer
+--               le jeu dans le champ des jeux d'argent (mise + hasard +
+--               gain) : la vente reste donc desactivee par defaut et
+--               protegee par un reglage distinct.
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `instant_games` (
+  `id`             INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `name`           VARCHAR(120) NOT NULL,
+  `mode`           ENUM('ads','tickets') NOT NULL DEFAULT 'ads',
+  `reward_coins`   DECIMAL(18,4) NOT NULL DEFAULT 0
+                   COMMENT 'Gain en coins si la partie est gagnante',
+  -- Compteur PARTAGE entre tous les joueurs.
+  --
+  -- Chaque ticket mise le decremente de 1. Celui qui l'amene a zero
+  -- remporte le gain, et le compteur repart a parts_total.
+  --
+  -- Le hasard ne vient pas d'un tirage mais de l'etat du compteur au
+  -- moment ou l'on joue : il depend des parties des autres, donc
+  -- imprevisible pour chacun. C'est cette imprevisibilite qui garde le
+  -- jeu dans le champ des jeux de hasard, et qui impose que la vente de
+  -- tickets reste desactivee.
+  `parts_total`    SMALLINT UNSIGNED NOT NULL DEFAULT 7
+                   COMMENT 'Parties necessaires pour remporter le gain',
+  `parts_left`     SMALLINT UNSIGNED NOT NULL DEFAULT 7
+                   COMMENT 'Parties restantes, partagees entre tous',
+  `plays_total`    INT UNSIGNED NOT NULL DEFAULT 0,
+  `wins_total`     INT UNSIGNED NOT NULL DEFAULT 0,
+  `ticket_options` VARCHAR(120) NOT NULL DEFAULT '1,2,5,10'
+                   COMMENT 'Mises proposees, separees par des virgules',
+  `cooldown_hours` SMALLINT UNSIGNED NOT NULL DEFAULT 24,
+  `daily_max`      SMALLINT UNSIGNED NOT NULL DEFAULT 1
+                   COMMENT 'Parties par jour et par utilisateur. 0 = illimite',
+  `active`         TINYINT(1) NOT NULL DEFAULT 0,
+  `test_mode`      TINYINT(1) NOT NULL DEFAULT 1
+                   COMMENT '1 = visible des seuls administrateurs',
+  `launch_at`      DATETIME NULL COMMENT 'Date de mise en ligne, NULL = aucune',
+  `sort_order`     SMALLINT UNSIGNED NOT NULL DEFAULT 0,
+  `created_at`     DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_active` (`active`, `test_mode`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Solde de tickets. Volontairement separe de users.coins : un ticket
+-- n'est pas une monnaie, il ne se convertit pas en euros et ne se
+-- retire pas. Les melanger rendrait cette distinction impossible a
+-- tenir, et c'est elle qui separe un jeu promotionnel d'une loterie.
+CREATE TABLE IF NOT EXISTS `user_tickets` (
+  `user_id`    INT UNSIGNED NOT NULL,
+  `balance`    INT UNSIGNED NOT NULL DEFAULT 0,
+  `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`user_id`),
+  CONSTRAINT `fk_ut_user` FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Journal des mouvements de tickets. Sans lui, impossible de prouver
+-- l'origine d'un ticket — or c'est exactement ce qui distingue un
+-- ticket gagne d'un ticket achete en cas de controle.
+CREATE TABLE IF NOT EXISTS `ticket_ledger` (
+  `id`         BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `user_id`    INT UNSIGNED NOT NULL,
+  `delta`      INT NOT NULL COMMENT 'Positif = credit, negatif = mise',
+  `origin`     ENUM('task','bonus','referral','admin','purchase','play','refund')
+               NOT NULL DEFAULT 'admin',
+  `note`       VARCHAR(190) NULL,
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_user` (`user_id`, `created_at`),
+  KEY `idx_origin` (`origin`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Une partie jouee. Conserve le resultat ET la mise : un litige sur un
+-- gain ne se tranche pas sans trace horodatee.
+CREATE TABLE IF NOT EXISTS `instant_plays` (
+  `id`           BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `game_id`      INT UNSIGNED NOT NULL,
+  `user_id`      INT UNSIGNED NOT NULL,
+  `mode`         ENUM('ads','tickets') NOT NULL,
+  `tickets_used` SMALLINT UNSIGNED NOT NULL DEFAULT 0,
+  `won`          TINYINT(1) NOT NULL DEFAULT 0,
+  `parts_left`   SMALLINT UNSIGNED NOT NULL DEFAULT 0
+                 COMMENT 'Compteur APRES cette partie, pour retracer un litige',
+  `coins_won`    DECIMAL(18,4) NOT NULL DEFAULT 0,
+  `token`        CHAR(64) NULL COMMENT 'Jeton du parcours publicitaire',
+  `status`       ENUM('en_attente','valide','rejete','expire')
+                 NOT NULL DEFAULT 'valide',
+  `ip`           VARBINARY(16) NULL,
+  `created_at`   DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uniq_token` (`token`),
+  KEY `idx_user_day` (`user_id`, `created_at`),
+  KEY `idx_game` (`game_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Reglages globaux.
+-- instant.tickets_purchase_enabled reste a 0 : l'activer fait entrer le
+-- jeu dans le champ des jeux d'argent et suppose une autorisation.
+INSERT IGNORE INTO `config` (`k`,`v`) VALUES
+ ('instant.enabled','1'),
+ ('instant.ticket_label','Ticket'),
+ ('instant.tickets_purchase_enabled','0'),
+ ('instant.ads_seconds','45');
 
 -- Zones de la page d'accueil (V9.60).
 INSERT IGNORE INTO `ad_zones` (`k`,`label`,`code`,`size_key`,`active`) VALUES

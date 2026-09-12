@@ -58,7 +58,58 @@ if (!empty($sl['available_at']) && strtotime($sl['available_at'] . ' UTC') > tim
     exit;
 }
 
-/* 2) Tentative en attente */
+/* 1 bis) Plafonds quotidiens.
+ *
+ * Controle avant le parcours, jamais apres : un utilisateur qui suit
+ * trois pages de publicite pour s'entendre dire que son plafond etait
+ * atteint ne revient pas. */
+if (function_exists('wt_shortlink_cap_reached')) {
+    $capte = wt_shortlink_cap_reached((int) $u['id'], (int) $sl['id']);
+    if ($capte !== '') {
+        header('Location: ' . wt_url('/tasks/shortlinks/?cap=' . urlencode($capte)));
+        exit;
+    }
+}
+
+/* 2) Tentative en attente
+ *
+ * FAILLE CORRIGEE ICI — cumul de jetons.
+ *
+ * Le delai d'attente (shortlink_cooldowns) n'est ecrit qu'APRES une
+ * validation reussie. Avant la premiere, rien n'empechait d'ouvrir la
+ * passerelle plusieurs fois d'affilee : chaque passage creait une
+ * tentative avec son propre jeton, tous valides simultanement. Il
+ * suffisait ensuite de les completer un par un pour etre credite autant
+ * de fois, en contournant entierement le delai de 24 h.
+ *
+ * On invalide donc toute tentative encore en attente pour ce couple
+ * utilisateur/lien avant d'en creer une nouvelle. Un seul jeton est
+ * valide a la fois.
+ *
+ * Pourquoi invalider plutot que refuser l'acces : un utilisateur qui a
+ * ferme son onglet par accident doit pouvoir recommencer. Le refuser le
+ * bloquerait jusqu'a l'expiration, sans qu'il comprenne pourquoi. */
+$stmt = $db->prepare(
+    "UPDATE shortlink_attempts
+        SET status = 'expire', completed_at = UTC_TIMESTAMP()
+      WHERE user_id = ? AND shortlink_id = ? AND status = 'en_attente'"
+);
+$stmt->bind_param('ii', $u['id'], $sl['id']);
+$stmt->execute();
+$perimees = $stmt->affected_rows;
+$stmt->close();
+
+if ($perimees > 0 && function_exists('wt_admin_log')) {
+    /* Plusieurs jetons perimes d'un coup signalent une tentative de
+       cumul plutot qu'un onglet ferme. On garde la trace sans bloquer. */
+    if ($perimees > 1) {
+        error_log(sprintf(
+            '[Wintaskly shortlink] %d jetons perimes d un coup — user=%d link=%d',
+            $perimees, (int) $u['id'], (int) $sl['id']
+        ));
+    }
+}
+
 $token = bin2hex(random_bytes(32));
 $ipBin = wt_ip_bin();
 $stmt = $db->prepare(

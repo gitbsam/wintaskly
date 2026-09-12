@@ -189,6 +189,21 @@ if (!function_exists('wt_ad_tags_current_path')) {
     /** Chemin normalisé de la page courante, préfixe d'installation retiré. */
     function wt_ad_tags_current_path(): string
     {
+        /* Chemin declare par la page elle-meme.
+         *
+         * Le parcours du raccourcisseur maison est servi sous une URL
+         * tiree au hasard — /aB3xY9kL2p — qu'aucun motif fixe ne peut
+         * capturer. Sans ce mecanisme, il aurait fallu cocher « toutes
+         * les pages » pour y injecter une balise, donc l'injecter
+         * partout.
+         *
+         * La page pose donc son chemin logique, et c'est lui qui sert a
+         * la comparaison. Aucune autre page n'en a besoin aujourd'hui. */
+        $override = (string) ($GLOBALS['WT_AD_PAGE_PATH'] ?? '');
+        if ($override !== '') {
+            return wt_ad_tags_normalize_path($override);
+        }
+
         $path = (string) (parse_url((string) ($_SERVER['REQUEST_URI'] ?? '/'), PHP_URL_PATH) ?: '/');
 
         // Site installé dans un sous-dossier : on retire le préfixe pour
@@ -283,6 +298,7 @@ if (!function_exists('wt_ad_tags_available_pages')) {
                 '/tasks/shortlinks*'         => t('adtags.p.shortlinks_all'),
                 '/tasks/shortlinks'          => t('adtags.p.shortlinks'),
                 '/tasks/shortlinks/gateway.php' => t('adtags.p.shortlinks_gateway'),
+                '/tasks/shortlinks/run'      => t('adtags.p.shortlinks_run'),
                 '/tasks/ptc'                 => t('adtags.p.ptc'),
                 '/tasks/offerwalls*'         => t('adtags.p.offerwalls_all'),
                 '/tasks/offerwalls'          => t('adtags.p.offerwalls'),

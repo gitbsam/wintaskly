@@ -188,9 +188,23 @@
     if (!el) {
       el = document.createElement('div');
       el.className = 'wt-toast';
+      /* Annonce vocale du message. Sans cela, un utilisateur de lecteur
+         d'ecran ne sait jamais si son action a abouti : le toast
+         apparait et disparait sans etre lu. */
+      el.setAttribute('role', 'status');
+      el.setAttribute('aria-live', 'polite');
       document.body.appendChild(el);
     }
-    el.className = 'wt-toast wt-toast--' + (type === 'err' ? 'err' : 'ok');
+
+    /* Quatre types au lieu de deux. Auparavant tout ce qui n'etait pas
+       'err' devenait 'ok' : un avertissement s'affichait donc en vert,
+       ce qui dit exactement le contraire de ce qu'il faut comprendre. */
+    var types = { ok: 1, err: 1, warn: 1, info: 1 };
+    var t = types[type] ? type : 'ok';
+    /* Une erreur merite d'etre annoncee sans attendre la fin de la
+       phrase en cours du lecteur d'ecran. */
+    el.setAttribute('aria-live', t === 'err' ? 'assertive' : 'polite');
+    el.className = 'wt-toast wt-toast--' + t;
     el.textContent = message;
     // force reflow
     void el.offsetWidth;
