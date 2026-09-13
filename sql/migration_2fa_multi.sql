@@ -20,18 +20,12 @@
 -- ---------------------------------------------------------------------
 -- 1) Colonnes utilisateur
 -- ---------------------------------------------------------------------
-SET @sql := IF(
-  (SELECT COUNT(*) FROM information_schema.COLUMNS
-    WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'users'
-      AND COLUMN_NAME = 'twofa_email_enabled') = 0,
-  'ALTER TABLE `users`
-     ADD COLUMN `twofa_email_enabled` TINYINT(1) NOT NULL DEFAULT 0 AFTER `totp_enabled`,
-     ADD COLUMN `twofa_sms_enabled`   TINYINT(1) NOT NULL DEFAULT 0 AFTER `twofa_email_enabled`,
-     ADD COLUMN `twofa_phone`         VARCHAR(32) NULL AFTER `twofa_sms_enabled`,
-     ADD COLUMN `twofa_phone_verified_at` DATETIME NULL AFTER `twofa_phone`,
-     ADD COLUMN `twofa_preferred`     ENUM(''totp'',''email'',''sms'') NULL AFTER `twofa_phone_verified_at`',
-  'SELECT "colonnes 2FA deja presentes" AS info');
-PREPARE s FROM @sql; EXECUTE s; DEALLOCATE PREPARE s;
+ALTER TABLE `users`
+     ADD COLUMN IF NOT EXISTS `twofa_email_enabled` TINYINT(1) NOT NULL DEFAULT 0 AFTER `totp_enabled`,
+     ADD COLUMN IF NOT EXISTS `twofa_sms_enabled`   TINYINT(1) NOT NULL DEFAULT 0 AFTER `twofa_email_enabled`,
+     ADD COLUMN IF NOT EXISTS `twofa_phone`         VARCHAR(32) NULL AFTER `twofa_sms_enabled`,
+     ADD COLUMN IF NOT EXISTS `twofa_phone_verified_at` DATETIME NULL AFTER `twofa_phone`,
+     ADD COLUMN IF NOT EXISTS `twofa_preferred`     ENUM('totp','email','sms') NULL AFTER `twofa_phone_verified_at`;
 
 -- ---------------------------------------------------------------------
 -- 2) Codes à usage unique (e-mail et SMS)

@@ -27,12 +27,6 @@
 -- ⚠️ Importer avec --default-character-set=utf8mb4.
 -- ============================================================================
 
-SET @sql := IF(
-  (SELECT COUNT(*) FROM information_schema.COLUMNS
-    WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'blog_posts'
-      AND COLUMN_NAME = 'cover_image') = 0,
-  'ALTER TABLE `blog_posts`
-     ADD COLUMN `cover_image`  VARCHAR(190) NULL AFTER `cover_emoji`,
-     ADD COLUMN `cover_prompt` TEXT         NULL AFTER `cover_image`',
-  'SELECT "blog_posts : colonnes de couverture deja presentes" AS info');
-PREPARE s FROM @sql; EXECUTE s; DEALLOCATE PREPARE s;
+ALTER TABLE `blog_posts`
+     ADD COLUMN IF NOT EXISTS `cover_image`  VARCHAR(190) NULL AFTER `cover_emoji`,
+     ADD COLUMN IF NOT EXISTS `cover_prompt` TEXT         NULL AFTER `cover_image`;

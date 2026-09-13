@@ -115,26 +115,19 @@ CREATE TABLE IF NOT EXISTS `revenue_entries` (
 -- 0.0001, soit 37 % d'écart. L'élargissement ne récupère pas ce qui a
 -- déjà été tronqué : ressaisissez les lignes crypto antérieures.
 -- ---------------------------------------------------------------------
-SET @p := (SELECT numeric_scale FROM information_schema.columns
-            WHERE table_schema = DATABASE() AND table_name = 'revenue_entries'
-              AND column_name = 'received_amount');
-SET @s := IF(@p IS NOT NULL AND @p < 8,
-  'ALTER TABLE `revenue_entries`
-     MODIFY `declared_amount` DECIMAL(18,8) NOT NULL DEFAULT 0,
-     MODIFY `received_amount` DECIMAL(18,8) NOT NULL DEFAULT 0',
-  'SELECT 1');
-PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+-- MODIFY est idempotent par nature : reappliquer la meme definition ne
+-- change rien. Aucun test prealable n'est donc necessaire, ce qui evite
+-- information_schema — inaccessible a l'utilisateur de la base sur un
+-- hebergement mutualise (#1044).
+ALTER TABLE `revenue_entries`
+  MODIFY `declared_amount` DECIMAL(18,8) NOT NULL DEFAULT 0,
+  MODIFY `received_amount` DECIMAL(18,8) NOT NULL DEFAULT 0;
 
 -- ---------------------------------------------------------------------
 -- 5) Suivi du dernier alignement automatique des cours
 -- ---------------------------------------------------------------------
-SET @c := (SELECT COUNT(*) FROM information_schema.columns
-            WHERE table_schema = DATABASE() AND table_name = 'withdrawal_methods'
-              AND column_name = 'rate_updated_at');
-SET @s := IF(@c = 0,
-  'ALTER TABLE `withdrawal_methods` ADD COLUMN `rate_updated_at` DATETIME NULL',
-  'SELECT 1');
-PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+ALTER TABLE `withdrawal_methods`
+  ADD COLUMN IF NOT EXISTS `rate_updated_at` DATETIME NULL;
 
 -- ---------------------------------------------------------------------
 -- 6) Zone publicitaire de l'encart flottant des pages de tâches
@@ -205,7 +198,7 @@ INSERT IGNORE INTO `config` (`k`,`v`) VALUES
 -- 13) Instant Gagnant (V9.66)
 -- ---------------------------------------------------------------------
 ALTER TABLE `transactions`
-  MODIFY `type` ENUM('faucet','shortlink','ptc','offerwall','referral','withdraw','admin','bonus','daily_bonus','achievement','bingo_buy','bingo_win','instant','instant_ticket') NOT NULL;
+  MODIFY `type` ENUM('faucet','shortlink','ptc','offerwall','referral','withdraw','admin','bonus','daily_bonus','achievement','bingo_buy','bingo_win','instant','instant_ticket','gift','quiz') NOT NULL;
 
 -- ---------------------------------------------------------------------
 -- INSTANT GAGNANT (V9.66)
@@ -227,8 +220,22 @@ CREATE TABLE IF NOT EXISTS `instant_games` (
   `mode`           ENUM('ads','tickets') NOT NULL DEFAULT 'ads',
   `reward_coins`   DECIMAL(18,4) NOT NULL DEFAULT 0
                    COMMENT 'Gain en coins si la partie est gagnante',
-  `win_permille`   SMALLINT UNSIGNED NOT NULL DEFAULT 100
-                   COMMENT 'Chance de gain pour 1000 parties. 100 = 10 %',
+  -- Compteur PARTAGE entre tous les joueurs.
+  --
+  -- Chaque ticket mise le decremente de 1. Celui qui l'amene a zero
+  -- remporte le gain, et le compteur repart a parts_total.
+  --
+  -- Le hasard ne vient pas d'un tirage mais de l'etat du compteur au
+  -- moment ou l'on joue : il depend des parties des autres, donc
+  -- imprevisible pour chacun. C'est cette imprevisibilite qui garde le
+  -- jeu dans le champ des jeux de hasard, et qui impose que la vente de
+  -- tickets reste desactivee.
+  `parts_total`    SMALLINT UNSIGNED NOT NULL DEFAULT 7
+                   COMMENT 'Parties necessaires pour remporter le gain',
+  `parts_left`     SMALLINT UNSIGNED NOT NULL DEFAULT 7
+                   COMMENT 'Parties restantes, partagees entre tous',
+  `plays_total`    INT UNSIGNED NOT NULL DEFAULT 0,
+  `wins_total`     INT UNSIGNED NOT NULL DEFAULT 0,
   `ticket_options` VARCHAR(120) NOT NULL DEFAULT '1,2,5,10'
                    COMMENT 'Mises proposees, separees par des virgules',
   `cooldown_hours` SMALLINT UNSIGNED NOT NULL DEFAULT 24,
@@ -293,6 +300,24 @@ CREATE TABLE IF NOT EXISTS `instant_plays` (
   KEY `idx_game` (`game_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+-- Rattrapage : une base creee avant la V9.68 porte `win_permille` et
+-- n'a pas le compteur partage. CREATE TABLE IF NOT EXISTS ne corrige
+-- rien sur une table existante : il faut l'ALTER explicitement.
+--
+-- IF NOT EXISTS plutot qu'un test sur information_schema : celui-ci est
+-- refuse a l'utilisateur de la base sur un hebergement mutualise.
+ALTER TABLE `instant_games`
+  ADD COLUMN IF NOT EXISTS `parts_total` SMALLINT UNSIGNED NOT NULL DEFAULT 7,
+  ADD COLUMN IF NOT EXISTS `parts_left`  SMALLINT UNSIGNED NOT NULL DEFAULT 7,
+  ADD COLUMN IF NOT EXISTS `plays_total` INT UNSIGNED NOT NULL DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS `wins_total`  INT UNSIGNED NOT NULL DEFAULT 0;
+
+ALTER TABLE `instant_games` DROP COLUMN IF EXISTS `win_permille`;
+
+ALTER TABLE `instant_plays`
+  ADD COLUMN IF NOT EXISTS `parts_left` SMALLINT UNSIGNED NOT NULL DEFAULT 0;
+
+
 -- Reglages globaux.
 -- instant.tickets_purchase_enabled reste a 0 : l'activer fait entrer le
 -- jeu dans le champ des jeux d'argent et suppose une autorisation.
@@ -301,4 +326,235 @@ INSERT IGNORE INTO `config` (`k`,`v`) VALUES
  ('instant.ticket_label','Ticket'),
  ('instant.tickets_purchase_enabled','0'),
  ('instant.ads_seconds','45');
+
+
+-- ---------------------------------------------------------------------
+-- 14) Boite a cadeaux (V9.68)
+-- ---------------------------------------------------------------------
+-- ---------------------------------------------------------------------
+-- BOITE A CADEAUX (V9.68)
+--
+-- Une PARTIE est une grille de N boites, toutes gagnantes. Ouvrir une
+-- boite demande de suivre un parcours publicitaire ; le lot se revele
+-- au retour.
+--
+-- Les lots sont tires A LA CREATION de la partie, pas a l'ouverture.
+-- Trois raisons : l'enveloppe est alors exacte au coin pres, un lot
+-- exceptionnel ne peut pas sortir deux fois, et en cas de litige on
+-- peut montrer que la grille etait figee avant le premier clic.
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `gift_rounds` (
+  `id`            INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `boxes_count`   SMALLINT UNSIGNED NOT NULL DEFAULT 100,
+  `envelope`      DECIMAL(18,4) NOT NULL DEFAULT 0
+                  COMMENT 'Total des coins places dans la grille',
+  `special_kind`  ENUM('none','big','jackpot') NOT NULL DEFAULT 'none'
+                  COMMENT 'Lot exceptionnel de CETTE partie. Jamais les deux.',
+  `special_value` DECIMAL(18,4) NOT NULL DEFAULT 0,
+  `status`        ENUM('active','done') NOT NULL DEFAULT 'active',
+  `opened_count`  SMALLINT UNSIGNED NOT NULL DEFAULT 0,
+  `created_at`    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `closed_at`     DATETIME NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_status` (`status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS `gift_boxes` (
+  `id`         INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `round_id`   INT UNSIGNED NOT NULL,
+  `position`   SMALLINT UNSIGNED NOT NULL COMMENT 'Place affichee, 1..N',
+  `kind`       ENUM('coins','xp','big','jackpot') NOT NULL DEFAULT 'coins',
+  `coins`      DECIMAL(18,4) NOT NULL DEFAULT 0,
+  `xp`         SMALLINT UNSIGNED NOT NULL DEFAULT 0,
+  `opened_by`  INT UNSIGNED NULL,
+  `opened_at`  DATETIME NULL,
+  `offer_pct`  SMALLINT UNSIGNED NOT NULL DEFAULT 0
+               COMMENT 'Bonus propose a l ouverture. Fige pour empecher de relancer le tirage.',
+  `multiplier` SMALLINT UNSIGNED NOT NULL DEFAULT 0
+               COMMENT 'Bonus en pourcent reellement applique, 0 si refuse ou non propose',
+  `coins_paid` DECIMAL(18,4) NOT NULL DEFAULT 0
+               COMMENT 'Verse au joueur, multiplicateur inclus',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uniq_pos` (`round_id`, `position`),
+  KEY `idx_open` (`round_id`, `opened_by`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Parcours publicitaire d'une boite. Meme principe que pour Instant
+-- Gagnant : le jeton est emis a l'ouverture, le temps est recalcule au
+-- retour a partir de l'horodatage en base.
+CREATE TABLE IF NOT EXISTS `gift_claims` (
+  `id`         BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `box_id`     INT UNSIGNED NOT NULL,
+  `user_id`    INT UNSIGNED NOT NULL,
+  `token`      CHAR(64) NOT NULL,
+  `status`     ENUM('en_attente','valide','expire') NOT NULL DEFAULT 'en_attente',
+  `ip`         VARBINARY(16) NULL,
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uniq_token` (`token`),
+  KEY `idx_user` (`user_id`, `created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Reglages.
+-- gift.envelope_ratio : part de la recette estimee reversee en lots.
+--   Le multiplicateur ajoute environ 10 % par-dessus si un joueur sur
+--   cinq l'utilise : une part de 50 % laisse donc 45 % de marge, pas 50.
+-- gift.jackpot_step : ce qu'une boite ouverte ajoute au jackpot.
+-- gift.multipliers : bonus proposes, en pourcent. Le 0 et le 100 ont
+--   ete retires — le premier frustre, le second double la sortie.
+INSERT IGNORE INTO `config` (`k`,`v`) VALUES
+ ('gift.enabled','1'),
+ ('gift.test_mode','1'),
+ ('gift.boxes_count','100'),
+ ('gift.rpv_estimate','0.005'),
+ ('gift.envelope_ratio','0.40'),
+ ('gift.jackpot','0'),
+ ('gift.jackpot_step','5'),
+ ('gift.prize_pot','0'),
+ ('gift.pot_step','20'),
+ ('gift.jackpot_seed','10000'),
+ ('gift.jackpot_min','40000'),
+ ('gift.big_tiers','800,1000,2000,5000'),
+ ('gift.special_chance','50'),
+ ('gift.multipliers','20,50,80'),
+ ('gift.ads_seconds','30'),
+ ('gift.ads_url','');
+
+
+-- ---------------------------------------------------------------------
+-- 15) Zones des nouvelles taches (V9.70)
+-- ---------------------------------------------------------------------
+-- Zones des nouvelles taches (V9.70). Deux par tache au minimum :
+-- une en haut, vue par tous ceux qui arrivent, une en bas, vue par ceux
+-- qui restent. Une seule zone ne capte que la moitie du trafic utile.
+INSERT IGNORE INTO `ad_zones` (`k`,`label`,`code`,`size_key`,`active`) VALUES
+ ('instant_top',    'Instant Gagnant — Haut de page',   '<!-- Insérer ici le code de la régie -->', '728x90',  1),
+ ('instant_bottom', 'Instant Gagnant — Bas de page',    '<!-- Insérer ici le code de la régie -->', '300x250', 1),
+ ('gift_top',       'Boîte à cadeaux — Haut de page',   '<!-- Insérer ici le code de la régie -->', '728x90',  1),
+ ('gift_bottom',    'Boîte à cadeaux — Bas de page',    '<!-- Insérer ici le code de la régie -->', '300x250', 1),
+ ('quiz_top',       'WintQuiz — Haut de page',          '<!-- Insérer ici le code de la régie -->', '728x90',  1),
+ ('quiz_bottom',    'WintQuiz — Bas de page',           '<!-- Insérer ici le code de la régie -->', '300x250', 1);
+
+
+-- ---------------------------------------------------------------------
+-- 16) WintQuiz (V9.70)
+-- ---------------------------------------------------------------------
+-- ---------------------------------------------------------------------
+-- WINTQUIZ (V9.70)
+--
+-- Une PARTIE s'acheve a 5 bonnes reponses. Les questions s'enchainent
+-- tant que le compte n'y est pas : une mauvaise reponse ne fait pas
+-- perdre, elle allonge.
+--
+-- La bonne reponse n'est JAMAIS envoyee au navigateur avant validation.
+-- C'est la seule protection qui vaille : tout ce qui part vers le
+-- client se lit dans le code source.
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `quiz_questions` (
+  `id`         INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `question`   VARCHAR(400) NOT NULL,
+  `a`          VARCHAR(200) NOT NULL,
+  `b`          VARCHAR(200) NOT NULL,
+  `c`          VARCHAR(200) NOT NULL,
+  `d`          VARCHAR(200) NOT NULL,
+  `correct`    ENUM('a','b','c','d') NOT NULL,
+  -- Nom en clair et non `explain` : celui-ci est un mot reserve de
+  -- MariaDB, et toute requete qui l'oublierait entre accents graves
+  -- echouerait.
+  `explanation` VARCHAR(400) NULL COMMENT 'Affiche apres une mauvaise reponse',
+  `category`   VARCHAR(60) NOT NULL DEFAULT 'general',
+  `difficulty` TINYINT UNSIGNED NOT NULL DEFAULT 1 COMMENT '1 facile, 2 moyen, 3 difficile',
+  `lang`       CHAR(2) NOT NULL DEFAULT 'fr',
+  `active`     TINYINT(1) NOT NULL DEFAULT 1,
+  `asked`      INT UNSIGNED NOT NULL DEFAULT 0,
+  `correct_n`  INT UNSIGNED NOT NULL DEFAULT 0,
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_pick` (`active`, `lang`, `difficulty`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Une partie en cours ou terminee.
+CREATE TABLE IF NOT EXISTS `quiz_sessions` (
+  `id`          BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `user_id`     INT UNSIGNED NOT NULL,
+  `goal`        TINYINT UNSIGNED NOT NULL DEFAULT 5,
+  `correct_cnt` TINYINT UNSIGNED NOT NULL DEFAULT 0,
+  `asked_cnt`   SMALLINT UNSIGNED NOT NULL DEFAULT 0,
+  `reward`      DECIMAL(18,4) NOT NULL DEFAULT 0 COMMENT 'Cagnotte figee a l ouverture',
+  `status`      ENUM('en_cours','gagne','abandonne') NOT NULL DEFAULT 'en_cours',
+  -- Question en attente de reponse. Sans elle, on pourrait repondre a
+  -- une question qu'on n'a jamais recue.
+  `current_qid` INT UNSIGNED NULL,
+  `asked_ids`   TEXT NULL COMMENT 'Questions deja posees, pour ne pas les repeter',
+  `started_at`  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `ended_at`    DATETIME NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_user` (`user_id`, `status`),
+  KEY `idx_started` (`started_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Chaque reponse donnee. Sert a retracer une partie contestee et a
+-- mesurer quelles questions sont trop dures.
+CREATE TABLE IF NOT EXISTS `quiz_answers` (
+  `id`          BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `session_id`  BIGINT UNSIGNED NOT NULL,
+  `question_id` INT UNSIGNED NOT NULL,
+  `given`       ENUM('a','b','c','d') NOT NULL,
+  `is_correct`  TINYINT(1) NOT NULL DEFAULT 0,
+  `answered_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_session` (`session_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Reglages.
+-- quiz.cooldown_hours : 3 h, comme le faucet.
+-- quiz.reward_coins   : cagnotte d'une partie gagnee. Une partie coute
+--   5 publicites : a 0,005 EUR la vue, 250 coins de recette. 125 laisse
+--   la moitie.
+INSERT IGNORE INTO `config` (`k`,`v`) VALUES
+ ('quiz.enabled','1'),
+ ('quiz.test_mode','1'),
+ ('quiz.goal','5'),
+ ('quiz.reward_coins','125'),
+ ('quiz.cooldown_hours','3'),
+ ('quiz.ads_seconds','20'),
+ ('quiz.ads_url',''),
+ ('quiz.start_date',''),
+ ('quiz.repeat_after_days','30');
+
+
+-- ---------------------------------------------------------------------
+-- 17) Progression de campagne du quiz (V9.73)
+-- ---------------------------------------------------------------------
+-- Progression de campagne du quiz (V9.73).
+--
+-- Une partie s'achete en 5 bonnes reponses et verse un petit gain. En
+-- parallele, CHAQUE bonne reponse fait avancer une progression de
+-- campagne qui, a 100 %, debloque une cagnotte bien plus consequente.
+--
+-- Table separee de quiz_sessions : la progression survit aux parties,
+-- et une remise a zero de campagne ne doit pas effacer l'historique des
+-- parties jouees.
+CREATE TABLE IF NOT EXISTS `quiz_progress` (
+  `user_id`     INT UNSIGNED NOT NULL,
+  `campaign`    SMALLINT UNSIGNED NOT NULL DEFAULT 1
+                COMMENT 'Numero de campagne. Incremente pour repartir a zero.',
+  `correct_cnt` INT UNSIGNED NOT NULL DEFAULT 0,
+  `claimed`     TINYINT(1) NOT NULL DEFAULT 0
+                COMMENT '1 = cagnotte de campagne deja versee',
+  `updated_at`  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`user_id`, `campaign`),
+  CONSTRAINT `fk_qp_user` FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Reglages de campagne et hypothese de recette.
+-- econ.rpv_estimate est PARTAGE par toutes les taches : c'est le seul
+-- chiffre a corriger quand le registre des recettes donnera la valeur
+-- reelle, et toutes les projections suivront.
+INSERT IGNORE INTO `config` (`k`,`v`) VALUES
+ ('econ.rpv_estimate','0.005'),
+ ('quiz.campaign','1'),
+ ('quiz.campaign_goal','500'),
+ ('quiz.campaign_reward','5000'),
+ ('quiz.ads_per_answer','1');
 

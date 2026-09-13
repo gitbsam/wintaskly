@@ -491,7 +491,12 @@ if (!function_exists('wt_ad_zone')) {
              * L'emplacement reste donc monétisé, en toute conformité. */
             $adsOk = wt_consent_allows('ads');
             if ($adsOk && (!wt_code_has_adsense($code) || wt_adsense_allowed())) {
-                return '<div class="wt-ad-scale">'
+                /* La taille native est transmise au script : sans
+                   elle, il doit la deviner dans le code de la regie, ce
+                   qui echoue des que celle-ci injecte autre chose qu'un
+                   iframe portant width/height. Une 728x90 restait alors
+                   a l'echelle 1 et debordait sur mobile. */
+                return '<div class="wt-ad-scale" data-ad-size="' . e((string) $zone['size_key']) . '">'
                      . '<div class="wt-ad-label">' . e(t('ad.title.pub')) . '</div>'
                      . '<div class="wt-ad-scale__inner">'
                      . $code
@@ -505,7 +510,7 @@ if (!function_exists('wt_ad_zone')) {
             if ($banner !== null) {
                 $src = e(wt_url('/media/wintaskly/img/banners/' . $banner['filename']));
                 $signup = e(wt_url('/auth/signup.php'));
-                return '<div class="wt-ad-scale">'
+                return '<div class="wt-ad-scale" data-ad-size="' . e((string) $zone['size_key']) . '">'
                      . '<div class="wt-ad-label">' . e(t('ad.title.pub')) . '</div>'
                      . '<div class="wt-ad-scale__inner">'
                      . '<a href="' . $signup . '" class="wt-ad-house">'
@@ -856,7 +861,10 @@ if (!function_exists('wt_ad_zone')) {
              . $body
              . '</svg>';
 
-        return '<div class="wt-ad-scale">'
+        /* Le visuel maison connait ses dimensions : on les annonce au
+           script comme pour les autres, sinon il devait les mesurer
+           dans le DOM et retombait a l'echelle 1 sur petit ecran. */
+        return '<div class="wt-ad-scale" data-ad-size="' . (int) $w . 'x' . (int) $h . '">'
              . '<div class="wt-ad-label">' . e(t('ad.title.pub')) . '</div>'
              . '<div class="wt-ad-scale__inner">'
              . '<a href="' . e(wt_url('/auth/signup.php')) . '" class="wt-ad-house">'
@@ -913,7 +921,13 @@ if (!function_exists('wt_ad_zone')) {
                      . ' height="' . (int) $banner['height'] . '" alt="Wintaskly" loading="lazy">'
                      . '</a>';
         }
-        return '<div class="wt-ad-scale">'
+        /* Toutes les bannieres d'une rotation partagent le meme format :
+           on prend celui de la premiere. */
+        $rw = (int) ($pool[0]['width'] ?? 0);
+        $rh = (int) ($pool[0]['height'] ?? 0);
+        $attr = ($rw > 0 && $rh > 0) ? ' data-ad-size="' . $rw . 'x' . $rh . '"' : '';
+
+        return '<div class="wt-ad-scale"' . $attr . '>'
              . '<div class="wt-ad-label">' . e(t('ad.title.pub')) . '</div>'
              . '<div class="wt-ad-scale__inner">'
              . '<div class="wt-ad-rotator" data-ad-rotator>' . $slides . '</div>'

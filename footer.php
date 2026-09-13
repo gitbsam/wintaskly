@@ -319,6 +319,9 @@ window.WT_I18N = {
 <script src="<?= $_base ?>/media/wintaskly/js/wt-slrun.js?v=<?= e(WT_VERSION) ?>" defer></script>
 <script src="<?= $_base ?>/media/wintaskly/js/wt-totop.js?v=<?= e(WT_VERSION) ?>" defer></script>
 <script src="<?= $_base ?>/media/wintaskly/js/wt-bingo-deadline.js?v=<?= e(WT_VERSION) ?>" defer></script>
+<script src="<?= $_base ?>/media/wintaskly/js/wt-instant.js?v=<?= e(WT_VERSION) ?>" defer></script>
+<script src="<?= $_base ?>/media/wintaskly/js/wt-quiz.js?v=<?= e(WT_VERSION) ?>" defer></script>
+<script src="<?= $_base ?>/media/wintaskly/js/wt-gift.js?v=<?= e(WT_VERSION) ?>" defer></script>
 
 <!-- =====================================================================
      PWA — Service Worker + Bannière d'installation

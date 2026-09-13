@@ -13113,13 +13113,31 @@ a.wt-dash-v2__kpi-cta:hover {
 
 .wt-ad-scale {
   width: 100%;
+  max-width: 100%;
   display: flex;
   justify-content: center;
-  overflow: hidden;        /* sécurité anti-débordement pendant le calcul */
   flex-direction: column;
   align-items: center;
   margin: 1rem 0;
+  /* auto et non hidden.
+     Avec overflow:hidden, une banniere plus large que l'ecran etait
+     silencieusement COUPEE : l'annonceur payait pour une creation dont
+     la moitie n'etait jamais vue, et le visiteur voyait un visuel
+     tronque sans comprendre. Le defilement lateral est moins elegant,
+     mais il montre tout. Il ne sert que si la mise a l'echelle echoue :
+     dans le cas normal, le script reduit l'encart et rien ne deborde. */
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  /* La barre de defilement ne doit pas s'afficher en permanence sur un
+     encart qui tient dans la largeur. */
+  scrollbar-width: none;
 }
+.wt-ad-scale::-webkit-scrollbar { display: none; }
+
+/* Le conteneur exterieur ne doit jamais elargir la page. */
+.wt-ad-zone,
+.wt-ad-zone--home { max-width: 100%; overflow: hidden; }
 .wt-ad-scale:empty {
   display: none;
 }
@@ -14380,3 +14398,447 @@ a.wt-dash-v2__kpi-cta:hover {
 .wt-bingo-rules summary { cursor: pointer; font-weight: 600; }
 .wt-bingo-rules__list { margin: .8rem 0 0; padding-left: 1.3rem; }
 .wt-bingo-rules__list li { margin-bottom: .5rem; line-height: 1.55; }
+
+/* ==================================================================
+   Instant Gagnant (9.66)
+   ================================================================== */
+.wt-instant { padding: 1.5rem 1rem 3rem; }
+.wt-instant__wrap { width: 100%; max-width: 820px; margin-inline: auto; }
+.wt-instant__head { margin-bottom: 1.5rem; }
+.wt-instant__title { margin: 0 0 .3rem; font-size: clamp(1.4rem, 5vw, 2rem); }
+.wt-instant__balance {
+  margin: .6rem 0 0; font-weight: 600;
+  color: var(--wt-accent, #60a5fa);
+}
+.wt-instant__empty {
+  padding: 2.5rem 1rem; text-align: center;
+  border: 1px dashed var(--wt-border); border-radius: var(--wt-radius-md, 10px);
+}
+
+.wt-instant-card {
+  position: relative;
+  padding: 1.2rem;
+  margin-bottom: 1.2rem;
+  border: 1px solid var(--wt-border);
+  border-radius: var(--wt-radius-lg, 14px);
+  background: var(--wt-bg-elev);
+}
+.wt-instant-card__test {
+  position: absolute; top: .6rem; right: .6rem;
+  padding: .2rem .55rem; font-size: .72rem; font-weight: 700;
+  border-radius: var(--wt-radius-pill, 999px);
+  background: var(--wt-warn); color: #1a1205;
+}
+.wt-instant-card__head {
+  display: flex; align-items: baseline; justify-content: space-between;
+  gap: 1rem; flex-wrap: wrap; margin-bottom: .6rem;
+}
+.wt-instant-card__name { margin: 0; font-size: 1.15rem; }
+.wt-instant-card__prize { font-size: 1.35rem; color: var(--wt-success); }
+.wt-instant-card__prize span { font-size: .8rem; opacity: .75; margin-left: .2rem; }
+.wt-instant-card__how { margin: 0 0 .9rem; font-size: .92rem; opacity: .85; line-height: 1.5; }
+
+.wt-instant-card__actions {
+  display: flex; align-items: center; gap: .6rem; flex-wrap: wrap;
+}
+.wt-instant-card__select { max-width: 120px; }
+
+/* Le chrono ne doit pas tressauter a chaque seconde. */
+.wt-instant-card__timer {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700; font-size: 1.05rem;
+}
+
+/* Trois etats du bouton : neutre, interrompu (rouge), pret (vert).
+   La couleur seule ne suffit pas — le libelle change aussi, sinon un
+   utilisateur daltonien ne voit aucune difference. */
+.wt-instant-btn.is-stopped {
+  background: var(--wt-danger) !important;
+  border-color: var(--wt-danger) !important;
+  color: #fff !important;
+}
+.wt-instant-btn.is-ready {
+  background: var(--wt-success) !important;
+  border-color: var(--wt-success) !important;
+  color: #fff !important;
+}
+.wt-instant-reset {
+  font-size: 1.15rem; line-height: 1;
+  min-width: 44px;              /* cible tactile confortable */
+}
+
+.wt-instant-card__msg {
+  margin: .8rem 0 0; font-size: .92rem; line-height: 1.5;
+  padding-left: .7rem; border-left: 3px solid var(--wt-border);
+}
+.wt-instant-card__msg--ok   { border-color: var(--wt-success); color: var(--wt-success); }
+.wt-instant-card__msg--warn { border-color: var(--wt-warn);    color: var(--wt-warn); }
+.wt-instant-card__msg--err  { border-color: var(--wt-danger);  color: var(--wt-danger); }
+
+.wt-instant-rules {
+  margin-top: 1.8rem; padding: .85rem 1.1rem;
+  border: 1px solid var(--wt-border); border-radius: var(--wt-radius-md, 10px);
+  background: var(--wt-bg-soft, rgba(255,255,255,.03));
+}
+.wt-instant-rules summary { cursor: pointer; font-weight: 600; }
+.wt-instant-rules ul { margin: .8rem 0 0; padding-left: 1.3rem; }
+.wt-instant-rules li { margin-bottom: .5rem; line-height: 1.55; }
+
+@media (max-width: 480px) {
+  .wt-instant { padding: 1rem .9rem 2.5rem; }
+  /* Le bouton principal prend toute la largeur : c'est l'action
+     unique de la carte. */
+  .wt-instant-card__actions .wt-btn--primary { flex: 1 1 100%; }
+}
+
+/* ==================================================================
+   WintQuiz (9.72)
+   ================================================================== */
+.wt-quiz { padding: 1.5rem 1rem 3rem; }
+.wt-quiz__wrap { width: 100%; max-width: 720px; margin-inline: auto; }
+.wt-quiz__head { margin-bottom: 1.2rem; }
+.wt-quiz__title { margin: 0 0 .3rem; font-size: clamp(1.4rem, 5vw, 2rem); }
+.wt-quiz__since { margin: 0; font-size: .88rem; opacity: .75; }
+
+.wt-quiz__progress { margin-bottom: 1.3rem; }
+.wt-quiz__bar {
+  height: 10px; border-radius: 999px; overflow: hidden;
+  background: var(--wt-bg-soft, rgba(255,255,255,.08));
+}
+.wt-quiz__bar > span {
+  display: block; height: 100%;
+  background: linear-gradient(90deg, var(--wt-accent, #60a5fa), var(--wt-success, #34d399));
+  transition: width .45s ease;
+}
+.wt-quiz__progress-txt { margin: .5rem 0 0; font-size: .88rem; opacity: .85; }
+
+.wt-quiz-card {
+  position: relative;
+  padding: 1.3rem;
+  border: 1px solid var(--wt-border);
+  border-radius: var(--wt-radius-lg, 14px);
+  background: var(--wt-bg-elev);
+}
+
+/* Points de progression, en haut a droite de la question. */
+.wt-quiz-card__dots {
+  position: absolute; top: 1rem; right: 1rem;
+  display: flex; gap: .35rem;
+}
+.wt-quiz-dot {
+  width: 10px; height: 10px; border-radius: 50%;
+  background: var(--wt-border);
+  transition: background .3s ease, transform .3s ease;
+}
+.wt-quiz-dot.is-on {
+  background: var(--wt-success);
+  transform: scale(1.15);
+}
+
+.wt-quiz-card__cat {
+  display: inline-block; margin-bottom: .5rem;
+  font-size: .72rem; text-transform: uppercase; letter-spacing: .06em;
+  opacity: .65;
+}
+.wt-quiz-card__q {
+  margin: 0 0 1.1rem;
+  font-size: clamp(1.05rem, 3.6vw, 1.3rem);
+  line-height: 1.4;
+  /* Les points occupent le coin : on reserve la place plutot que de
+     laisser le titre passer dessous. */
+  padding-right: 5.5rem;
+}
+
+.wt-quiz-options { display: flex; flex-direction: column; gap: .6rem; }
+.wt-quiz-option {
+  display: flex; align-items: center; gap: .75rem;
+  padding: .75rem .9rem;
+  border: 1px solid var(--wt-border);
+  border-radius: var(--wt-radius-md, 10px);
+  cursor: pointer;
+  transition: border-color .15s ease, background .15s ease;
+}
+.wt-quiz-option:hover { border-color: var(--wt-accent, #60a5fa); }
+.wt-quiz-option input { flex: none; }
+.wt-quiz-option__l {
+  flex: none; width: 26px; height: 26px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 50%; font-weight: 700; font-size: .82rem;
+  background: var(--wt-bg-soft, rgba(255,255,255,.06));
+}
+.wt-quiz-option__t { line-height: 1.4; }
+/* La proposition cochee se distingue sans dependre du seul bouton
+   radio, difficile a voir sur un petit ecran. */
+.wt-quiz-option:has(input:checked) {
+  border-color: var(--wt-accent, #60a5fa);
+  background: color-mix(in srgb, var(--wt-accent, #60a5fa) 10%, transparent);
+}
+.wt-quiz-card__submit { width: 100%; margin-top: 1.1rem; }
+
+.wt-quiz-card--result { text-align: center; }
+.wt-quiz-result__ico { font-size: 2.6rem; line-height: 1; margin-bottom: .5rem; }
+.wt-quiz-result__title { margin: 0 0 .5rem; font-size: 1.15rem; }
+.wt-quiz-result__title--ok  { color: var(--wt-success); }
+.wt-quiz-result__title--bad { color: var(--wt-danger); }
+.wt-quiz-result__good    { margin: 0 0 .4rem; font-weight: 600; }
+.wt-quiz-result__explain { margin: 0 0 1rem; font-size: .9rem; opacity: .8; line-height: 1.5; }
+
+.wt-quiz__cooldown {
+  text-align: center; padding: 2.2rem 1rem;
+  border: 1px solid var(--wt-border); border-radius: var(--wt-radius-lg, 14px);
+  background: var(--wt-bg-elev);
+}
+.wt-quiz__cooldown-ico { font-size: 2.4rem; }
+.wt-quiz__countdown {
+  margin-top: .8rem; font-size: 1.9rem; font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.wt-quiz__empty {
+  padding: 2.5rem 1rem; text-align: center;
+  border: 1px dashed var(--wt-border); border-radius: var(--wt-radius-md, 10px);
+}
+
+.wt-quiz-rules {
+  margin-top: 1.6rem; padding: .85rem 1.1rem;
+  border: 1px solid var(--wt-border); border-radius: var(--wt-radius-md, 10px);
+  background: var(--wt-bg-soft, rgba(255,255,255,.03));
+}
+.wt-quiz-rules summary { cursor: pointer; font-weight: 600; }
+.wt-quiz-rules ul { margin: .8rem 0 0; padding-left: 1.3rem; }
+.wt-quiz-rules li { margin-bottom: .5rem; line-height: 1.55; }
+
+@media (max-width: 480px) {
+  .wt-quiz { padding: 1rem .9rem 2.5rem; }
+  .wt-quiz-card__q { padding-right: 0; margin-top: 1.6rem; }
+  .wt-quiz-card__dots { top: .8rem; right: .8rem; }
+}
+
+/* --- Projection economique (admin) ----------------------------- */
+.wt-econ {
+  margin: 1.2rem 0;
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--wt-border);
+  border-radius: var(--wt-radius-md, 10px);
+  background: var(--wt-bg-soft, rgba(255,255,255,.03));
+}
+.wt-econ__title { margin: 0 0 .5rem; font-size: 1rem; }
+.wt-econ__base  { margin: 0 0 .8rem; font-size: .85rem; opacity: .8; }
+.wt-econ__table { width: 100%; border-collapse: collapse; font-size: .88rem; }
+.wt-econ__table th,
+.wt-econ__table td {
+  padding: .45rem .5rem;
+  border-bottom: 1px solid var(--wt-border);
+  text-align: left;
+  vertical-align: top;
+}
+.wt-econ__table small { opacity: .7; }
+.wt-econ--ok   { color: var(--wt-success); }
+.wt-econ--thin { color: var(--wt-warn); }
+.wt-econ--loss { color: var(--wt-danger); font-weight: 700; }
+.wt-econ__warn {
+  font-size: .85rem;
+  color: var(--wt-warn);
+  border-bottom: none !important;
+  padding-top: 0 !important;
+}
+.wt-econ__note { margin: .8rem 0 0; font-size: .8rem; opacity: .7; line-height: 1.5; }
+
+@media (max-width: 560px) {
+  /* Le tableau defile plutot que d'ecraser les colonnes. */
+  .wt-econ__table { display: block; overflow-x: auto; white-space: nowrap; }
+}
+.wt-quiz__progress-sub { margin: .25rem 0 0; font-size: .82rem; opacity: .7; }
+
+/* ==================================================================
+   Boite a cadeaux (9.75)
+   ================================================================== */
+.wt-gift { padding: 1.5rem 1rem 3rem; }
+.wt-gift__wrap { width: 100%; max-width: 900px; margin-inline: auto; }
+.wt-gift__head { margin-bottom: 1.2rem; }
+.wt-gift__title { margin: 0 0 .3rem; font-size: clamp(1.4rem, 5vw, 2rem); }
+.wt-gift__test {
+  display: inline-block; margin: .5rem 0 0;
+  padding: .2rem .6rem; font-size: .75rem; font-weight: 700;
+  border-radius: var(--wt-radius-pill, 999px);
+  background: var(--wt-warn); color: #1a1205;
+}
+.wt-gift__empty {
+  padding: 2.5rem 1rem; text-align: center;
+  border: 1px dashed var(--wt-border); border-radius: var(--wt-radius-md, 10px);
+}
+
+.wt-gift__bar {
+  display: flex; gap: 1.5rem; flex-wrap: wrap;
+  padding: .9rem 1.1rem; margin-bottom: 1.2rem;
+  border: 1px solid var(--wt-border); border-radius: var(--wt-radius-md, 10px);
+  background: var(--wt-bg-elev);
+}
+.wt-gift__bar strong { display: block; font-size: 1.15rem; }
+.wt-gift__bar small  { font-size: .78rem; }
+
+/* La grille s'adapte : 5 colonnes sur telephone, jusqu'a 10 sur grand
+   ecran. Une taille fixe donnerait des boites minuscules ou enormes
+   selon l'appareil. */
+.wt-gift-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(64px, 1fr));
+  gap: .5rem;
+}
+.wt-gift-box {
+  aspect-ratio: 1;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: .1rem;
+  border: 1px solid var(--wt-border);
+  border-radius: var(--wt-radius-md, 10px);
+  background: var(--wt-bg-elev);
+  cursor: pointer;
+  font: inherit; color: inherit;
+  transition: transform .12s ease, border-color .12s ease;
+}
+.wt-gift-box:hover:not(:disabled) {
+  transform: translateY(-2px);
+  border-color: var(--wt-primary, #ff9933);
+}
+.wt-gift-box:focus-visible {
+  outline: 2px solid var(--wt-primary, #ff9933);
+  outline-offset: 2px;
+}
+.wt-gift-box__n { font-size: .82rem; opacity: .45; }
+
+/* Boite ouverte : grisee mais lisible. Voir ce que les autres ont
+   trouve donne envie de jouer, et prouve que la grille distribue. */
+.wt-gift-box.is-open {
+  cursor: default;
+  opacity: .55;
+  background: var(--wt-bg-soft, rgba(255,255,255,.03));
+}
+.wt-gift-box.is-mine {
+  opacity: .85;
+  border-color: var(--wt-success);
+}
+.wt-gift-box__v { font-size: .85rem; font-weight: 700; line-height: 1.1; }
+.wt-gift-box__v.is-big { color: var(--wt-warn); }
+.wt-gift-box__u { font-size: .65rem; opacity: .6; }
+
+/* --- Surimpression du resultat --- */
+.wt-gift-overlay {
+  position: fixed; inset: 0; z-index: 200;
+  display: flex; align-items: center; justify-content: center;
+  padding: 1rem;
+  background: rgba(0, 0, 0, .65);
+  backdrop-filter: blur(3px);
+}
+.wt-gift-overlay[hidden] { display: none; }
+.wt-gift-overlay__card {
+  position: relative;
+  width: 100%; max-width: 380px;
+  padding: 1.6rem 1.3rem;
+  text-align: center;
+  border: 1px solid var(--wt-border);
+  border-radius: var(--wt-radius-lg, 14px);
+  background: var(--wt-bg-elev);
+  box-shadow: 0 20px 50px rgba(0,0,0,.45);
+  animation: wtGiftIn .2s ease-out;
+}
+@keyframes wtGiftIn {
+  from { opacity: 0; transform: scale(.94); }
+  to   { opacity: 1; transform: scale(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .wt-gift-overlay__card { animation: none; }
+}
+.wt-gift-overlay__x {
+  position: absolute; top: .4rem; right: .6rem;
+  width: 36px; height: 36px;
+  border: 0; background: none; cursor: pointer;
+  font-size: 1.6rem; line-height: 1; color: inherit; opacity: .6;
+}
+.wt-gift-overlay__x:hover { opacity: 1; }
+.wt-gift-overlay__title { margin: 0 0 .5rem; font-size: 2.4rem; line-height: 1; }
+.wt-gift-overlay__msg   { margin: 0 0 1rem; font-size: 1.02rem; line-height: 1.45; }
+.wt-gift-overlay__timer {
+  margin-bottom: 1rem; font-size: 1.8rem; font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.wt-gift-overlay__actions {
+  display: flex; flex-direction: column; gap: .5rem;
+}
+.wt-gift-overlay__offer { margin: 0 0 .3rem; font-weight: 600; color: var(--wt-success); }
+
+.wt-gift-rules {
+  margin-top: 1.6rem; padding: .85rem 1.1rem;
+  border: 1px solid var(--wt-border); border-radius: var(--wt-radius-md, 10px);
+  background: var(--wt-bg-soft, rgba(255,255,255,.03));
+}
+.wt-gift-rules summary { cursor: pointer; font-weight: 600; }
+.wt-gift-rules ul { margin: .8rem 0 0; padding-left: 1.3rem; }
+.wt-gift-rules li { margin-bottom: .5rem; line-height: 1.55; }
+
+@media (max-width: 480px) {
+  .wt-gift { padding: 1rem .9rem 2.5rem; }
+  .wt-gift-grid { grid-template-columns: repeat(auto-fill, minmax(56px, 1fr)); gap: .4rem; }
+}
+
+/* ==================================================================
+   Classes d'administration utilisees sans avoir jamais ete definies
+   ==================================================================
+   Six pages emploient .wt-admin-v2__table — dont diagnostic.php et
+   shortlinks.php, anterieures a ce cycle : leurs tableaux s'affichaient
+   donc sans bordure, sans espacement, colonnes collees. Le style .wt-table
+   existait a cote, inutilise par ces pages.
+
+   On declare l'alias plutot que de renommer dans six fichiers : moins de
+   surface, et les pages anciennes en beneficient aussi. */
+.wt-admin-v2__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: .92rem;
+}
+.wt-admin-v2__table th,
+.wt-admin-v2__table td {
+  text-align: left;
+  padding: .65rem .8rem;
+  border-bottom: 1px solid var(--wt-border);
+  vertical-align: top;
+}
+.wt-admin-v2__table th {
+  font-family: var(--wt-font-mono, monospace);
+  text-transform: uppercase;
+  font-size: .74rem;
+  letter-spacing: .05em;
+  color: var(--wt-text-soft, inherit);
+  white-space: nowrap;
+}
+.wt-admin-v2__table tbody tr:hover {
+  background: var(--wt-bg-soft, rgba(255,255,255,.03));
+}
+/* Un tableau d'administration comporte souvent six colonnes : sur
+   telephone il defile plutot que d'ecraser le texte. */
+@media (max-width: 720px) {
+  .wt-admin-v2__table { display: block; overflow-x: auto; }
+}
+
+/* Grille de champs. Les formulaires d'administration alignent deux ou
+   trois champs par ligne sur grand ecran, un seul sur telephone. */
+.wt-admin-v2__form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0 1rem;
+}
+
+/* Le libelle etait deja style par « .wt-field label » : cette classe
+   n'ajoute rien, on la declare pour que la regle reste vraie si la
+   structure change. */
+.wt-field__label {
+  font-size: .85rem;
+  font-weight: 600;
+  color: var(--wt-text-soft, inherit);
+}
+
+/* Bouton compact des tableaux. */
+.wt-btn--sm {
+  padding: .35rem .7rem;
+  font-size: .8rem;
+}

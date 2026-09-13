@@ -29,43 +29,25 @@
 -- ⚠️ Importer avec --default-character-set=utf8mb4.
 -- ============================================================================
 
-SET @sql := IF(
-  (SELECT COUNT(*) FROM information_schema.COLUMNS
-    WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'shortlinks'
-      AND COLUMN_NAME = 'fail_streak') = 0,
-  'ALTER TABLE `shortlinks`
-     ADD COLUMN `last_check_at`  DATETIME NULL AFTER `active`,
-     ADD COLUMN `last_http_code` SMALLINT UNSIGNED NOT NULL DEFAULT 0 AFTER `last_check_at`,
-     ADD COLUMN `fail_streak`    SMALLINT UNSIGNED NOT NULL DEFAULT 0 AFTER `last_http_code`',
-  'SELECT "shortlinks : colonnes deja presentes" AS info');
-PREPARE s FROM @sql; EXECUTE s; DEALLOCATE PREPARE s;
+ALTER TABLE `shortlinks`
+     ADD COLUMN IF NOT EXISTS `last_check_at`  DATETIME NULL AFTER `active`,
+     ADD COLUMN IF NOT EXISTS `last_http_code` SMALLINT UNSIGNED NOT NULL DEFAULT 0 AFTER `last_check_at`,
+     ADD COLUMN IF NOT EXISTS `fail_streak`    SMALLINT UNSIGNED NOT NULL DEFAULT 0 AFTER `last_http_code`;
 
-SET @sql := IF(
-  (SELECT COUNT(*) FROM information_schema.COLUMNS
-    WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'offerwalls'
-      AND COLUMN_NAME = 'fail_streak') = 0,
-  'ALTER TABLE `offerwalls`
-     ADD COLUMN `last_check_at`  DATETIME NULL AFTER `active`,
-     ADD COLUMN `last_http_code` SMALLINT UNSIGNED NOT NULL DEFAULT 0 AFTER `last_check_at`,
-     ADD COLUMN `fail_streak`    SMALLINT UNSIGNED NOT NULL DEFAULT 0 AFTER `last_http_code`',
-  'SELECT "offerwalls : colonnes deja presentes" AS info');
-PREPARE s FROM @sql; EXECUTE s; DEALLOCATE PREPARE s;
+ALTER TABLE `offerwalls`
+     ADD COLUMN IF NOT EXISTS `last_check_at`  DATETIME NULL AFTER `active`,
+     ADD COLUMN IF NOT EXISTS `last_http_code` SMALLINT UNSIGNED NOT NULL DEFAULT 0 AFTER `last_check_at`,
+     ADD COLUMN IF NOT EXISTS `fail_streak`    SMALLINT UNSIGNED NOT NULL DEFAULT 0 AFTER `last_http_code`;
 
 -- ---------------------------------------------------------------------
 -- Annonces PTC
 -- ---------------------------------------------------------------------
 -- Une annonce PTC pointe vers un site externe. Si ce site ferme, le membre
 -- regarde une page morte pendant le décompte et n'est crédité de rien.
-SET @sql := IF(
-  (SELECT COUNT(*) FROM information_schema.COLUMNS
-    WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'ptc_ads'
-      AND COLUMN_NAME = 'fail_streak') = 0,
-  'ALTER TABLE `ptc_ads`
-     ADD COLUMN `last_check_at`  DATETIME NULL AFTER `active`,
-     ADD COLUMN `last_http_code` SMALLINT UNSIGNED NOT NULL DEFAULT 0 AFTER `last_check_at`,
-     ADD COLUMN `fail_streak`    SMALLINT UNSIGNED NOT NULL DEFAULT 0 AFTER `last_http_code`',
-  'SELECT "ptc_ads : colonnes deja presentes" AS info');
-PREPARE s FROM @sql; EXECUTE s; DEALLOCATE PREPARE s;
+ALTER TABLE `ptc_ads`
+     ADD COLUMN IF NOT EXISTS `last_check_at`  DATETIME NULL AFTER `active`,
+     ADD COLUMN IF NOT EXISTS `last_http_code` SMALLINT UNSIGNED NOT NULL DEFAULT 0 AFTER `last_check_at`,
+     ADD COLUMN IF NOT EXISTS `fail_streak`    SMALLINT UNSIGNED NOT NULL DEFAULT 0 AFTER `last_http_code`;
 
 -- ---------------------------------------------------------------------
 -- Zones publicitaires
@@ -74,16 +56,10 @@ PREPARE s FROM @sql; EXECUTE s; DEALLOCATE PREPARE s;
 -- Il n'y a pas d'URL à sonder directement : le domaine est extrait du code
 -- JavaScript par la tâche de contrôle. Une régie dont le domaine ne répond
 -- plus n'affiche plus rien — donc plus aucune recette, sans aucun signal.
-SET @sql := IF(
-  (SELECT COUNT(*) FROM information_schema.COLUMNS
-    WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'ad_zones'
-      AND COLUMN_NAME = 'fail_streak') = 0,
-  'ALTER TABLE `ad_zones`
-     ADD COLUMN `last_check_at`  DATETIME NULL AFTER `active`,
-     ADD COLUMN `last_http_code` SMALLINT UNSIGNED NOT NULL DEFAULT 0 AFTER `last_check_at`,
-     ADD COLUMN `fail_streak`    SMALLINT UNSIGNED NOT NULL DEFAULT 0 AFTER `last_http_code`',
-  'SELECT "ad_zones : colonnes deja presentes" AS info');
-PREPARE s FROM @sql; EXECUTE s; DEALLOCATE PREPARE s;
+ALTER TABLE `ad_zones`
+     ADD COLUMN IF NOT EXISTS `last_check_at`  DATETIME NULL AFTER `active`,
+     ADD COLUMN IF NOT EXISTS `last_http_code` SMALLINT UNSIGNED NOT NULL DEFAULT 0 AFTER `last_check_at`,
+     ADD COLUMN IF NOT EXISTS `fail_streak`    SMALLINT UNSIGNED NOT NULL DEFAULT 0 AFTER `last_http_code`;
 
 -- ---------------------------------------------------------------------
 -- Réglages

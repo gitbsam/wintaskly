@@ -291,6 +291,34 @@ $base = rtrim($GLOBALS['WT_CONFIG']['base_url'] ?? '', '/');
       Bannières
     </a>
 
+    <a href="<?= $base ?>/admin/instant.php" class="<?= $adminActive==='instant' ? 'is-active' : '' ?>" style="--idx:4">
+      <span class="wt-admin-v2__nav-ico" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M13 2 3 14h8l-1 8 10-12h-8z"/>
+        </svg>
+      </span>
+      Instant Gagnant
+    </a>
+
+    <a href="<?= $base ?>/admin/gift.php" class="<?= $adminActive==='gift' ? 'is-active' : '' ?>" style="--idx:6">
+      <span class="wt-admin-v2__nav-ico" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="8" width="18" height="13" rx="2"/><path d="M12 8v13M3 12h18"/>
+          <path d="M12 8S9 3 6.5 4.5 9 8 12 8zM12 8s3-5 5.5-3.5S15 8 12 8z"/>
+        </svg>
+      </span>
+      Boîte à cadeaux
+    </a>
+
+    <a href="<?= $base ?>/admin/quiz.php" class="<?= $adminActive==='quiz' ? 'is-active' : '' ?>" style="--idx:5">
+      <span class="wt-admin-v2__nav-ico" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12" y2="17"/>
+        </svg>
+      </span>
+      WintQuiz
+    </a>
+
     <a href="<?= $base ?>/admin/revenues.php" class="<?= $adminActive==='revenues' ? 'is-active' : '' ?>" style="--idx:4">
       <span class="wt-admin-v2__nav-ico" aria-hidden="true">
         <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">

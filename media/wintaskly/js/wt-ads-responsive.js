@@ -17,10 +17,22 @@
 (function () {
   'use strict';
 
-  function detectNativeSize(inner) {
+  function detectNativeSize(inner, wrap) {
+    var w = 0, h = 0;
+
+    /* Taille annoncee par le serveur, via data-ad-size="728x90".
+       C'est la source la plus sure : elle vient de size_key en base et
+       ne depend pas de ce que la regie injecte. Les methodes suivantes
+       ne servent plus que de repli. */
+    if (wrap) {
+      var dec = (wrap.getAttribute('data-ad-size') || '').match(/^(\d+)x(\d+)$/);
+      if (dec) {
+        return { w: parseInt(dec[1], 10), h: parseInt(dec[2], 10) };
+      }
+    }
+
     // Cherche l'iframe (cas A-ADS) ou un élément à taille fixe
     var ifr = inner.querySelector('iframe');
-    var w = 0, h = 0;
 
     if (ifr) {
       // Largeur/hauteur depuis l'attribut style, width/height, ou data
@@ -47,7 +59,7 @@
     var inner = wrap.querySelector('.wt-ad-scale__inner');
     if (!inner) return;
 
-    var size = detectNativeSize(inner);
+    var size = detectNativeSize(inner, wrap);
     if (!size.w || !size.h) return;
 
     // Largeur disponible = largeur du wrapper
